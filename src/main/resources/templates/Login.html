@@ -64,22 +64,26 @@
 
 <script>
   document.getElementById('loginForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-              email: document.getElementById('email').value,
-              password: document.getElementById('password').value
-          })
-      });
-      const data = await response.json();
-      if (data.success) {
-          alert('Đăng nhập thành công!');
-      } else {
-          alert('Lỗi: ' + data.message);
-      }
-  };
+     e.preventDefault();
+     const email = document.getElementById('email').value;
+     const password = document.getElementById('password').value;
+
+     const response = await fetch('/api/auth/login', {
+         method: 'POST',
+         headers: {'Content-Type': 'application/json'},
+         body: JSON.stringify({ email, password })
+     });
+
+     const data = await response.json();
+     if (data.success) {
+         alert('Đăng nhập thành công!');
+         // Sau khi thành công, chuyển hướng trang
+         window.location.href = '/admin/users';
+     } else {
+         alert('Lỗi: ' + data.message);
+     }
+ };
+
 </script>
 </body>
 </html>
