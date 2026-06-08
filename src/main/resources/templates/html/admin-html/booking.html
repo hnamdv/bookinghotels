@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Management - Hotel Dashboard</title>
+    <link rel="stylesheet" href="/templates/css/admin-css/booking.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="dashboard-container">
+
+    <header class="main-header">
+        <div class="header-title">
+            <h1>Booking Management</h1>
+            <p class="breadcrumb">Home &gt; <span class="active">Bookings</span></p>
+        </div>
+        <div class="header-actions">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" placeholder="Search guests, IDs...">
+            </div>
+            <button class="btn btn-primary">+ Create New Booking</button>
+        </div>
+    </header>
+
+    <section class="kpi-grid">
+        <div class="kpi-card text-orange">
+            <div class="kpi-icon">🧳</div>
+            <div class="kpi-info">
+                <span class="kpi-label">Arrivals Today</span>
+                <span class="kpi-value">12</span>
+            </div>
+        </div>
+        <div class="kpi-card text-green">
+            <div class="kpi-icon">🚪</div>
+            <div class="kpi-info">
+                <span class="kpi-label">Departures</span>
+                <span class="kpi-value">08</span>
+            </div>
+        </div>
+        <div class="kpi-card text-blue">
+            <div class="kpi-icon">🏨</div>
+            <div class="kpi-info">
+                <span class="kpi-label">Occupancy</span>
+                <span class="kpi-value">94%</span>
+            </div>
+        </div>
+        <div class="kpi-card text-amber">
+            <div class="kpi-icon">💵</div>
+            <div class="kpi-info">
+                <span class="kpi-label">Avg Daily Rate</span>
+                <span class="kpi-value">$210</span>
+            </div>
+        </div>
+    </section>
+
+    <section class="filter-bar">
+        <div class="filter-group">
+            <label>Check-in Range</label>
+            <input type="text" value="Oct 12 - Oct 20" readonly>
+        </div>
+        <div class="filter-group">
+            <label>Room Category</label>
+            <select>
+                <option>All Types</option>
+                <option>Deluxe Suite</option>
+                <option>Exec King</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label>Status</label>
+            <select>
+                <option>All Status</option>
+                <option>Checked In</option>
+                <option>Confirmed</option>
+                <option>Pending</option>
+            </select>
+        </div>
+        <button class="btn btn-filter">Apply Filters</button>
+    </section>
+
+    <section class="table-wrapper">
+        <div class="table-scroll">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Booking ID</th>
+                    <th>Guest Name</th>
+                    <th>Room</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th class="text-center">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <td class="text-muted">#RH-9021</td>
+                    <td>
+                        <div class="guest-profile">
+                            <span class="avatar avatar-blue">EJ</span>
+                            <span class="guest-name">Eleanor Jenkins</span>
+                        </div>
+                    </td>
+                    <td>Deluxe Suite 402</td>
+                    <td>Oct 12, 2024</td>
+                    <td>Oct 16, 2024</td>
+                    <td class="total-price">$1,248.00</td>
+                    <td><span class="badge badge-green">● Checked In</span></td>
+                    <td class="text-center action-dots">•••</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">#RH-9022</td>
+                    <td>
+                        <div class="guest-profile">
+                            <span class="avatar avatar-orange">MT</span>
+                            <span class="guest-name">Marcus Thorne</span>
+                        </div>
+                    </td>
+                    <td>Exec King 108</td>
+                    <td>Oct 14, 2024</td>
+                    <td>Oct 16, 2024</td>
+                    <td class="total-price">$850.00</td>
+                    <td><span class="badge badge-blue">● Confirmed</span></td>
+                    <td class="text-center action-dots">•••</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">#RH-9023</td>
+                    <td>
+                        <div class="guest-profile">
+                            <span class="avatar avatar-purple">SL</span>
+                            <span class="guest-name">Sarah Lopez</span>
+                        </div>
+                    </td>
+                    <td>Superior Twin 201</td>
+                    <td>Oct 15, 2024</td>
+                    <td>Oct 17, 2024</td>
+                    <td class="total-price">$420.00</td>
+                    <td><span class="badge badge-gray">● Pending</span></td>
+                    <td class="text-center action-dots">•••</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">#RH-9024</td>
+                    <td>
+                        <div class="guest-profile">
+                            <span class="avatar avatar-amber">DK</span>
+                            <span class="guest-name">David Kim</span>
+                        </div>
+                    </td>
+                    <td>Royal Penthouse</td>
+                    <td>Oct 16, 2024</td>
+                    <td>Oct 22, 2024</td>
+                    <td class="total-price">$3,400.00</td>
+                    <td><span class="badge badge-green">● Checked In</span></td>
+                    <td class="text-center action-dots">•••</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pagination">
+            <span>Showing 1 to 4 of 50 bookings</span>
+            <div class="pagination-buttons">
+                <button class="btn-page">&lt;</button>
+                <button class="btn-page page-active">1</button>
+                <button class="btn-page">2</button>
+                <button class="btn-page">3</button>
+                <span class="page-dots">...</span>
+                <button class="btn-page">13</button>
+                <button class="btn-page">&gt;</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="widgets-grid">
+
+        <div class="widget-card card-light">
+            <div class="widget-header">
+                <h3>Recent Staff Logs</h3>
+                <a href="#" class="view-all-link">View All</a>
+            </div>
+            <div class="logs-list">
+                <div class="log-item border-amber">
+                    <p>Room 402 marked as "Inspected"</p>
+                    <span class="log-time">Alex Nguyen • 5 mins ago</span>
+                </div>
+                <div class="log-item border-blue">
+                    <p>New booking #RH-9024 confirmed</p>
+                    <span class="log-time">System Automator • 12 mins ago</span>
+                </div>
+                <div class="log-item border-red">
+                    <p>Late checkout requested - Room 108</p>
+                    <span class="log-time">Front Desk • 25 mins ago</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="widget-card card-dark">
+            <div class="widget-header-dark">
+                <h3>Occupancy Forecast</h3>
+                <p class="subtitle">Weekly room demand projections</p>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-bar-wrapper">
+                    <div class="bar" style="height: 60%;"></div>
+                    <span class="bar-label">Mon</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="bar" style="height: 50%;"></div>
+                    <span class="bar-label">Tue</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="bar" style="height: 75%;"></div>
+                    <span class="bar-label">Wed</span>
+                </div>
+                <div class="chart-bar-wrapper active-day">
+                    <div class="bar" style="height: 90%;"></div>
+                    <span class="bar-label">Thu</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="bar" style="height: 70%;"></div>
+                    <span class="bar-label">Fri</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="bar" style="height: 60%;"></div>
+                    <span class="bar-label">Sat</span>
+                </div>
+                <div class="chart-bar-wrapper">
+                    <div class="bar" style="height: 40%;"></div>
+                    <span class="bar-label">Sun</span>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+</div>
+
+</body>
+</html>
