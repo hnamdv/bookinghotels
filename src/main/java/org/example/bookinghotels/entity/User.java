@@ -4,6 +4,9 @@ package org.example.bookinghotels.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "\"USER\"")
 @Getter
@@ -31,8 +34,13 @@ public class User {
     @Column(name = "delete_at")
     private Boolean deleteAt = false;
 
-    // Nhiều User thuộc về một Role
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id")
-    private Role role;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+
 }
