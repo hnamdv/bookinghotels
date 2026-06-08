@@ -11,7 +11,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/users")
 @CrossOrigin(origins = "*") // Cho phép tất cả các nguồn (Frontend sau này) gọi API không bị lỗi CORS
-public class UserController {
+public class    UserController {
 
     @Autowired
     private UserService userService;
