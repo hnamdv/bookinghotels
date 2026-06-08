@@ -9,16 +9,23 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
-@CrossOrigin(origins = "*") // Cho phép tất cả các nguồn (Frontend sau này) gọi API không bị lỗi CORS
+@RequestMapping("/api/admin/users") // Sửa từ /api/users thành /api/admin/users
 public class UserController {
-
-    @Autowired
-    private UserService userService;
-
-    @GetMapping
-    public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    @Autowired private UserService userService;
+    @PutMapping("/{id}")
+    public ResponseEntity<User> updateUser(@PathVariable Integer id, @RequestBody User user) {
+        return ResponseEntity.ok(userService.updateUser(id, user));
     }
+
+        @GetMapping
+        public ResponseEntity<List<User>> listUsers() {
+            return ResponseEntity.ok(userService.getAllUsers());
+        }
+
+        @DeleteMapping("/{id}")
+        public ResponseEntity<?> deleteUser(@PathVariable Integer id) {
+            userService.softDelete(id);
+            return ResponseEntity.ok("Đã xóa khách hàng thành công");
+        }
+
 }
