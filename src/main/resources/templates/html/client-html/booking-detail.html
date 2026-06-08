@@ -1,13 +1,94 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Document</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chi tiết phòng | Feel Home</title>
+
+    <link rel="stylesheet" href="/templates/css/client-css/booking-detail.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+<div class="container">
+    <!-- Nút quay lại danh sách phòng -->
+    <button class="back-btn" onclick="goBackToRooms()">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách phòng
+    </button>
 
+    <!-- Header phòng: DELUXE ROOM -->
+    <div class="room-header">
+        <h1>🏷️ DELUXE ROOM</h1>
+        <div class="rating">
+            <div class="stars">
+                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+            </div>
+            <span class="rating-text">5.0/6.0 Lượt điểm giá</span>
+        </div>
+        <div class="room-capacity">
+            <span class="capacity-item"><i class="fas fa-user-friends"></i> 2 người</span>
+            <span class="capacity-item"><i class="fas fa-bed"></i> 2 giường lớn</span>
+            <span class="capacity-item"><i class="fas fa-expand-alt"></i> 25m²</span>
+        </div>
+    </div>
+
+    <!-- Grid 2 cột: Tiện ích + Chính sách -->
+    <div class="details-grid">
+        <!-- Tiện ích phòng ngủ -->
+        <div class="info-card">
+            <h3><i class="fas fa-bed"></i> Tiện nghi phòng ngủ</h3>
+            <div class="amenity-list">
+                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-wifi"></i> Wi-Fi</span><span class="amenity-value">1 nơi</span></div>
+                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-tv"></i> TV</span><span class="amenity-value">1 nơi</span></div>
+                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-phone-alt"></i> Điện thoại</span><span class="amenity-value">1 nơi</span></div>
+                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-thermometer-half"></i> Điều hòa</span><span class="amenity-value">1 nơi</span></div>
+            </div>
+        </div>
+
+        <!-- Chính sách & giờ giấc -->
+        <div class="info-card">
+            <h3><i class="fas fa-clock"></i> Chính sách & giờ giấc</h3>
+            <div class="policy-list">
+                <div class="policy-item"><span class="amenity-label">Nhận phòng</span><span class="amenity-value">14:00</span></div>
+                <div class="policy-item"><span class="amenity-label">Trả phòng</span><span class="amenity-value">12:00</span></div>
+                <div class="policy-item"><span class="amenity-label">Hệ thống phòng</span><span class="amenity-value">1 nơi</span></div>
+                <div class="policy-item"><span class="amenity-label">Điểm bảo mật</span><span class="amenity-value">1.000.000 VNĐ/điểm</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Phần giá và đặt phòng (tổng cộng, điện thoại) -->
+    <div class="booking-section">
+        <div class="price-box">
+            <span class="price-label">Tổng cộng (đã bao gồm VAT)</span>
+            <span class="price-amount">1.000.000 VND</span>
+            <span class="price-note"><i class="fas fa-phone-alt"></i> Điện thoại hỗ trợ: 1.000.000 VND (đặt cọc)</span>
+        </div>
+        <button class="btn-book" onclick="proceedToBooking()">
+            ĐẶT PHÒNG <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <!-- Dòng thông tin bổ sung (điện thoại, liên hệ) -->
+    <div style="margin-top: 20px; text-align: center; font-size: 13px; color: #8A99B4; padding: 16px 0;">
+        <i class="fas fa-headset"></i> Hotline hỗ trợ: 1900 1234 | Email: booking@feelhome.com
+    </div>
+</div>
+
+<script>
+    // Hàm quay lại trang danh sách phòng (rooms.html hoặc tên file bạn đặt)
+    function goBackToRooms() {
+        // Chuyển về trang danh sách phòng (có thể đổi tên file phù hợp)
+        window.location.href = 'booking.html';
+    }
+
+    // Hàm xử lý đặt phòng (chuyển sang bước tiếp theo)
+    function proceedToBooking() {
+        alert('Chức năng đặt phòng đang được phát triển. Bạn sẽ được chuyển đến trang thanh toán.');
+        // Có thể chuyển hướng: window.location.href = 'payment.html';
+    }
+</script>
 </body>
 </html>

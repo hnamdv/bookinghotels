@@ -1,244 +1,133 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Management - Hotel Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Quản lý đặt phòng | Dashboard UI</title>
     <link rel="stylesheet" href="/templates/css/admin-css/booking.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts Inter (giống phông chữ mặc định trong ảnh) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 (icon chuẩn) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
 </head>
 <body>
-
-<div class="dashboard-container">
-
-    <header class="main-header">
-        <div class="header-title">
-            <h1>Booking Management</h1>
-            <p class="breadcrumb">Home &gt; <span class="active">Bookings</span></p>
+<div class="dashboard">
+    <!-- HEADER: Booking Management + Home > Bookings -->
+    <div class="page-header">
+        <h1>Booking Management</h1>
+        <div class="breadcrumb">
+            <span>Home</span> &nbsp;&gt;&nbsp; <span>Bookings</span>
         </div>
-        <div class="header-actions">
-            <div class="search-box">
-                <span class="search-icon">🔍</span>
-                <input type="text" placeholder="Search guests, IDs...">
+    </div>
+
+    <!-- 4 thẻ số liệu UI giống ảnh (chỉ hiển thị label, ko có dữ liệu giả) -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-label">
+                Arrivals Today
+                <i class="fas fa-calendar-alt stat-icon"></i>
             </div>
-            <button class="btn btn-primary">+ Create New Booking</button>
+            <div class="stat-value"></div>
         </div>
-    </header>
-
-    <section class="kpi-grid">
-        <div class="kpi-card text-orange">
-            <div class="kpi-icon">🧳</div>
-            <div class="kpi-info">
-                <span class="kpi-label">Arrivals Today</span>
-                <span class="kpi-value">12</span>
+        <div class="stat-card">
+            <div class="stat-label">
+                Departures
+                <i class="fas fa-sign-out-alt stat-icon"></i>
             </div>
+            <div class="stat-value"></div>
         </div>
-        <div class="kpi-card text-green">
-            <div class="kpi-icon">🚪</div>
-            <div class="kpi-info">
-                <span class="kpi-label">Departures</span>
-                <span class="kpi-value">08</span>
+        <div class="stat-card">
+            <div class="stat-label">
+                Occupancy
+                <i class="fas fa-bed stat-icon"></i>
             </div>
+            <div class="stat-value"></div>
         </div>
-        <div class="kpi-card text-blue">
-            <div class="kpi-icon">🏨</div>
-            <div class="kpi-info">
-                <span class="kpi-label">Occupancy</span>
-                <span class="kpi-value">94%</span>
+        <div class="stat-card">
+            <div class="stat-label">
+                Avg Daily Rate
+                <i class="fas fa-dollar-sign stat-icon"></i>
             </div>
+            <div class="stat-value"></div>
         </div>
-        <div class="kpi-card text-amber">
-            <div class="kpi-icon">💵</div>
-            <div class="kpi-info">
-                <span class="kpi-label">Avg Daily Rate</span>
-                <span class="kpi-value">$210</span>
+    </div>
+
+    <!-- Thanh search options (góc phải) giữ nguyên placeholder -->
+    <div class="search-area">
+        <div class="search-bar-wrapper">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search options...">
+        </div>
+    </div>
+
+    <!-- Check-in range: hiển thị y hệt Oct 12 - Oct 20 -->
+    <div class="range-title">
+        <div class="range-badge">
+            <i class="far fa-calendar-alt"></i> Check-in range <strong>Oct 12 - Oct 20</strong>
+        </div>
+        <div class="chevron-icon"><i class="fas fa-chevron-down"></i></div>
+    </div>
+
+    <!-- Bảng danh sách đặt phòng (giữ nguyên cấu trúc, không có dữ liệu ảo) -->
+    <div class="table-wrapper">
+        <table class="booking-table">
+            <thead>
+            <tr><th>Booking ID</th><th>Guest Name</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Total</th><th>Status</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+            <!-- 4 dòng mẫu để hiển thị cấu trúc, nhưng giá trị để trống / placeholder thể hiện khung -->
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="status-badge"></span></td><td class="action-icon"><i class="fas fa-ellipsis-h"></i></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="status-badge"></span></td><td class="action-icon"><i class="fas fa-ellipsis-h"></i></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="status-badge"></span></td><td class="action-icon"><i class="fas fa-ellipsis-h"></i></td></tr>
+            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="status-badge"></span></td><td class="action-icon"><i class="fas fa-ellipsis-h"></i></td></tr>
+            </tbody>
+        </table>
+        <div class="table-footer">
+            <span class="pagination-info">Showing 1 to 10 of 50 bookings</span>
+        </div>
+    </div>
+
+    <!-- 2 phần cuối: Recent Staff Logs và Occupancy Forecast (chỉ khung) -->
+    <div class="bottom-grid">
+        <!-- Staff logs (chỉ giữ form, không nội dung giả) -->
+        <div class="staff-logs">
+            <div class="section-title">
+                Recent Staff Logs
+                <i class="fas fa-clock"></i>
             </div>
-        </div>
-    </section>
-
-    <section class="filter-bar">
-        <div class="filter-group">
-            <label>Check-in Range</label>
-            <input type="text" value="Oct 12 - Oct 20" readonly>
-        </div>
-        <div class="filter-group">
-            <label>Room Category</label>
-            <select>
-                <option>All Types</option>
-                <option>Deluxe Suite</option>
-                <option>Exec King</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label>Status</label>
-            <select>
-                <option>All Status</option>
-                <option>Checked In</option>
-                <option>Confirmed</option>
-                <option>Pending</option>
-            </select>
-        </div>
-        <button class="btn btn-filter">Apply Filters</button>
-    </section>
-
-    <section class="table-wrapper">
-        <div class="table-scroll">
-            <table class="data-table">
-                <thead>
-                <tr>
-                    <th>Booking ID</th>
-                    <th>Guest Name</th>
-                    <th>Room</th>
-                    <th>Check-in</th>
-                    <th>Check-out</th>
-                    <th>Total</th>
-                    <th>Status</th>
-                    <th class="text-center">Action</th>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="text-muted">#RH-9021</td>
-                    <td>
-                        <div class="guest-profile">
-                            <span class="avatar avatar-blue">EJ</span>
-                            <span class="guest-name">Eleanor Jenkins</span>
-                        </div>
-                    </td>
-                    <td>Deluxe Suite 402</td>
-                    <td>Oct 12, 2024</td>
-                    <td>Oct 16, 2024</td>
-                    <td class="total-price">$1,248.00</td>
-                    <td><span class="badge badge-green">● Checked In</span></td>
-                    <td class="text-center action-dots">•••</td>
-                </tr>
-                <tr>
-                    <td class="text-muted">#RH-9022</td>
-                    <td>
-                        <div class="guest-profile">
-                            <span class="avatar avatar-orange">MT</span>
-                            <span class="guest-name">Marcus Thorne</span>
-                        </div>
-                    </td>
-                    <td>Exec King 108</td>
-                    <td>Oct 14, 2024</td>
-                    <td>Oct 16, 2024</td>
-                    <td class="total-price">$850.00</td>
-                    <td><span class="badge badge-blue">● Confirmed</span></td>
-                    <td class="text-center action-dots">•••</td>
-                </tr>
-                <tr>
-                    <td class="text-muted">#RH-9023</td>
-                    <td>
-                        <div class="guest-profile">
-                            <span class="avatar avatar-purple">SL</span>
-                            <span class="guest-name">Sarah Lopez</span>
-                        </div>
-                    </td>
-                    <td>Superior Twin 201</td>
-                    <td>Oct 15, 2024</td>
-                    <td>Oct 17, 2024</td>
-                    <td class="total-price">$420.00</td>
-                    <td><span class="badge badge-gray">● Pending</span></td>
-                    <td class="text-center action-dots">•••</td>
-                </tr>
-                <tr>
-                    <td class="text-muted">#RH-9024</td>
-                    <td>
-                        <div class="guest-profile">
-                            <span class="avatar avatar-amber">DK</span>
-                            <span class="guest-name">David Kim</span>
-                        </div>
-                    </td>
-                    <td>Royal Penthouse</td>
-                    <td>Oct 16, 2024</td>
-                    <td>Oct 22, 2024</td>
-                    <td class="total-price">$3,400.00</td>
-                    <td><span class="badge badge-green">● Checked In</span></td>
-                    <td class="text-center action-dots">•••</td>
-                </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="pagination">
-            <span>Showing 1 to 4 of 50 bookings</span>
-            <div class="pagination-buttons">
-                <button class="btn-page">&lt;</button>
-                <button class="btn-page page-active">1</button>
-                <button class="btn-page">2</button>
-                <button class="btn-page">3</button>
-                <span class="page-dots">...</span>
-                <button class="btn-page">13</button>
-                <button class="btn-page">&gt;</button>
+            <div class="log-item">
+                <div class="log-main"></div>
+                <div class="log-meta"></div>
             </div>
-        </div>
-    </section>
-
-    <section class="widgets-grid">
-
-        <div class="widget-card card-light">
-            <div class="widget-header">
-                <h3>Recent Staff Logs</h3>
-                <a href="#" class="view-all-link">View All</a>
+            <div class="log-item">
+                <div class="log-main"></div>
+                <div class="log-meta"></div>
             </div>
-            <div class="logs-list">
-                <div class="log-item border-amber">
-                    <p>Room 402 marked as "Inspected"</p>
-                    <span class="log-time">Alex Nguyen • 5 mins ago</span>
-                </div>
-                <div class="log-item border-blue">
-                    <p>New booking #RH-9024 confirmed</p>
-                    <span class="log-time">System Automator • 12 mins ago</span>
-                </div>
-                <div class="log-item border-red">
-                    <p>Late checkout requested - Room 108</p>
-                    <span class="log-time">Front Desk • 25 mins ago</span>
-                </div>
+            <div class="log-item">
+                <div class="log-main"></div>
+                <div class="log-meta"></div>
             </div>
         </div>
 
-        <div class="widget-card card-dark">
-            <div class="widget-header-dark">
-                <h3>Occupancy Forecast</h3>
-                <p class="subtitle">Weekly room demand projections</p>
+        <!-- Occupancy Forecast với các cột trống, chỉ giữ nhãn ngày và tiêu đề -->
+        <div class="forecast-card">
+            <div class="section-title">
+                Occupancy Forecast
+                <i class="fas fa-chart-line"></i>
             </div>
-
-            <div class="chart-container">
-                <div class="chart-bar-wrapper">
-                    <div class="bar" style="height: 60%;"></div>
-                    <span class="bar-label">Mon</span>
-                </div>
-                <div class="chart-bar-wrapper">
-                    <div class="bar" style="height: 50%;"></div>
-                    <span class="bar-label">Tue</span>
-                </div>
-                <div class="chart-bar-wrapper">
-                    <div class="bar" style="height: 75%;"></div>
-                    <span class="bar-label">Wed</span>
-                </div>
-                <div class="chart-bar-wrapper active-day">
-                    <div class="bar" style="height: 90%;"></div>
-                    <span class="bar-label">Thu</span>
-                </div>
-                <div class="chart-bar-wrapper">
-                    <div class="bar" style="height: 70%;"></div>
-                    <span class="bar-label">Fri</span>
-                </div>
-                <div class="chart-bar-wrapper">
-                    <div class="bar" style="height: 60%;"></div>
-                    <span class="bar-label">Sat</span>
-                </div>
-                <div class="chart-bar-wrapper">
-                    <div class="bar" style="height: 40%;"></div>
-                    <span class="bar-label">Sun</span>
-                </div>
+            <div class="forecast-bars">
+                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Mon</div></div>
+                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Tue</div></div>
+                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Wed</div></div>
+                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Thu</div></div>
+                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Fri</div></div>
+                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Sat</div></div>
+                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Sun</div></div>
             </div>
+            <div class="random-note">Weekly randomized projections</div>
         </div>
-
-    </section>
-
+    </div>
 </div>
-
 </body>
 </html>
