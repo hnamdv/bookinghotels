@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Invoices {
+public class    Invoices {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

@@ -14,7 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
+import org.springframework.transaction.annotation.Transactional;
+import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -52,7 +53,47 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                         "Không tìm thấy chương trình khuyến mãi"
                 ));
     }
+    @Override
+    public void applyPromotionToRoom(Integer promotionId, Integer roomTypeId) {
+        Promotion promotion = promotionRepository.findById(promotionId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Khuyến mãi không tồn tại"
+                ));
 
+        RoomType roomType = roomTypeRepository.findById(roomTypeId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Loại phòng không tồn tại"
+                ));
+
+        boolean exists = promotionRoomTypeRepository
+                .existsByPromotion_IdAndRoomType_Id(promotionId, roomTypeId);
+
+        if (exists) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Khuyến mãi này đã áp dụng cho loại phòng này rồi"
+            );
+        }
+
+        PromotionRoomType mapping = new PromotionRoomType();
+        mapping.setPromotion(promotion);
+        mapping.setRoomType(roomType);
+
+        promotionRoomTypeRepository.save(mapping);
+    }
+    @Override
+    public List<RoomType> getAllRoomTypes() {
+        return roomTypeRepository.findAll();
+    }
+    @Override
+    public List<Integer> getRoomTypeIdsByPromotion(Integer promotionId) {
+        return promotionRoomTypeRepository.findByPromotion_Id(promotionId)
+                .stream()
+                .map(item -> item.getRoomType().getId())
+                .collect(Collectors.toList());
+    }
     @Override
     public Promotion updatePromotion(Integer id, Promotion promotion) {
         validatePromotion(promotion);
@@ -67,19 +108,57 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
         return promotionRepository.save(oldPromotion);
     }
-
     @Override
+    @Transactional
+    public void updatePromotionRoomTypes(Integer promotionId, List<Integer> roomTypeIds) {
+        Promotion promotion = getPromotionById(promotionId);
+
+        promotionRoomTypeRepository.deleteByPromotion_Id(promotionId);
+
+        if (roomTypeIds == null || roomTypeIds.isEmpty()) {
+            return;
+        }
+
+        for (Integer roomTypeId : roomTypeIds) {
+            RoomType roomType = roomTypeRepository.findById(roomTypeId)
+                    .orElseThrow(() -> new ResponseStatusException(
+                            HttpStatus.NOT_FOUND,
+                            "Loại phòng không tồn tại"
+                    ));
+
+            PromotionRoomType mapping = new PromotionRoomType();
+            mapping.setPromotion(promotion);
+            mapping.setRoomType(roomType);
+
+            promotionRoomTypeRepository.save(mapping);
+        }
+    }
+    @Override
+    @Transactional
     public void deletePromotion(Integer id) {
         Promotion promotion = getPromotionById(id);
+
+        promotionRoomTypeRepository.deleteByPromotion_Id(id);
+
         promotionRepository.delete(promotion);
     }
 
     @Override
-    public PromotionCheckResponse checkPromotionCode(String code) {
+    public PromotionCheckResponse checkPromotionCode(String code, Integer roomTypeId) {
         if (code == null || code.trim().isEmpty()) {
             return new PromotionCheckResponse(
                     false,
                     "Vui lòng nhập mã giảm giá",
+                    null,
+                    null,
+                    null
+            );
+        }
+
+        if (roomTypeId == null) {
+            return new PromotionCheckResponse(
+                    false,
+                    "Vui lòng chọn loại phòng",
                     null,
                     null,
                     null
@@ -98,6 +177,19 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                     "Mã giảm giá không tồn tại",
                     null,
                     cleanCode,
+                    null
+            );
+        }
+
+        boolean canApply = promotionRoomTypeRepository
+                .existsByPromotion_IdAndRoomType_Id(promotion.getId(), roomTypeId);
+
+        if (!canApply) {
+            return new PromotionCheckResponse(
+                    false,
+                    "Mã giảm giá không áp dụng cho loại phòng này",
+                    promotion.getId(),
+                    promotion.getPromotionName(),
                     null
             );
         }
@@ -143,27 +235,6 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                 promotion.getPromotionName(),
                 promotion.getDiscountPercent()
         );
-    }
-
-    @Override
-    public void applyPromotionToRoom(Integer promotionId, Integer roomTypeId) {
-        Promotion promotion = promotionRepository.findById(promotionId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Khuyến mãi không tồn tại"
-                ));
-
-        RoomType roomType = roomTypeRepository.findById(roomTypeId)
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Loại phòng không tồn tại"
-                ));
-
-        PromotionRoomType mapping = new PromotionRoomType();
-        mapping.setPromotion(promotion);
-        mapping.setRoomType(roomType);
-
-        promotionRoomTypeRepository.save(mapping);
     }
 
     @Override
