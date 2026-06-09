@@ -29,17 +29,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Tắt CSRF để dùng fetch API
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/admin/**").hasAuthority("ADMIN") // Mọi API quản trị bắt đầu bằng /api/admin/
+                        // 1. Các trang cho phép truy cập tự do (không cần đăng nhập)
+                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/api/auth/**").permitAll()
+
+                        // 2. TẤT CẢ các URL bắt đầu bằng /admin/... đều phải đăng nhập
+                        // Cú pháp .requestMatchers("/admin/**") sẽ bao phủ mọi đường dẫn con
+                        .requestMatchers("/admin/**", "/staff/**").authenticated()
+                        // 3. Nếu bạn muốn phân quyền cụ thể:
+                        // .requestMatchers("/admin/users/**").hasAuthority("ADMIN")
+
+                        // 4. Mọi request khác cũng yêu cầu đăng nhập
                         .anyRequest().authenticated()
                 )
-                // XÓA .formLogin(...) ĐI vì bạn đang dùng API để login
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED) // Lưu Session sau khi login thành công
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 );
+
         return http.build();
     }
     // Trong SecurityConfig.java, bạn có thể tạo 1 Bean filter đơn giản

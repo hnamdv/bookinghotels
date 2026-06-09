@@ -1,13 +1,17 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
-<head>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.w3.org/1999/xhtml"
+>
+<head >
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FeelHome - Hệ Thống Quản Trị</title>
+    <title>FeelHome - Hệ Thống Quản Trị Khách Sạn</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -186,16 +190,19 @@
     </style>
 </head>
 <body>
+
 <div class="admin-layout">
 
+    <!-- ==================== 1. SIDEBAR (PHÂN CHIA CHỨC NĂNG THEO USE CASE) ==================== -->
     <div class="sidebar">
         <div class="sidebar-brand">
             <div class="logo-icon"><i class="fa-solid fa-hotel"></i></div>
             <div>
                 <h4>FeelHome Admin</h4>
-                <span class="badge bg-dark" style="font-size: 0.65rem;">Quản Lý Hệ Thống</span>
+                <span class="badge bg-dark" style="font-size: 0.65rem; font-weight: 500; letter-spacing: 0.5px;">Quản Lý Hệ Thống</span>
             </div>
         </div>
+
         <div class="menu-container">
             <!-- PHÂN KHU 1: CHỨC NĂNG CỦA NHÂN VIÊN -->
             <div class="menu-section-title">Nghiệp Vụ Nhân Viên</div>
@@ -230,10 +237,10 @@
                     <a href="#"><i class="fa-solid fa-bed"></i>Quản lý phòng / dịch vụ</a>
                 </li>
                 <li>
-                    <a th:href="@{/admin/users}"><i class="fa-solid fa-user-gear"></i>Quản lý nhân sự</a>
+                    <a th:href="@{/admin/users/}"><i class="fa-solid fa-user-gear"></i>Quản lý nhân sự</a>
                 </li>
                 <li>
-                    <a th:href="@{/staff/promotions}"><i class="fa-solid fa-tags"></i>Quản lý khuyến mãi</a>
+                    <a href="#"><i class="fa-solid fa-tags"></i>Quản lý khuyến mãi</a>
                 </li>
                 <li>
                     <a href="#"><i class="fa-solid fa-images"></i>Upload photo</a>
@@ -245,40 +252,139 @@
                     <a href="#"><i class="fa-solid fa-database"></i>Sao lưu dữ liệu</a>
                 </li>
             </ul>
-
         </div>
+
         <div class="sidebar-user-footer">
             <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150" alt="Avatar">
             <div>
                 <div class="fw-bold small">Minh Anh</div>
-                <div class="text-muted" style="font-size: 0.75rem;">Tổng Quản Lý</div>
+                <div class="text-muted" style="font-size: 0.75rem;">Tổng Quản Lý (Admin)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== 2. MAIN PANEL (VÙNG HIỂN THỊ NỘI DUNG CHÍNH) ==================== -->
+    <div class="main-panel">
+        <div class="main-panel">
+            <div layout:fragment="content"></div>
+        </div>
+        <!-- HEADER TIÊU ĐỀ TRANG -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold m-0" style="color: var(--dark-blue);">Quản Lý Đơn Đặt Phòng</h2>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-0" style="font-size: 0.8rem;">
+                        <li class="breadcrumb-item"><a href="#" class="text-muted text-decoration-none">Bảng điều khiển</a></li>
+                        <li class="breadcrumb-item active text-dark fw-semibold" aria-current="page">Đơn đặt phòng</li>
+                    </ol>
+                </nav>
+            </div>
+            <button class="btn btn-dark btn-sm px-4 py-2 fw-semibold shadow-sm" style="background-color: var(--dark-blue); border-radius: 8px;">
+                <i class="fa-solid fa-plus me-2"></i>Tạo Đơn Đặt Phòng Mới
+            </button>
+        </div>
+
+        <!-- THÔNG SỐ NHANH -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="indicator-card">
+                    <div class="indicator-icon-wrapper" style="background-color: #fdf2eb; color: #bd6c3c;"><i class="fa-solid fa-bell"></i></div>
+                    <div>
+                        <span class="text-muted small d-block">Đơn mới trong ngày</span>
+                        <h4 class="fw-bold m-0">12 đơn vị</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="indicator-card">
+                    <div class="indicator-icon-wrapper"><i class="fa-solid fa-user-check"></i></div>
+                    <div>
+                        <span class="text-muted small d-block">Đang lưu trú</span>
+                        <h4 class="fw-bold m-0">84 phòng</h4>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="indicator-card">
+                    <div class="indicator-icon-wrapper" style="background-color: #eef2f7; color: #3f51b5;"><i class="fa-solid fa-circle-dollar-to-slot"></i></div>
+                    <div>
+                        <span class="text-muted small d-block">Doanh thu hôm nay</span>
+                        <h4 class="fw-bold m-0">$2,450</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BẢNG THEO DÕI NỘI BỘ DỮ LIỆU ĐỘNG -->
+        <div class="data-card mb-4">
+            <div class="table-responsive">
+                <table class="table custom-table table-borderless m-0">
+                    <thead>
+                    <tr>
+                        <th>Mã Đơn</th>
+                        <th>Khách Hàng</th>
+                        <th>Phòng</th>
+                        <th>Nhận Phòng</th>
+                        <th>Trả Phòng</th>
+                        <th>Tổng Tiền</th>
+                        <th class="text-center">Thao Tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="fw-bold text-muted">#FH-9021</td>
+                        <td class="fw-bold">Nguyễn Văn A</td>
+                        <td>Phòng Deluxe 402</td>
+                        <td>08/06/2026</td>
+                        <td>11/06/2026</td>
+                        <td class="fw-bold text-success">$1,240.00</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-light border px-2 py-1" title="Xử lý nghiệp vụ"><i class="fa-solid fa-ellipsis-h"></i></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="fw-bold text-muted">#FH-9022</td>
+                        <td class="fw-bold">Trần Thị B</td>
+                        <td>Phòng Standard 102</td>
+                        <td>09/06/2026</td>
+                        <td>10/06/2026</td>
+                        <td class="fw-bold text-success">$450.00</td>
+                        <td class="text-center">
+                            <button class="btn btn-sm btn-light border px-2 py-1" title="Xử lý nghiệp vụ"><i class="fa-solid fa-ellipsis-h"></i></button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- THYMELEAF LOOP ẨN: GIỮ LOGIC CHO CONTROLLER CỦA BẠN CHẠY KHÔNG BỊ LỖI -->
+        <div style="display:none;">
+            <div th:each="promo : ${promotions}">
+                <span th:text="${promo.title}"></span>
+                <span th:text="${promo.discount}"></span>
             </div>
         </div>
 
     </div>
-    <div class="main-panel">
-        <div layout:fragment="content">
-        </div>
-    </div>
 </div>
-<th:block layout:fragment="script"></th:block>
+
+<!-- Bootstrap 5 JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // Tự động thêm class "active" cho menu dựa trên URL hiện tại
-      document.addEventListener("DOMContentLoaded", function() {
-          const currentPath = window.location.pathname; // Lấy URL trang hiện tại
-          const menuLinks = document.querySelectorAll('.sidebar-menu li a');
+    document.addEventListener("DOMContentLoaded", function() {
+        const currentPath = window.location.pathname; // Lấy URL trang hiện tại
+        const menuLinks = document.querySelectorAll('.sidebar-menu li a');
 
-          menuLinks.forEach(link => {
-              if (link.getAttribute('href') === currentPath) {
-                  // Xóa active cũ, thêm active vào link khớp với URL
-                  document.querySelector('.sidebar-menu li.active')?.classList.remove('active');
-                  link.parentElement.classList.add('active');
-              }
-          });
-      });
+        menuLinks.forEach(link => {
+            if (link.getAttribute('href') === currentPath) {
+                // Xóa active cũ, thêm active vào link khớp với URL
+                document.querySelector('.sidebar-menu li.active')?.classList.remove('active');
+                link.parentElement.classList.add('active');
+            }
+        });
+    });
 </script>
 </body>
-
-
 </html>

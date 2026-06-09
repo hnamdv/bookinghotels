@@ -19,7 +19,17 @@ public class UserServiceImpl implements UserService {
         User user = getUserById(id);
         user.setName(userDetails.getName());
         user.setEmail(userDetails.getEmail());
-        // Cập nhật các trường khác nếu cần
+
+        // Xử lý nhiều quyền
+        if (userDetails.getRoles() != null) {
+            user.setRoles(userDetails.getRoles());
+        }
+
+        // Nếu có password mới thì mới cập nhật
+        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+     //       user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+        }
+
         return userRepository.save(user);
     }
     @Autowired private UserRepository userRepository;
@@ -27,10 +37,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<User> getAllUsers() {
-        // Chỉ lấy user chưa bị xóa (deleteAt = false)
-        return userRepository.findAll().stream()
-                .filter(u -> !u.getDeleteAt())
-                .collect(Collectors.toList());
+
+        return userRepository.findAll();
     }
 
     @Override
@@ -49,6 +57,12 @@ public class UserServiceImpl implements UserService {
     public void softDelete(Integer id) {
         User user = getUserById(id);
         user.setDeleteAt(true); // Đánh dấu xóa mềm
+        userRepository.save(user);
+    }
+    @Override
+    public void restoreUser(Integer id) {
+        User user = getUserById(id);
+        user.setDeleteAt(false); // Khôi phục lại
         userRepository.save(user);
     }
 

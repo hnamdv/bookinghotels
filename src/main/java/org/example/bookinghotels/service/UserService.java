@@ -20,4 +20,5 @@ public interface UserService {
     // Lấy danh sách tất cả các vai trò (roles)
     List<Role> getAllRoles();
     User updateUser(Integer id, User userDetails);
+    void restoreUser(Integer id);
 }

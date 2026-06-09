@@ -1,77 +1,230 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{homeadmin}">
 <head>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .data-card { background: #fff; border-radius: 8px; border: 1px solid #eee; padding: 15px; }
+        .avatar-circle { width: 35px; height: 35px; border-radius: 50%; background: #eef2f6; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #555; }
+        .custom-table thead th { font-size: 0.8rem; text-transform: uppercase; color: #6c757d; border-bottom: 2px solid #f8f9fa; }
+        .btn-action { border: none; background: transparent; color: #6c757d; padding: 5px; }
+        .pagination .page-link { color: #333; border: 1px solid #eee; }
+        .pagination .active .page-link { background-color: #002147; color: white; }
+    </style>
 </head>
-<body class="bg-gray-50 p-8">
-<div class="max-w-6xl mx-auto bg-white rounded-xl shadow p-6">
-    <h2 class="text-2xl font-bold mb-6">Quản lý khách hàng</h2>
+<body>
 
-    <table class="w-full text-left border-collapse">
-        <thead>
-        <tr class="border-b text-gray-400 text-sm">
-            <th class="pb-3">Họ và tên</th>
-            <th class="pb-3">Email</th>
-            <th class="pb-3">Thao tác</th>
-        </tr>
-        </thead>
-        <tbody id="userTable">
-        </tbody>
-    </table>
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark m-0">Quản Lý Nhân Viên</h2>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" id="toggleTrash" onclick="toggleView()">
+                <i class="fa-solid fa-trash me-1"></i> Xem thùng rác
+            </button>
+
+            <button class="btn btn-primary btn-sm" style="background-color: #9d5a37; border: none;" onclick="openModal()">
+                <i class="fa-solid fa-plus me-1"></i> Thêm nhân viên
+            </button>
+        </div>
+    </div>
+
+    <div class="data-card mb-4 d-flex gap-2">
+        <input type="text" id="searchInput" class="form-control form-control-sm w-25" placeholder="Tìm kiếm tên, email..." onkeyup="handleFilter()">
+        <select id="roleFilter" class="form-select form-select-sm w-auto" onchange="handleFilter()">
+            <option value="">Tất cả quyền</option>
+            <option value="Admin">Admin</option>
+            <option value="Staff">Staff</option>
+            <option value="Manager">Manager</option>
+        </select>
+    </div>
+
+    <div class="data-card">
+        <table class="table custom-table align-middle">
+            <thead>
+            <tr>
+                <th class="ps-3"><input type="checkbox"></th>
+                <th>#</th>
+                <th>Nhân viên</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Quyền</th>
+                <th class="text-center">Thao tác</th>
+            </tr>
+            </thead>
+            <tbody id="userTable"></tbody>
+        </table>
+
+        <nav class="d-flex justify-content-between align-items-center mt-3">
+            <small class="text-muted" id="pageInfo">Hiển thị 0 nhân viên</small>
+            <ul class="pagination pagination-sm mb-0" id="pagination"></ul>
+        </nav>
+    </div>
+
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header"><h5 class="modal-title">Thông tin nhân viên</h5></div>
+                <div class="modal-body">
+                    <input type="hidden" id="userId">
+                    <div class="mb-2"><label class="small">Username</label><input type="text" id="username" class="form-control"></div>
+                    <div class="mb-2"><label class="small">Họ tên</label><input type="text" id="name" class="form-control"></div>
+                    <div class="mb-2"><label class="small">Email</label><input type="email" id="email" class="form-control"></div>
+                    <div class="mb-3">
+                        <label class="small d-block">Phân quyền</label>
+                        <div class="btn-group" role="group" aria-label="Roles">
+                            <input type="checkbox" class="btn-check" name="roleCheck" id="role1" value="1">
+                            <label class="btn btn-outline-secondary btn-sm" for="role1">Admin</label>
+
+                            <input type="checkbox" class="btn-check" name="roleCheck" id="role2" value="2">
+                            <label class="btn btn-outline-secondary btn-sm" for="role2">Staff</label>
+
+                            <input type="checkbox" class="btn-check" name="roleCheck" id="role3" value="3">
+                            <label class="btn btn-outline-secondary btn-sm" for="role3">Manager</label>
+                        </div>
+                    </div>
+                    <div class="mb-2"><label class="small">Mật khẩu</label><input type="password" id="password" class="form-control" placeholder="Để trống nếu không đổi"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button class="btn btn-sm btn-light" data-bs-dismiss="modal">Đóng</button>
+                    <button class="btn btn-sm btn-primary" onclick="saveUser()">Lưu thay đổi</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<script>
-    // 1. Hàm load danh sách
-    async function loadUsers() {
-        try {
-            const res = await fetch('/api/admin/users', {
-                method: 'GET',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include' // BẮT BUỘC để gửi Cookie session
+<th:block layout:fragment="script">
+    <script>
+        const API_URL = '/api/admin/users';
+        let allUsers = [];
+        let currentPage = 1;
+        let isTrashView = false; // Trạng thái xem thùng rác
+        const rowsPerPage = 10;
+
+        async function loadUsers() {
+            try {
+                const res = await fetch(API_URL);
+                allUsers = await res.json();
+                renderTable();
+            } catch (err) { console.error("Lỗi:", err); }
+        }
+
+        function renderTable() {
+            const keyword = document.getElementById('searchInput').value.toLowerCase();
+            const roleSel = document.getElementById('roleFilter').value;
+
+            // 1. Lọc dữ liệu dựa trên trạng thái (isTrashView) và từ khóa
+            const filtered = allUsers.filter(u => {
+                const isDeleted = Boolean(u.deleteAt);
+                const matchStatus = (isDeleted === isTrashView);
+                const matchKeyword = (u.name.toLowerCase().includes(keyword) || u.email.toLowerCase().includes(keyword));
+                const matchRole = (roleSel === "" || (u.roles && u.roles.some(r => r.roleName === roleSel)));
+                return matchStatus && matchKeyword && matchRole;
             });
 
-            if (res.status === 403) {
-                alert("Bạn không có quyền truy cập!");
-                return;
-            }
+            const start = (currentPage - 1) * rowsPerPage;
+            const pageUsers = filtered.slice(start, start + rowsPerPage);
 
-            const users = await res.json();
-            const tbody = document.getElementById('userTable');
+            // 2. Render bảng
+            document.getElementById('userTable').innerHTML = pageUsers.map((u, i) => {
+                // Xử lý nút thao tác ngoài template string để tránh lỗi cú pháp
+                let actionHtml = '';
+                if (isTrashView) {
+                    actionHtml = `<button class="btn-action text-success" onclick="restoreUser(${u.id})" title="Khôi phục"><i class="fa-solid fa-rotate-left"></i></button>`;
+                } else {
+                    actionHtml = `
+                        <button class="btn-action" onclick="openModal(${u.id}, '${u.username}', '${u.name}', '${u.email}', ${JSON.stringify(u.roles).replace(/"/g, "'")})">
+                            <i class="fa-solid fa-pencil"></i>
+                        </button>
+                        <button class="btn-action text-danger" onclick="deleteUser(${u.id})"><i class="fa-solid fa-trash"></i></button>`;
+                }
 
-            tbody.innerHTML = users.map(u => `
-                <tr class="border-b hover:bg-gray-50">
-                    <td class="py-4 font-medium">${u.name || 'N/A'}</td>
-                    <td class="py-4 text-gray-600">${u.email || 'N/A'}</td>
-                    <td class="py-4">
-                        <button onclick="deleteUser(${u.id})" class="text-red-500 hover:text-red-700 font-medium">Xóa</button>
-                    </td>
-                </tr>
-            `).join('');
-        } catch (err) {
-            console.error("Lỗi khi tải dữ liệu:", err);
+                return `
+                    <tr>
+                        <td class="ps-3"><input type="checkbox"></td>
+                        <td>${start + i + 1}</td>
+                        <td><div class="d-flex align-items-center"><div class="avatar-circle me-2">${u.name.charAt(0).toUpperCase()}</div><span class="fw-bold">${u.name}</span></div></td>
+                        <td>${u.username}</td>
+                        <td>${u.email}</td>
+                        <td>${(u.roles || []).map(r => `<span class="badge bg-light text-dark border">${r.roleName}</span>`).join(' ')}</td>
+                        <td class="text-center">${actionHtml}</td>
+                    </tr>`;
+            }).join('');
+
+            updatePagination(filtered.length);
         }
-    }
 
-    // 2. Hàm xóa khách hàng
-    async function deleteUser(id) {
-        if(confirm('Xác nhận xóa khách hàng này?')) {
-            const res = await fetch(`/api/admin/users/${id}`, {
-                method: 'DELETE', // Phải là DELETE
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include' // BẮT BUỘC
+        function toggleView() {
+            isTrashView = !isTrashView;
+            const btn = document.getElementById('toggleTrash');
+            btn.innerHTML = isTrashView ? '<i class="fa-solid fa-users"></i> Xem tất cả' : '<i class="fa-solid fa-trash"></i> Xem thùng rác';
+            currentPage = 1;
+            renderTable();
+        }
+
+        function updatePagination(total) {
+            const pageCount = Math.ceil(total / rowsPerPage) || 1;
+            document.getElementById('pageInfo').innerText = `Hiển thị ${total} nhân viên`;
+
+            let html = `<li class="page-item ${currentPage === 1 ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage-1})">«</a></li>`;
+            for(let i=1; i<=pageCount; i++) html += `<li class="page-item ${i === currentPage ? 'active' : ''}"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+            html += `<li class="page-item ${currentPage === pageCount ? 'disabled' : ''}"><a class="page-link" href="#" onclick="changePage(${currentPage+1})">»</a></li>`;
+            document.getElementById('pagination').innerHTML = html;
+        }
+
+        function changePage(p) { currentPage = p; renderTable(); }
+        function handleFilter() { currentPage = 1; renderTable(); }
+
+        function openModal(id = '', username = '', name = '', email = '', roles = []) {
+            document.getElementById('userId').value = id;
+            document.getElementById('username').value = username;
+            document.getElementById('name').value = name;
+            document.getElementById('email').value = email;
+
+            document.querySelectorAll('input[name="roleCheck"]').forEach(cb => {
+                cb.checked = roles.some(r => r.id == cb.value);
             });
+            new bootstrap.Modal(document.getElementById('userModal')).show();
+        }
 
-            if (res.ok) {
-                alert("Xóa thành công!");
-                loadUsers(); // Tải lại bảng sau khi xóa
-            } else {
-                alert("Lỗi: Không thể xóa khách hàng!");
+        async function saveUser() {
+            const id = document.getElementById('userId').value;
+            const selectedRoles = Array.from(document.querySelectorAll('input[name="roleCheck"]:checked'))
+                                       .map(cb => ({ id: cb.value }));
+            const data = {
+                username: document.getElementById('username').value,
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                roles: selectedRoles
+            };
+
+            await fetch(id ? `${API_URL}/${id}` : API_URL, {
+                method: id ? 'PUT' : 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+            loadUsers();
+        }
+
+        async function deleteUser(id) {
+            if (confirm('Xóa nhân viên này?')) {
+                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+                loadUsers();
             }
         }
-    }
 
-    // Khởi chạy
-    loadUsers();
-</script>
+        async function restoreUser(id) {
+            if (confirm('Khôi phục tài khoản này?')) {
+                await fetch(`${API_URL}/restore/${id}`, { method: 'PUT' });
+                loadUsers();
+            }
+        }
+
+        loadUsers();
+    </script>
+</th:block>
 </body>
 </html>

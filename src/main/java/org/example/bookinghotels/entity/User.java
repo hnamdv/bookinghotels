@@ -1,6 +1,7 @@
 package org.example.bookinghotels.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -32,9 +33,8 @@ public class User {
     private String email;
 
     @Column(name = "delete_at")
-    private Boolean deleteAt = false;
-
-
+    @JsonProperty("deleteAt") // Đảm bảo tên này khớp với u.deleteAt trong JS
+    private Boolean deleteAt;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
