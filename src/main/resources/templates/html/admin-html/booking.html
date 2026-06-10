@@ -1,19 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Quản lý đặt phòng | Dashboard UI</title>
-    <link rel="stylesheet" href="/templates/css/admin-css/booking.css">
-    <!-- Google Fonts Inter (giống phông chữ mặc định trong ảnh) -->
+    <link rel="stylesheet" th:href="@{/css/admin-css/booking.css}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <!-- Font Awesome 6 (icon chuẩn) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
 </head>
 <body>
 <div class="dashboard">
-    <!-- HEADER: Booking Management + Home > Bookings -->
+    <!-- HEADER -->
     <div class="page-header">
         <h1>Booking Management</h1>
         <div class="breadcrumb">
@@ -21,113 +18,142 @@
         </div>
     </div>
 
-    <!-- 4 thẻ số liệu UI giống ảnh (chỉ hiển thị label, ko có dữ liệu giả) -->
+    <!-- 4 thẻ số liệu - DỮ LIỆU THẬT -->
     <div class="stats-row">
         <div class="stat-card">
             <div class="stat-label">
                 Arrivals Today
                 <i class="fas fa-calendar-alt stat-icon"></i>
             </div>
-            <div class="stat-value"></div>
+            <div class="stat-value" th:text="${arrivalsToday}">0</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">
                 Departures
                 <i class="fas fa-sign-out-alt stat-icon"></i>
             </div>
-            <div class="stat-value"></div>
+            <div class="stat-value" th:text="${departuresToday}">0</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">
                 Occupancy
                 <i class="fas fa-bed stat-icon"></i>
             </div>
-            <div class="stat-value"></div>
+            <div class="stat-value" th:text="${occupancy} + '%'">0%</div>
         </div>
         <div class="stat-card">
             <div class="stat-label">
                 Avg Daily Rate
                 <i class="fas fa-dollar-sign stat-icon"></i>
             </div>
-            <div class="stat-value"></div>
+            <div class="stat-value" th:text="'$' + ${avgDailyRate}">$0</div>
         </div>
     </div>
 
-    <!-- Thanh search options (góc phải) giữ nguyên placeholder -->
+    <!-- Search -->
     <div class="search-area">
         <div class="search-bar-wrapper">
             <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search options...">
+            <input type="text" id="searchInput" placeholder="Search options...">
         </div>
     </div>
 
-    <!-- Check-in range: hiển thị y hệt Oct 12 - Oct 20 -->
+    <!-- Check-in range dynamic -->
     <div class="range-title">
         <div class="range-badge">
-            <i class="far fa-calendar-alt"></i> Check-in range <strong>Oct 12 - Oct 20</strong>
+            <i class="far fa-calendar-alt"></i> Check-in range
+            <strong th:text="${#temporals.format(#temporals.createNow(), 'MMM dd')} + ' - ' + ${#temporals.format(#temporals.createNow().plusDays(7), 'MMM dd')}">
+                Oct 12 - Oct 20
+            </strong>
         </div>
         <div class="chevron-icon"><i class="fas fa-chevron-down"></i></div>
     </div>
 
-    <!-- Bảng danh sách đặt phòng (giữ nguyên cấu trúc, không có dữ liệu ảo) -->
+    <!-- Bảng danh sách đặt phòng - DỮ LIỆU THẬT -->
     <div class="table-wrapper">
-        <table class="booking-table">
+        <table class="booking-table" id="bookingTable">
             <thead>
             <tr><th>Booking ID</th><th>Guest Name</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Total</th><th>Status</th><th>Action</th></tr>
             </thead>
-            <tbody>
-            <!-- 4 dòng mẫu để hiển thị cấu trúc, nhưng giá trị để trống / placeholder thể hiện khung -->
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="status-badge"></span></td><td class="action-icon"><i class="fas fa-ellipsis-h"></i></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="status-badge"></span></td><td class="action-icon"><i class="fas fa-ellipsis-h"></i></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="status-badge"></span></td><td class="action-icon"><i class="fas fa-ellipsis-h"></i></td></tr>
-            <tr><td></td><td></td><td></td><td></td><td></td><td></td><td><span class="status-badge"></span></td><td class="action-icon"><i class="fas fa-ellipsis-h"></i></td></tr>
+            <tbody id="tableBody">
+            <tr th:each="bd, iterStat : ${bookingDetails}" th:if="${iterStat.index < 10}">
+                <td th:text="'#' + ${bd.booking.id}">#1001</td>
+                <td class="guest-name" th:text="${bd.booking.name}">Guest Name</td>
+                <td class="room-info" th:text="${bd.room.roomNumber} + ' - ' + ${bd.roomType.nameType}">Room 101</td>
+                <td th:text="${#temporals.format(bd.booking.checkinDate, 'MMM dd, yyyy')}">Jan 01, 2025</td>
+                <td th:text="${#temporals.format(bd.booking.checkoutDate, 'MMM dd, yyyy')}">Jan 02, 2025</td>
+                <td th:text="'$' + ${bd.price}">$0</td>
+                <td><span class="status-badge">CONFIRMED</span></td>                <td class="action-icon"><i class="fas fa-ellipsis-h"></i></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(bookingDetails)}">
+                <td colspan="8" style="text-align: center; padding: 40px;">📭 Không có dữ liệu đặt phòng</td>
+            </tr>
             </tbody>
         </table>
         <div class="table-footer">
-            <span class="pagination-info">Showing 1 to 10 of 50 bookings</span>
+            <span class="pagination-info" th:text="'Showing ' + ${#lists.size(bookingDetails)} + ' of ' + ${totalBookings} + ' bookings'">
+                Showing 0 of 0 bookings
+            </span>
         </div>
     </div>
 
-    <!-- 2 phần cuối: Recent Staff Logs và Occupancy Forecast (chỉ khung) -->
+    <!-- 2 cột cuối -->
     <div class="bottom-grid">
-        <!-- Staff logs (chỉ giữ form, không nội dung giả) -->
+        <!-- Recent Staff Logs -->
         <div class="staff-logs">
             <div class="section-title">
                 Recent Staff Logs
                 <i class="fas fa-clock"></i>
             </div>
-            <div class="log-item">
-                <div class="log-main"></div>
-                <div class="log-meta"></div>
+            <div th:each="log : ${recentLogs}" class="log-item">
+                <div class="log-main" th:text="'Booking #' + ${log.id} + ' by ' + ${log.name}">
+                    Booking created
+                </div>
+                <div class="log-meta">
+                    <i class="far fa-user-circle"></i>
+                    <span th:text="${log.name} + ' - ' + ${#temporals.format(log.bookingDate, 'dd/MM/yyyy HH:mm')}">User - date</span>
+                </div>
             </div>
-            <div class="log-item">
-                <div class="log-main"></div>
-                <div class="log-meta"></div>
-            </div>
-            <div class="log-item">
-                <div class="log-main"></div>
-                <div class="log-meta"></div>
+            <div th:if="${#lists.isEmpty(recentLogs)}" class="log-item">
+                <div class="log-main">No recent activity</div>
+                <div class="log-meta"><i class="fas fa-info-circle"></i> System ready</div>
             </div>
         </div>
 
-        <!-- Occupancy Forecast với các cột trống, chỉ giữ nhãn ngày và tiêu đề -->
+        <!-- Occupancy Forecast -->
         <div class="forecast-card">
             <div class="section-title">
                 Occupancy Forecast
                 <i class="fas fa-chart-line"></i>
             </div>
-            <div class="forecast-bars">
-                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Mon</div></div>
-                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Tue</div></div>
-                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Wed</div></div>
-                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Thu</div></div>
-                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Fri</div></div>
-                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Sat</div></div>
-                <div class="bar-day"><div class="bar"><div class="fill-bar" style="height:0%"></div></div><div class="day-label">Sun</div></div>
+            <div class="forecast-bars" id="forecastBars">
+                <div th:each="day, iterStat : ${forecastDays}" class="bar-day">
+                    <div class="bar">
+                        <div class="fill-bar" th:style="'height:' + ${forecastData[iterStat.index]} + '%'"></div>
+                    </div>
+                    <div class="day-label" th:text="${day}">Mon</div>
+                </div>
             </div>
-            <div class="random-note">Weekly randomized projections</div>
+            <div class="random-note">Next 7 days occupancy forecast</div>
         </div>
     </div>
 </div>
+
+<script>
+    // Search filter client-side
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('keyup', function() {
+            const value = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                if (row.cells) {
+                    const text = Array.from(row.cells).map(cell => cell.innerText.toLowerCase()).join(' ');
+                    row.style.display = text.includes(value) ? '' : 'none';
+                }
+            });
+        });
+    }
+</script>
 </body>
 </html>

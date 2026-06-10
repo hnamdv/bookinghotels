@@ -34,4 +34,6 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             @Param("roomIds") List<Integer> roomIds,
             @Param("checkinDate") LocalDate checkinDate,
             @Param("checkoutDate") LocalDate checkoutDate);
+    @Query("SELECT bd FROM BookingDetail bd JOIN FETCH bd.booking JOIN FETCH bd.room")
+    List<BookingDetail> findAllWithDetails();
 }
