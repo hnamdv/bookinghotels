@@ -1,6 +1,5 @@
 package org.example.bookinghotels.entity;
-
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.bookinghotels.entity.User;
@@ -21,7 +20,8 @@ public class Role {
     @Column(name = "role_name", length = 50, nullable = false)
     private String roleName;
 
-    // Một Role có thể nằm trong nhiều User
-    @OneToMany(mappedBy = "role", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "roles")
+    @JsonIgnore
+    // Role không phải là chủ sở hữu, User mới là chủ
     private List<User> users;
 }
