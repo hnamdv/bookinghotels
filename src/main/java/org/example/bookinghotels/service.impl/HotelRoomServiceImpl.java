@@ -21,7 +21,7 @@ public class HotelRoomServiceImpl implements HotelRoomService {
     @Autowired
     private RoomRepository roomRepository;
 
-    // --- 1. QUẢN LÝ KHÁCH SẠN (HOTELS) ---
+    // ==================== 1. QUẢN LÝ KHÁCH SẠN (HOTELS) ====================
     @Override
     public List<Hotels> getAllHotels() {
         return hotelRepository.findAll();
@@ -46,7 +46,7 @@ public class HotelRoomServiceImpl implements HotelRoomService {
         hotelRepository.deleteById(id);
     }
 
-    // --- 2. QUẢN LÝ PHÒNG VẬT LÝ (ROOM) ---
+    // ==================== 2. QUẢN LÝ PHÒNG VẬT LÝ (ROOM) ====================
     @Override
     public List<Room> getAllRooms() {
         return roomRepository.findAll();
@@ -60,12 +60,12 @@ public class HotelRoomServiceImpl implements HotelRoomService {
     @Override
     public Room updateRoom(Integer id, Room roomDetails) {
         Room room = roomRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng với ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng vật lý với ID: " + id));
 
-        // Cập nhật số phòng (101, 102...)
+        // Cập nhật số phòng (Ví dụ từ 101 sửa thành 101A)
         room.setRoomNumber(roomDetails.getRoomNumber());
 
-        // 🛠️ Nếu Entity Room của bạn không có thuộc tính 'status', hãy tạm thời comment dòng dưới lại bằng dấu //
+        // Nếu Entity Room của bạn có trường status, hãy bỏ dấu comment // ở dưới ra nhé
         // room.setStatus(roomDetails.getStatus());
 
         return roomRepository.save(room);
@@ -73,19 +73,21 @@ public class HotelRoomServiceImpl implements HotelRoomService {
 
     @Override
     public void deleteRoom(Integer id) {
-        roomRepository.deleteById(id);
+        Room room = roomRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng vật lý với ID: " + id));
+        roomRepository.delete(room);
     }
 
-    // --- 3. QUẢN LÝ LỊCH TRẠNG THÁI PHÒNG ---
+    // ==================== 3. QUẢN LÝ LỊCH TRẠNG THÁI PHÒNG ====================
     @Override
     @Transactional
     public void lockRoomCalendarForBooking(Integer roomId, LocalDate checkIn, LocalDate checkOut) {
-        // Viết logic xử lý khóa ngày của bạn ở đây (nếu có dùng bảng RoomAvailability)
+        // Tạm thời để trống hoặc viết logic xử lý khóa ngày bằng bảng RoomAvailability tại đây
     }
 
     @Override
     @Transactional
     public void updateRoomStatusManually(Integer roomId, LocalDate date, String status) {
-        // Viết logic admin cập nhật trạng thái dọn dẹp/bảo trì ở đây
+        // Tạm thời để trống hoặc viết logic admin cập nhật trạng thái dọn dẹp/bảo trì tại đây
     }
 }

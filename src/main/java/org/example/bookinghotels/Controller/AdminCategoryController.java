@@ -28,10 +28,20 @@ public class AdminCategoryController {
 
     // ==================== 1. CRUD KHÁCH SẠN (HOTELS) ====================
     @GetMapping("/hotels")
-    public List<Hotels> getAllHotels() { return hotelRoomService.getAllHotels(); }
+    public List<Hotels> getAllHotels() {
+        return hotelRoomService.getAllHotels();
+    }
 
     @PostMapping("/hotels")
-    public Hotels createHotel(@RequestBody Hotels hotel) { return hotelRoomService.createHotel(hotel); }
+    public Hotels createHotel(@RequestBody Hotels hotel) {
+        return hotelRoomService.createHotel(hotel);
+    }
+
+    @PutMapping("/hotels/{id}")
+    public ResponseEntity<Hotels> updateHotel(@PathVariable Integer id, @RequestBody Hotels hotelDetails) {
+        Hotels updatedHotel = hotelRoomService.updateHotel(id, hotelDetails);
+        return ResponseEntity.ok(updatedHotel);
+    }
 
     @DeleteMapping("/hotels/{id}")
     public ResponseEntity<?> deleteHotel(@PathVariable Integer id) {
@@ -41,7 +51,26 @@ public class AdminCategoryController {
 
     // ==================== 2. CRUD LOẠI PHÒNG & UPLOAD ẢNH CHỐNG LAG ====================
     @GetMapping("/room-types")
-    public List<RoomType> getAllRoomTypes() { return roomTypeService.getAllRoomTypes(); }
+    public List<RoomType> getAllRoomTypes() {
+        return roomTypeService.getAllRoomTypes();
+    }
+
+    @PostMapping("/room-types")
+    public RoomType createRoomType(@RequestBody RoomType roomType) {
+        return roomTypeService.createRoomType(roomType);
+    }
+
+    @PutMapping("/room-types/{id}")
+    public ResponseEntity<RoomType> updateRoomType(@PathVariable Integer id, @RequestBody RoomType roomTypeDetails) {
+        RoomType updatedRoomType = roomTypeService.updateRoomType(id, roomTypeDetails);
+        return ResponseEntity.ok(updatedRoomType);
+    }
+
+    @DeleteMapping("/room-types/{id}")
+    public ResponseEntity<?> deleteRoomType(@PathVariable Integer id) {
+        roomTypeService.deleteRoomType(id);
+        return ResponseEntity.ok(Map.of("message", "Xóa loại phòng thành công!"));
+    }
 
     @PostMapping("/room-types/{id}/upload-image")
     public ResponseEntity<?> uploadImage(@PathVariable Integer id, @RequestParam("file") MultipartFile file) {
@@ -57,10 +86,30 @@ public class AdminCategoryController {
 
     // ==================== 3. CRUD PHÒNG VẬT LÝ (101, 102...) ====================
     @GetMapping("/rooms")
-    public List<Room> getAllRooms() { return hotelRoomService.getAllRooms(); }
+    public List<Room> getAllRooms() {
+        return hotelRoomService.getAllRooms();
+    }
 
     @PostMapping("/rooms")
-    public Room createRoom(@RequestBody Room room) { return hotelRoomService.createRoom(room); }
+    public Room createRoom(@RequestBody Room room) {
+        return hotelRoomService.createRoom(room);
+    }
+
+    @PutMapping("/rooms/{id}")
+    public ResponseEntity<Room> updateRoom(@PathVariable Integer id, @RequestBody Room roomDetails) {
+        Room updatedRoom = hotelRoomService.updateRoom(id, roomDetails);
+        return ResponseEntity.ok(updatedRoom);
+    }
+
+    @DeleteMapping("/rooms/{id}")
+    public ResponseEntity<?> deleteRoom(@PathVariable Integer id) {
+        try {
+            hotelRoomService.deleteRoom(id);
+            return ResponseEntity.ok(Map.of("status", "success", "message", "Xóa phòng vật lý thành công!"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Không thể xóa phòng này vì đang dính dữ liệu đặt phòng!"));
+        }
+    }
 
     // ==================== 4. CẬP NHẬT TRẠNG THÁI LỊCH PHÒNG THỦ CÔNG ====================
     @PostMapping("/rooms/{roomId}/status-manual")
