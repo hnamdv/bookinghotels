@@ -61,9 +61,5 @@ public class RoomType {
 
     @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RoomImg> images;
-    // Mở file RoomType.java lên nha Hải
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "hotel_id")
-    @JsonIgnore // Thêm thằng này vào, nó sẽ chặn không cho in ngược về khách sạn, hết sạch lặp và gạch đỏ!
-    private Hotels hotels;
+
 }
