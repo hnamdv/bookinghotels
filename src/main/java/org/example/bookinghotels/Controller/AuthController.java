@@ -1,10 +1,12 @@
 package org.example.bookinghotels.Controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.example.bookinghotels.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView; // Import cái này
 
@@ -18,23 +20,44 @@ public class AuthController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+    @GetMapping("/api/auth/logout")
+    public String logout(HttpSession session) {
+        // 1. Xóa toàn bộ dữ liệu trong session
+        session.invalidate();
 
+        // 2. Clear thông tin bảo mật của Spring Security
+        SecurityContextHolder.clearContext();
+
+        // 3. Chuyển hướng về trang đăng nhập
+        return "redirect:/login"; // Hoặc đường dẫn file html trang đăng nhập của bạn
+    }
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request, HttpServletRequest servletRequest) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
+        // Log để xem dữ liệu có đến được controller không
+        System.out.println("DEBUG: Request received: " + request);
+
+        String loginId = request.get("loginId");
+        String password = request.get("password");
+
+        // Kiểm tra dữ liệu bị null
+        if (loginId == null || loginId.isEmpty()) {
+            return ResponseEntity.status(400).body(Map.of("success", false, "message", "Vui lòng nhập Username hoặc Email!"));
+        }
+
         try {
-            // 1. Gọi Service của bạn để xác thực
-            authService.login(request.get("email"), request.get("password"));
-
-            // 2. TỰ ĐỘNG TẠO SESSION: Spring Security sẽ tự lưu vào Cookie JSESSIONID
-            // Nếu bạn dùng formLogin mặc định thì nó tự làm, nhưng vì bạn dùng API,
-            // bạn phải tự tạo Authentication object và đẩy vào SecurityContext
-
-            // (Đoạn code cấp quyền nạp vào SecurityContext như tôi đã gửi ở trên)
-
+            String result = authService.login(loginId, password);
             return ResponseEntity.ok(Map.of("success", true, "message", "Đăng nhập thành công"));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("success", false, "message", e.getMessage()));
         }
     }
-
+    @GetMapping("/login")
+    public String loginPage() {
+        // Nếu đã có Authentication trong SecurityContext, đẩy thẳng vào admin
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
+            return "redirect:/admin/users";
+        }
+        return "login"; // Trả về file login.html
+    }
 }

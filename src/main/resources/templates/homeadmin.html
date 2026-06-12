@@ -247,12 +247,16 @@
             </ul>
 
         </div>
-        <div class="sidebar-user-footer">
-            <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=150" alt="Avatar">
-            <div>
-                <div class="fw-bold small">Minh Anh</div>
-                <div class="text-muted" style="font-size: 0.75rem;">Tổng Quản Lý</div>
+        <div class="sidebar-user-footer d-flex align-items-center p-3 border-top">
+            <img th:src="@{'https://i.pravatar.cc/150?u=' + ${session.fullName}}"
+                 alt="Avatar" class="rounded-circle me-2" style="width: 40px; height: 40px;">
+
+            <div class="flex-grow-1">
+                <div class="fw-bold small" th:text="${session.fullName}">Username</div>
             </div>
+            <a href="/api/auth/logout" class="text-danger ms-2" title="Đăng xuất">
+                <i class="fa-solid fa-right-from-bracket"></i>
+            </a>
         </div>
 
     </div>

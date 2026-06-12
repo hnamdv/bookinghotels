@@ -18,63 +18,67 @@
 
     @Service
     public class AuthService {
-
-        @Autowired
-        private UserRepository userRepository;
+        @Autowired private UserRepository userRepository;
+        @Autowired private PasswordEncoder passwordEncoder;
 
         private final Map<String, Integer> loginAttempts = new ConcurrentHashMap<>();
         private static final int MAX_ATTEMPT = 5;
 
-        public String login(String email, String rawPassword) {
-            // 1. Tìm user bằng Email
-            User user = userRepository.findByEmail(email)
+        public String login(String identifier, String rawPassword) {
+            // Kiểm tra đầu vào
+            if (identifier == null || identifier.trim().isEmpty()) {
+                throw new RuntimeException("Vui lòng nhập Username hoặc Email!");
+            }
+
+            // 1. Tìm user (sử dụng .trim() để tránh lỗi thừa dấu cách)
+            String cleanId = identifier.trim();
+            User user = userRepository.findByEmail(cleanId)
+                    .or(() -> userRepository.findByUsername(cleanId))
                     .orElseThrow(() -> new RuntimeException("Tài khoản không tồn tại!"));
 
-            // 2. Kiểm tra tài khoản đã bị khóa chưa
-            if (user.getDeleteAt() != null && user.getDeleteAt()) {
+            // 2. Kiểm tra tài khoản bị khóa
+            if (Boolean.TRUE.equals(user.getDeleteAt())) {
                 throw new RuntimeException("Tài khoản của bạn đã bị khóa!");
             }
 
-            // 3. Kiểm tra mật khẩu (So sánh thô - không băm)
-            if (!user.getPassword().equals(rawPassword)) {
-                // Nếu sai, tăng đếm số lần sai
-                int attempts = loginAttempts.getOrDefault(email, 0) + 1;
-                loginAttempts.put(email, attempts);
+            // 3. Kiểm tra mật khẩu (Sử dụng matches của BCrypt)
+            if (!passwordEncoder.matches(rawPassword, user.getPassword())) {
+               int attempts = loginAttempts.getOrDefault(user.getEmail(), 0) + 1;
+               loginAttempts.put(user.getEmail(), attempts);
 
-                if (attempts >= MAX_ATTEMPT) {
-                    user.setDeleteAt(true); // Khóa tài khoản
-                    userRepository.save(user);
+              if (attempts >= MAX_ATTEMPT) {
+                  user.setDeleteAt(true);
+               userRepository.save(user);
                     throw new RuntimeException("Tài khoản đã bị khóa do nhập sai 5 lần!");
-                }
+              }
                 throw new RuntimeException("Sai mật khẩu! Còn " + (MAX_ATTEMPT - attempts) + " lần thử.");
             }
 
-            // 4. Nếu đăng nhập thành công
-            loginAttempts.remove(email); // Reset số lần đếm
+            // 4. Đăng nhập thành công: Reset đếm và thiết lập Security Context
+            loginAttempts.remove(user.getEmail());
 
-            // --- LOG 1: Kiểm tra danh sách Role lấy từ DB ---
-            System.out.println("DEBUG: User roles size: " + user.getRoles().size());
-            user.getRoles().forEach(r -> System.out.println("DEBUG: Role found: " + r.getRoleName()));
-            // Lấy danh sách Role từ database và chuyển thành Authority
             List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
-                    .map(role -> new SimpleGrantedAuthority(role.getRoleName())) // RoleName khớp với DB (ADMIN)
+                    .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
                     .collect(Collectors.toList());
-// --- LOG 2: Kiểm tra danh sách quyền đã nạp ---
-            System.out.println("DEBUG: Authorities list: " + authorities);
-            // Tạo đối tượng Authentication
-            UsernamePasswordAuthenticationToken auth =
-                    new UsernamePasswordAuthenticationToken(user.getEmail(), null, authorities);
 
-            // Nạp vào SecurityContext để Spring Security nhận diện được user này ở các request sau
+            UsernamePasswordAuthenticationToken auth =
+                    new UsernamePasswordAuthenticationToken(user.getUsername(), null, authorities);
+
             SecurityContextHolder.getContext().setAuthentication(auth);
 
-// Thêm đoạn này vào cuối hàm login (sau SecurityContextHolder.getContext().setAuthentication(auth);)
-
+            // 5. Cấu hình Session
             ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
             HttpSession session = attr.getRequest().getSession(true);
+
+            // Lưu thông tin để hiển thị ở sidebar
             session.setAttribute("SPRING_SECURITY_CONTEXT", SecurityContextHolder.getContext());
-            return "SUCCESS_TOKEN_123";
+            session.setAttribute("fullName", (user.getName() != null) ? user.getName() : user.getUsername());
 
+            String roleDisplay = (user.getRoles() != null && !user.getRoles().isEmpty())
+                    ? user.getRoles().stream().map(r -> r.getRoleName()).collect(Collectors.joining(", "))
+                    : "Nhân viên";
+            session.setAttribute("role", roleDisplay);
+
+            return "SUCCESS";
         }
-
     }
