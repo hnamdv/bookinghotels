@@ -1,0 +1,65 @@
+package org.example.bookinghotels.Controller;
+
+import org.example.bookinghotels.entity.Promotion;
+import org.example.bookinghotels.service.SystemManagementService;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Collections;
+import java.util.List;
+
+@Controller
+@RequestMapping("/staff/promotions")
+public class PromotionPageController {
+
+    private final SystemManagementService systemManagementService;
+
+    public PromotionPageController(SystemManagementService systemManagementService) {
+        this.systemManagementService = systemManagementService;
+    }
+
+    @GetMapping
+    public String promotionPage(Model model) {
+        model.addAttribute("promotion", new Promotion());
+        model.addAttribute("promotions", systemManagementService.getAllPromotions());
+        model.addAttribute("roomTypes", systemManagementService.getAllRoomTypes());
+        model.addAttribute("selectedRoomTypeIds", Collections.emptyList());
+
+        return "html/staff-html/promotions";
+    }
+
+    @PostMapping("/save")
+    public String savePromotion(
+            @ModelAttribute Promotion promotion,
+            @RequestParam(required = false) List<Integer> roomTypeIds
+    ) {
+        Promotion savedPromotion;
+
+        if (promotion.getId() == null) {
+            savedPromotion = systemManagementService.savePromotion(promotion);
+        } else {
+            savedPromotion = systemManagementService.updatePromotion(promotion.getId(), promotion);
+        }
+
+        systemManagementService.updatePromotionRoomTypes(savedPromotion.getId(), roomTypeIds);
+
+        return "redirect:/staff/promotions";
+    }
+
+    @GetMapping("/edit/{id}")
+    public String editPromotion(@PathVariable Integer id, Model model) {
+        model.addAttribute("promotion", systemManagementService.getPromotionById(id));
+        model.addAttribute("promotions", systemManagementService.getAllPromotions());
+        model.addAttribute("roomTypes", systemManagementService.getAllRoomTypes());
+        model.addAttribute("selectedRoomTypeIds", systemManagementService.getRoomTypeIdsByPromotion(id));
+
+        return "html/staff-html/promotions";
+    }
+
+    @GetMapping("/delete/{id}")
+    public String deletePromotion(@PathVariable Integer id) {
+        systemManagementService.deletePromotion(id);
+        return "redirect:/staff/promotions";
+    }
+}
