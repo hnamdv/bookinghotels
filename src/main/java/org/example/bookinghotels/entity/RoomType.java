@@ -61,4 +61,5 @@ public class RoomType {
 
     @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RoomImg> images;
+
 }
