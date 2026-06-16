@@ -10,16 +10,26 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
-    List<Booking> findAll();
+    // Load tất cả booking kèm detail và room type (không filter)
+    @Query("SELECT DISTINCT b FROM Booking b " +
+            "LEFT JOIN FETCH b.bookingDetails bd " +
+            "LEFT JOIN FETCH bd.roomType rt")
+    List<Booking> findAllWithDetails();
 
-    @Query("SELECT b FROM Booking b ORDER BY b.bookingDate DESC")
-    List<Booking> findTop5ByOrderByBookingDateDesc();
-
-    // Lọc booking theo status (dựa trên paymentStatus hoặc trạng thái)
-    @Query("SELECT DISTINCT bd.booking FROM BookingDetail bd WHERE " +
-            "(:status IS NULL OR " +
-            "(:status = 'CHECKED' AND bd.booking.checkoutDate < CURRENT_DATE) OR " +
-            "(:status = 'PENDING' AND bd.booking.checkinDate > CURRENT_DATE) OR " +
-            "(:status = 'CANCELLED' AND 1=0))")
-    List<Booking> findBookingsByStatus(@Param("status") String status);
+    // Filter theo status, ngày, roomType
+    @Query("SELECT DISTINCT b FROM Booking b " +
+            "LEFT JOIN FETCH b.bookingDetails bd " +
+            "LEFT JOIN FETCH bd.roomType rt " +
+            "WHERE (:roomTypeId IS NULL OR rt.id = :roomTypeId) " +
+            "AND (:status IS NULL OR " +
+            "     (:status = 'CHECKED' AND b.checkoutDate < CURRENT_DATE) OR " +
+            "     (:status = 'PENDING' AND b.checkinDate > CURRENT_DATE) OR " +
+            "     (:status = 'CONFIRMED' AND b.checkinDate <= CURRENT_DATE AND b.checkoutDate >= CURRENT_DATE)) " +
+            "AND (:startDate IS NULL OR b.checkinDate >= :startDate) " +
+            "AND (:endDate IS NULL OR b.checkinDate <= :endDate) " +
+            "ORDER BY b.bookingDate DESC")
+    List<Booking> findFilteredWithDetails(@Param("roomTypeId") Integer roomTypeId,
+                                          @Param("status") String status,
+                                          @Param("startDate") LocalDate startDate,
+                                          @Param("endDate") LocalDate endDate);
 }

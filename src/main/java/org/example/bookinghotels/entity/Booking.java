@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "booking")
@@ -35,4 +37,7 @@ public class Booking {
 
     @Column(name = "checkout_date", nullable = false)
     private LocalDate checkoutDate;
+    //Bao//
+    @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
+    private List<BookingDetail> bookingDetails = new ArrayList<>();
 }
