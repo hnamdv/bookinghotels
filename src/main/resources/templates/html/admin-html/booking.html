@@ -83,7 +83,8 @@
         @media (max-width:780px) { body { padding:20px; } .stats-row { flex-direction:column; } .filters-bar { flex-direction:column; align-items:stretch; } .room-card-grid { grid-template-columns: repeat(2, 1fr); } .bottom-grid { flex-direction:column; } }
     </style>
 </head>
-<body>
+<div layout:fragment="content">
+    <div class="dashboard">
 <div class="dashboard">
     <div class="page-header"><h1>Booking Management</h1></div>
 
@@ -281,5 +282,5 @@
         });
     }
 </script>
-</body>
+    </div>
 </html>
