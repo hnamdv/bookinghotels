@@ -1,13 +1,257 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Booking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Đặt phòng | Feel Home</title>
+    <link rel="stylesheet" href="/static/css/client-css/booking.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
+<div class="container">
+    <!-- Header -->
+    <div class="page-header">
+        <h1>🏠 Feel Home</h1>
+        <p>Chọn phòng yêu thích và trải nghiệm tuyệt vời tại Feel Home</p>
+    </div>
 
+    <!-- Tab điều hướng: Đặt phòng, Lịch sử đặt phòng, Đặt tiền, Đặt hoàn thành, Đặt bảy -->
+    <div class="tabs">
+        <button class="tab active" data-tab="booking">Đặt phòng</button>
+        <button class="tab" data-tab="history">Lịch sử đặt phòng</button>
+        <button class="tab" data-tab="deposit">Đặt tiền</button>
+        <button class="tab" data-tab="completed">Đặt hoàn thành</button>
+        <button class="tab" data-tab="seven">Đặt bảy</button>
+    </div>
+
+    <!-- NỘI DUNG: DANH SÁCH PHÒNG (ĐẶT PHÒNG) -->
+    <div id="bookingSection" class="booking-section-content">
+        <div class="rooms-grid">
+            <!-- Card phòng 1: DELUXE ROOM -->
+            <div class="room-card">
+                <div class="room-info">
+                    <div class="room-type">
+                        <i class="fas fa-bed"></i> DELUXE ROOM
+                    </div>
+                    <div class="room-dates">
+                        <span class="date-badge"><i class="far fa-calendar-alt"></i> 29/05/2026 - 30/05/2026</span>
+                    </div>
+                    <div class="room-meta">
+                        <span><i class="fas fa-moon"></i> 1 Đêm</span>
+                        <span><i class="fas fa-user-friends"></i> 2 Người, 1 Phòng</span>
+                    </div>
+                </div>
+                <div class="room-price">
+                    <div class="price">2.500.000 VND</div>
+                    <button class="btn-detail" onclick="goToBookingDetail('deluxe')">
+                        ĐẶT NGAY <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card phòng 2: STANDARD ROOM -->
+            <div class="room-card">
+                <div class="room-info">
+                    <div class="room-type">
+                        <i class="fas fa-hotel"></i> STANDARD ROOM
+                    </div>
+                    <div class="room-dates">
+                        <span class="date-badge"><i class="far fa-calendar-alt"></i> 29/05/2026 - 30/05/2026</span>
+                    </div>
+                    <div class="room-meta">
+                        <span><i class="fas fa-moon"></i> 1 Đêm</span>
+                        <span><i class="fas fa-user-friends"></i> 2 Người, 1 Phòng</span>
+                    </div>
+                </div>
+                <div class="room-price">
+                    <div class="price">1.800.000 VND</div>
+                    <button class="btn-detail" onclick="goToBookingDetail('standard')">
+                        ĐẶT NGAY <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card phòng 3: SUITE ROOM -->
+            <div class="room-card">
+                <div class="room-info">
+                    <div class="room-type">
+                        <i class="fas fa-crown"></i> SUITE ROOM
+                    </div>
+                    <div class="room-dates">
+                        <span class="date-badge"><i class="far fa-calendar-alt"></i> 03/06/2026 - 05/06/2026</span>
+                    </div>
+                    <div class="room-meta">
+                        <span><i class="fas fa-moon"></i> 2 Đêm</span>
+                        <span><i class="fas fa-user-friends"></i> 2 Người, 1 Phòng</span>
+                    </div>
+                </div>
+                <div class="room-price">
+                    <div class="price">12.000.000 VND</div>
+                    <button class="btn-detail" onclick="goToBookingDetail('suite')">
+                        ĐẶT NGAY <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Card phòng 4: FAMILY ROOM -->
+            <div class="room-card">
+                <div class="room-info">
+                    <div class="room-type">
+                        <i class="fas fa-users"></i> FAMILY ROOM
+                    </div>
+                    <div class="room-dates">
+                        <span class="date-badge"><i class="far fa-calendar-alt"></i> 10/06/2026 - 12/06/2026</span>
+                    </div>
+                    <div class="room-meta">
+                        <span><i class="fas fa-moon"></i> 2 Đêm</span>
+                        <span><i class="fas fa-user-friends"></i> 4 Người, 1 Phòng</span>
+                    </div>
+                </div>
+                <div class="room-price">
+                    <div class="price">3.800.000 VND</div>
+                    <button class="btn-detail" onclick="goToBookingDetail('family')">
+                        ĐẶT NGAY <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG: LỊCH SỬ ĐẶT PHÒNG (form hiển thị khi bấm vào tab Lịch sử) -->
+    <div id="historySection" class="history-section" style="display: none;">
+        <div class="history-header">📋 Lịch sử đặt phòng</div>
+        <div class="history-sub">Guinly cốt chuyển đi của bạn và xem lại những trải nghiệm tuyệt vời tại Feel Home</div>
+
+        <div class="history-item">
+            <div class="history-info">
+                <h4>DELUXE ROOM</h4>
+                <div class="history-dates">29/05/2026 - 30/05/2026</div>
+                <div class="history-meta">1 Đêm · 2 Người, 1 Phòng</div>
+                <span class="history-status">Đã hoàn thành</span>
+            </div>
+            <div class="history-price">2.500.000 VND</div>
+            <button class="btn-view-detail" onclick="viewHistoryDetail('deluxe')">Xem chi tiết</button>
+        </div>
+
+        <div class="history-item">
+            <div class="history-info">
+                <h4>STANDARD ROOM</h4>
+                <div class="history-dates">20/04/2026 - 21/04/2026</div>
+                <div class="history-meta">1 Đêm · 2 Người, 1 Phòng</div>
+                <span class="history-status">Đã hoàn thành</span>
+            </div>
+            <div class="history-price">1.800.000 VND</div>
+            <button class="btn-view-detail" onclick="viewHistoryDetail('standard')">Xem chi tiết</button>
+        </div>
+
+        <div class="history-item">
+            <div class="history-info">
+                <h4>SUITE ROOM</h4>
+                <div class="history-dates">03/06/2026 - 05/06/2026</div>
+                <div class="history-meta">2 Đêm · 2 Người, 1 Phòng</div>
+                <span class="history-status">Sắp diễn ra</span>
+            </div>
+            <div class="history-price">12.000.000 VND</div>
+            <button class="btn-view-detail" onclick="viewHistoryDetail('suite')">Xem chi tiết</button>
+        </div>
+    </div>
+
+    <!-- Các form cho Đặt tiền, Đặt hoàn thành, Đặt bảy (giữ để đầy đủ điều hướng) -->
+    <div id="depositSection" class="history-section" style="display: none;">
+        <div class="history-header">💰 Đặt tiền (Đang xử lý cọc)</div>
+        <div class="history-sub">Các đơn đặt cọc đang chờ thanh toán hoặc xác nhận</div>
+        <div class="empty-history">
+            <i class="fas fa-hourglass-half" style="font-size: 48px; opacity: 0.5;"></i>
+            <p style="margin-top: 12px;">Hiện chưa có đơn đặt tiền nào</p>
+        </div>
+    </div>
+
+    <div id="completedSection" class="history-section" style="display: none;">
+        <div class="history-header">✅ Đặt hoàn thành</div>
+        <div class="history-sub">Những chuyến đi đã kết thúc và trải nghiệm tuyệt vời</div>
+        <div class="empty-history">
+            <i class="fas fa-check-circle" style="font-size: 48px; opacity: 0.5;"></i>
+            <p style="margin-top: 12px;">Chưa có đơn đặt hoàn thành nào</p>
+        </div>
+    </div>
+
+    <div id="sevenSection" class="history-section" style="display: none;">
+        <div class="history-header">📅 Đặt bảy</div>
+        <div class="history-sub">Các đơn đặt phòng trong vòng 7 ngày qua</div>
+        <div class="empty-history">
+            <i class="fas fa-calendar-week" style="font-size: 48px; opacity: 0.5;"></i>
+            <p style="margin-top: 12px;">Không có đơn đặt nào trong 7 ngày gần đây</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Hàm chuyển sang trang chi tiết phòng (booking-detail.html)
+    function goToBookingDetail(roomType) {
+        window.location.href = `booking-detail.html?room=${encodeURIComponent(roomType)}`;
+    }
+
+    // Hàm xem chi tiết lịch sử đặt phòng
+    function viewHistoryDetail(roomName) {
+        alert(`Xem chi tiết lịch sử đặt phòng: ${roomName}\nChức năng đang phát triển.`);
+        // Có thể chuyển hướng: window.location.href = `history-detail.html?room=${roomName}`;
+    }
+
+    // XỬ LÝ ĐIỀU HƯỚNG TABS (Tất cả đều nằm trong booking.html)
+    const tabs = document.querySelectorAll('.tab');
+    const bookingSection = document.getElementById('bookingSection');
+    const historySection = document.getElementById('historySection');
+    const depositSection = document.getElementById('depositSection');
+    const completedSection = document.getElementById('completedSection');
+    const sevenSection = document.getElementById('sevenSection');
+
+    function showSection(sectionId) {
+        // Ẩn tất cả
+        if (bookingSection) bookingSection.style.display = 'none';
+        if (historySection) historySection.style.display = 'none';
+        if (depositSection) depositSection.style.display = 'none';
+        if (completedSection) completedSection.style.display = 'none';
+        if (sevenSection) sevenSection.style.display = 'none';
+
+        // Hiện section được chọn
+        const section = document.getElementById(sectionId);
+        if (section) section.style.display = 'block';
+    }
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            // Xóa active cũ
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+
+            const tabValue = this.getAttribute('data-tab');
+            switch(tabValue) {
+                case 'booking':
+                    showSection('bookingSection');
+                    break;
+                case 'history':
+                    showSection('historySection');
+                    break;
+                case 'deposit':
+                    showSection('depositSection');
+                    break;
+                case 'completed':
+                    showSection('completedSection');
+                    break;
+                case 'seven':
+                    showSection('sevenSection');
+                    break;
+                default:
+                    showSection('bookingSection');
+            }
+        });
+    });
+
+    // Mặc định hiển thị phần đặt phòng (booking)
+    showSection('bookingSection');
+</script>
 </body>
 </html>
