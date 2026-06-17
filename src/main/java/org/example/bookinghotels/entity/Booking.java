@@ -35,4 +35,10 @@ public class Booking {
 
     @Column(name = "checkout_date", nullable = false)
     private LocalDate checkoutDate;
+
+    @Column(name = "actual_checkin")
+    private LocalDateTime actualCheckin;
+
+    @Column(name = "actual_checkout")
+    private LocalDateTime actualCheckout;
 }

@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lễ tân POS | FeelHome Hotel</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="fh-header">
+    <div class="fh-header__inner">
+        <a href="/" class="fh-logo">
+            <span class="fh-logo__icon">◈</span>
+            <span class="fh-logo__text">FEELHOME</span>
+        </a>
+
+        <nav class="fh-nav">
+            <a href="/" class="fh-nav__link">Trang Chủ</a>
+            <a href="/fwb-manager.html" class="fh-nav__link">Menu</a>
+            <a href="/pos-order.html" class="fh-nav__link">POS</a>
+            <a href="/reception-pos.html" class="fh-nav__link active">Lễ tân</a>
+        </nav>
+
+        <div class="fh-header__actions">
+            <button class="fh-hamburger" id="fh-hamburger">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="admin-container">
+
+        <div class="admin-header">
+            <div>
+                <h1>🛎️ Lễ tân POS</h1>
+                <p>Check-in / Check-out khách tại quầy</p>
+            </div>
+
+            <button class="btn-add" onclick="loadData()">🔄 Tải lại</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Khách</th>
+                    <th>SĐT</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Trạng thái</th>
+                    <th>Hành động</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody">
+                <tr><td colspan="7" class="empty">⏳ Đang tải...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</main>
+
+<footer class="fh-footer">
+    <div class="fh-footer__inner">
+        <div>
+            <a href="/" class="fh-logo">
+                <span class="fh-logo__icon">◈</span>
+                <span class="fh-logo__text">FEELHOME</span>
+            </a>
+            <p>Nơi sự sang trọng giao thoa cùng cảm giác bình yên.</p>
+        </div>
+        <div>
+            <h4>KHÁM PHÁ</h4>
+            <a href="/#rooms-section">Phòng & Suite</a>
+            <a href="/#about">Về chúng tôi</a>
+        </div>
+        <div>
+            <h4>LIÊN HỆ</h4>
+            <p>Email: info@feelhome.vn</p>
+            <p>Hotline: 1900 0000</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    const API = "/staff/reception";
+
+    async function loadData() {
+        console.log("📡 Đang tải dữ liệu...");
+
+        const tbody = document.getElementById("tableBody");
+        if (!tbody) {
+            console.error("❌ Không tìm thấy tableBody!");
+            return;
+        }
+
+        try {
+            const res = await fetch(API + "/today");
+            console.log("📊 Status:", res.status);
+
+            if (!res.ok) {
+                const text = await res.text();
+                tbody.innerHTML = `<tr><td colspan="7" class="empty">❌ Lỗi ${res.status}: ${text}</td></tr>`;
+                return;
+            }
+
+            const data = await res.json();
+            console.log("✅ Dữ liệu nhận được:", data);
+            renderData(data);
+
+        } catch (e) {
+            console.error("❌ Lỗi:", e);
+            tbody.innerHTML = `<tr><td colspan="7" class="empty">❌ Lỗi kết nối: ${e.message}</td></tr>`;
+        }
+    }
+
+    function renderData(data) {
+        const tbody = document.getElementById("tableBody");
+        if (!tbody) return;
+
+        if (!data || data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="empty">📭 Không có booking nào hôm nay</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = "";
+        const today = new Date().toISOString().slice(0, 10);
+
+        data.forEach(b => {
+            const status = getStatus(b);
+            const isToday = b.checkinDate === today;
+            const isCheckedIn = status === 'CHECKED_IN';
+            const isCheckedOut = status === 'CHECKED_OUT';
+
+            const row = document.createElement("tr");
+            if (isToday) row.className = 'today-row';
+
+            row.innerHTML = `
+                <td><strong>${b.id ?? ''}</strong></td>
+                <td><strong>${b.name ?? 'Chưa có tên'}</strong></td>
+                <td>${b.phone ?? '—'}</td>
+                <td>${b.checkinDate ?? '—'}</td>
+                <td>${b.checkoutDate ?? '—'}</td>
+                <td><span class="status-badge status-${status}">${status}</span></td>
+                <td>
+                    <div class="action-group">
+                        <button class="btn-checkin ${isCheckedIn || isCheckedOut ? 'btn-disabled' : ''}"
+                            onclick="checkin(${b.id})">
+                            ✅ Check-in
+                        </button>
+                        <button class="btn-checkout ${!isCheckedIn ? 'btn-disabled' : ''}"
+                            onclick="checkout(${b.id})">
+                            📤 Check-out
+                        </button>
+                    </div>
+                </td>
+            `;
+
+            tbody.appendChild(row);
+        });
+    }
+
+    function getStatus(b) {
+        // Đã check-out
+        if (b.actualCheckout) {
+            return "CHECKED_OUT";
+        }
+
+        // Đã check-in
+        if (b.actualCheckin) {
+            return "CHECKED_IN";
+        }
+
+        const today = new Date().toISOString().slice(0, 10);
+
+        // Chưa tới ngày nhận phòng
+        if (today < b.checkinDate) {
+            return "PENDING";
+        }
+
+        // Tới ngày nhưng chưa check-in
+        return "IN_STAY";
+    }
+
+    window.checkin = async function(id) {
+        console.log("✅ CHECKIN CLICK:", id);
+        if (!confirm('Xác nhận Check-in cho khách này?')) return;
+
+        try {
+            const res = await fetch(`${API}/checkin/${id}`, {
+                method: "POST"
+            });
+
+            const text = await res.text();
+            console.log("📝 CHECKIN RESPONSE:", text);
+
+            if (!res.ok) {
+                alert("❌ Check-in lỗi: " + text);
+                return;
+            }
+
+            alert("✅ " + text);
+            loadData();
+
+        } catch (e) {
+            console.error("❌ Lỗi:", e);
+            alert("❌ Lỗi check-in request: " + e.message);
+        }
+    };
+
+    window.checkout = async function(id) {
+        console.log("📤 CHECKOUT CLICK:", id);
+        if (!confirm('Xác nhận Check-out cho khách này?')) return;
+
+        try {
+            const res = await fetch(`${API}/checkout/${id}`, {
+                method: "POST"
+            });
+
+            const text = await res.text();
+            console.log("📝 CHECKOUT RESPONSE:", text);
+
+            if (!res.ok) {
+                alert("❌ Check-out lỗi: " + text);
+                return;
+            }
+
+            alert("✅ " + text);
+            loadData();
+
+        } catch (e) {
+            console.error("❌ Lỗi:", e);
+            alert("❌ Lỗi check-out request: " + e.message);
+        }
+    };
+
+    // Hamburger menu
+    document.addEventListener('DOMContentLoaded', function() {
+        const ham = document.getElementById('fh-hamburger');
+        const nav = document.querySelector('.fh-nav');
+        if (ham && nav) {
+            ham.addEventListener('click', function() {
+                nav.classList.toggle('open');
+            });
+        }
+        loadData();
+    });
+</script>
+
+</body>
+</html>

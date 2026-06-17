@@ -279,7 +279,94 @@ tr:hover {
     color: white;
 }
 
-/* Modal */
+/* ===== RECEPTION POS ===== */
+.status-badge {
+    padding: 4px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-PENDING {
+    background: #f3f4f6;
+    color: #6b7280;
+}
+
+.status-IN_STAY {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-CHECKED_IN {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-CHECKED_OUT {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.btn-checkin {
+    background: #16a34a;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+    margin-right: 6px;
+}
+
+.btn-checkin:hover:not(.btn-disabled) {
+    background: #15803d;
+    transform: scale(1.02);
+}
+
+.btn-checkout {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.btn-checkout:hover:not(.btn-disabled) {
+    background: #b91c1c;
+    transform: scale(1.02);
+}
+
+.btn-disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.today-row {
+    background: #fffbeb !important;
+    border-left: 3px solid var(--gold);
+}
+
+.today-row:hover {
+    background: #fef3c7 !important;
+}
+
+.action-group {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* ===== MODAL ===== */
 .modal {
     position: fixed;
     inset: 0;
@@ -725,5 +812,15 @@ tr:hover {
     .action-btn {
         padding: 4px 8px;
         font-size: 10px;
+    }
+    .action-group {
+        flex-direction: column;
+        gap: 4px;
+    }
+    .btn-checkin, .btn-checkout {
+        padding: 6px 12px;
+        font-size: 11px;
+        width: 100%;
+        margin-right: 0;
     }
 }
