@@ -1,36 +1,53 @@
 package org.example.bookinghotels.service.impl;
 
-
 import org.example.bookinghotels.entity.Role;
 import org.example.bookinghotels.entity.User;
 import org.example.bookinghotels.repository.RoleRepository;
 import org.example.bookinghotels.repository.UserRepository;
 import org.example.bookinghotels.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder; // Thêm import này
 import org.springframework.stereotype.Service;
 import java.util.List;
-import java.util.stream.Collectors;
-
 
 @Service
 public class UserServiceImpl implements UserService {
+
+    @Autowired private UserRepository userRepository;
+    @Autowired private RoleRepository roleRepository;
+    @Autowired private PasswordEncoder passwordEncoder;// 1. Inject PasswordEncoder
+
+    @Override
+    public User createUser(User user) {
+        // 2. Luôn luôn băm mật khẩu khi tạo mới
+        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
+        return userRepository.save(user);
+    }
+
     @Override
     public User updateUser(Integer id, User userDetails) {
         User user = getUserById(id);
         user.setName(userDetails.getName());
         user.setEmail(userDetails.getEmail());
-        // Cập nhật các trường khác nếu cần
+
+        // Xử lý nhiều quyền
+        if (userDetails.getRoles() != null) {
+            user.setRoles(userDetails.getRoles());
+        }
+
+        // 3. Chỉ băm và cập nhật mật khẩu nếu có mật khẩu mới gửi lên
+        if (userDetails.getPassword() != null && !userDetails.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(userDetails.getPassword()));
+        }
+
         return userRepository.save(user);
     }
-    @Autowired private UserRepository userRepository;
-    @Autowired private RoleRepository roleRepository;
 
     @Override
     public List<User> getAllUsers() {
-        // Chỉ lấy user chưa bị xóa (deleteAt = false)
-        return userRepository.findAll().stream()
-                .filter(u -> !u.getDeleteAt())
-                .collect(Collectors.toList());
+        return userRepository.findAll();
     }
 
     @Override
@@ -40,15 +57,16 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User createUser(User user) {
-        // Lưu ý: Trước khi save, hãy đảm bảo password đã được băm (hash)
-        return userRepository.save(user);
+    public void softDelete(Integer id) {
+        User user = getUserById(id);
+        user.setDeleteAt(true);
+        userRepository.save(user);
     }
 
     @Override
-    public void softDelete(Integer id) {
+    public void restoreUser(Integer id) {
         User user = getUserById(id);
-        user.setDeleteAt(true); // Đánh dấu xóa mềm
+        user.setDeleteAt(false);
         userRepository.save(user);
     }
 

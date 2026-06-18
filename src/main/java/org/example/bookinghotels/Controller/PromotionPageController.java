@@ -2,11 +2,13 @@ package org.example.bookinghotels.Controller;
 
 import org.example.bookinghotels.entity.Promotion;
 import org.example.bookinghotels.service.SystemManagementService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
+@PreAuthorize("hasAuthority('ROLE_PROMOTION')")
 @RequestMapping("/staff/promotions")
 public class PromotionPageController {
 

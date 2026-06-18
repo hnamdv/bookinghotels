@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class Hotels {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,4 +39,5 @@ public class Hotels {
 
     @OneToMany(mappedBy = "hotels", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<RoomType> roomTypes;
+
 }

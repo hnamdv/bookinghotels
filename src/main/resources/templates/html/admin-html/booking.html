@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{homeadmin}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý đặt phòng | Dashboard UI</title>
+    <title>Quản lý đặt phòng | FeelHome Admin</title>
     <link rel="stylesheet" th:href="@{/css/admin-css/booking.css}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -81,203 +83,192 @@
         @media (max-width:780px) { body { padding:20px; } .stats-row { flex-direction:column; } .filters-bar { flex-direction:column; align-items:stretch; } .room-card-grid { grid-template-columns: repeat(2, 1fr); } .bottom-grid { flex-direction:column; } }
     </style>
 </head>
-<body>
-<div class="dashboard">
-    <div class="page-header"><h1>Booking Management</h1></div>
+<div layout:fragment="content">
+    <div class="dashboard">
+        <div class="page-header"><h1>Quản lý đặt phòng</h1></div>
 
-    <div class="stats-row">
-        <div class="stat-card"><div class="stat-header"><span class="stat-title">Arrivals Today</span></div><div class="stat-body"><div class="stat-number" th:text="${arrivalsToday}">0</div></div></div>
-        <div class="stat-card"><div class="stat-header"><span class="stat-title">Departures</span></div><div class="stat-body"><div class="stat-number" th:text="${departuresToday}">0</div></div></div>
-        <div class="stat-card"><div class="stat-header"><span class="stat-title">Occupancy</span></div><div class="stat-body"><div class="stat-number" th:text="${occupancy} + '%'">0%</div></div></div>
-        <div class="stat-card"><div class="stat-header"><span class="stat-title">Avg Daily Rate</span></div><div class="stat-body"><div class="stat-number" th:text="'$' + ${avgDailyRate}">$0</div></div></div>
-    </div>
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-header"><span class="stat-title">Khách đến hôm nay</span></div><div class="stat-body"><div class="stat-number" th:text="${arrivalsToday}">0</div></div></div>
+            <div class="stat-card"><div class="stat-header"><span class="stat-title">Khách đi hôm nay</span></div><div class="stat-body"><div class="stat-number" th:text="${departuresToday}">0</div></div></div>
+            <div class="stat-card"><div class="stat-header"><span class="stat-title">Tỉ lệ lấp đầy</span></div><div class="stat-body"><div class="stat-number" th:text="${occupancy} + '%'">0%</div></div></div>
+            <div class="stat-card"><div class="stat-header"><span class="stat-title">Giá trung bình/đêm</span></div><div class="stat-body"><div class="stat-number" th:text="'$' + ${avgDailyRate}">$0</div></div></div>
+        </div>
 
-    <div class="search-area"><div class="search-bar-wrapper"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search bookings..."></div></div>
-    <form method="get" action="/admin/bookings" class="filters-bar">
-        <div class="filter-group"><label>Room Category</label><select name="roomTypeId"><option value="">All Types</option><option th:each="type : ${roomTypes}" th:value="${type.id}" th:text="${type.nameType}"></option></select></div>
-        <div class="filter-group"><label>Status</label><select name="status"><option value="">All Status</option><option value="PENDING">PENDING</option><option value="CONFIRMED">CONFIRMED</option><option value="CHECKED_OUT">CHECKED OUT</option><option value="CANCELLED">CANCELLED</option></select></div>
-        <div class="filter-group"><label>From Date</label><input type="date" name="startDate"></div>
-        <div class="filter-group"><label>To Date</label><input type="date" name="endDate"></div>
-        <button type="submit" class="btn-apply">Apply Filters</button>
-        <a href="/admin/bookings" class="btn-reset">Reset Filters</a>
-    </form>
+        <div class="search-area"><div class="search-bar-wrapper"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Tìm kiếm đơn đặt phòng..."></div></div>
+        <form method="get" action="/admin/bookings" class="filters-bar">
+            <div class="filter-group"><label>Loại phòng</label><select name="roomTypeId"><option value="">Tất cả</option><option th:each="type : ${roomTypes}" th:value="${type.id}" th:text="${type.nameType}"></option></select></div>
+            <div class="filter-group"><label>Trạng thái</label><select name="status"><option value="">Tất cả</option><option value="PENDING">CHỜ DUYỆT</option><option value="CONFIRMED">ĐÃ DUYỆT</option><option value="CHECKED_OUT">ĐÃ TRẢ PHÒNG</option><option value="CANCELLED">ĐÃ HỦY</option></select></div>
+            <div class="filter-group"><label>Từ ngày</label><input type="date" name="startDate"></div>
+            <div class="filter-group"><label>Đến ngày</label><input type="date" name="endDate"></div>
+            <button type="submit" class="btn-apply">Áp dụng</button>
+            <a href="/admin/bookings" class="btn-reset">Đặt lại</a>
+        </form>
 
-    <div class="table-wrapper">
-        <table class="booking-table">
-            <thead><tr><th>ID</th><th>Guest</th><th>Phone</th><th>Email</th><th>Gender</th><th>Room</th><th>Room Type</th><th>Check-In</th><th>Check-Out</th><th>Guests</th><th>Price Room</th><th>F&B</th><th>Price F&B</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="tableBody">
-            <tr th:each="bd, iterStat : ${bookingDetails}" th:if="${bd != null and iterStat.index < 10}">
-                <td th:text="'#' + ${bd.booking.id}"></td>
-                <td th:text="${bd.booking.name}"></td>
-                <td th:text="${bd.booking.phone}"></td>
-                <td th:text="${bd.booking.email}"></td>
-                <td th:text="${bd.booking.gender != null ? (bd.booking.gender ? 'Male' : 'Female') : 'N/A'}"></td>
-                <td>
-                    <!-- Đã duyệt: hiện số phòng -->
-                    <span th:if="${bd.room != null && bd.status != 'PENDING'}" class="room-assigned" th:text="${bd.room.roomNumber}"></span>
-                    <!-- Chưa chọn + PENDING: bấm để chọn -->
-                    <span th:if="${bd.room == null && bd.status == 'PENDING'}"
-                          class="room-null room-cell"
-                          th:attr="onclick='openPickRoomPopup(' + ${bd.id} + ', ' + ${bd.roomType.id} + ', this)'">
+        <div class="table-wrapper">
+            <table class="booking-table">
+                <thead><tr><th>Mã Đơn</th><th>Khách hàng</th><th>SĐT</th><th>Email</th><th>Giới tính</th><th>Phòng</th><th>Loại phòng</th><th>Nhận phòng</th><th>Trả phòng</th><th>Khách</th><th>Tiền phòng</th><th>F&B</th><th>Tiền F&B</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <tbody id="tableBody">
+                <tr th:each="bd, iterStat : ${bookingDetails}" th:if="${bd != null and iterStat.index < 10}">
+                    <td th:text="'#' + ${bd.booking.id}"></td>
+                    <td th:text="${bd.booking.name}"></td>
+                    <td th:text="${bd.booking.phone}"></td>
+                    <td th:text="${bd.booking.email}"></td>
+                    <td th:text="${bd.booking.gender != null ? (bd.booking.gender ? 'Nam' : 'Nữ') : 'N/A'}"></td>
+                    <td>
+                        <span th:if="${bd.room != null && bd.status != 'PENDING'}" class="room-assigned" th:text="${bd.room.roomNumber}"></span>
+                        <span th:if="${bd.room == null && bd.status == 'PENDING'}"
+                              class="room-null room-cell"
+                              th:attr="onclick='openPickRoomPopup(' + ${bd.id} + ', ' + ${bd.roomType.id} + ', this)'">
                         <i class="fas fa-bed"></i> Chưa xếp
                     </span>
-                    <span th:if="${bd.room == null && bd.status != 'PENDING'}" class="text-muted">-</span>
-                </td>
-                <td th:text="${bd.roomType.nameType}"></td>
-                <td th:text="${#temporals.format(bd.booking.checkinDate, 'dd/MM/yyyy')}"></td>
-                <td th:text="${#temporals.format(bd.booking.checkoutDate, 'dd/MM/yyyy')}"></td>
-                <td><span th:text="${bd.adultCount} + ' NL'"></span><span th:if="${bd.childCount > 0}" th:text="', ' + ${bd.childCount} + ' TE'"></span></td>
-                <td th:text="'$' + ${#numbers.formatDecimal(bd.price, 0, 'COMMA', 2, 'POINT')}"></td>
-                <td><span th:each="fb : ${bd.bookingFBs}" th:text="${fb.fwb.description} + ' x' + ${fb.quantity}" style="font-size:11px;"></span><span th:if="${#lists.isEmpty(bd.bookingFBs)}" class="text-muted">-</span></td>
-                <td th:with="fbTotal=${#aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity])}">$<span th:text="${#numbers.formatDecimal(fbTotal != null ? fbTotal : 0, 0, 'COMMA', 2, 'POINT')}"></span></td>
-                <td th:with="fbTotal=${#aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity])}">$<span th:text="${#numbers.formatDecimal(bd.price + (fbTotal != null ? fbTotal : 0), 0, 'COMMA', 2, 'POINT')}"></span></td>
-                <td><span class="status-badge" th:classappend="${bd.status == 'CONFIRMED'} ? 'confirmed' : (${bd.status == 'PENDING'} ? 'pending' : (${bd.status == 'CANCELLED'} ? 'cancelled' : 'checked'))" th:text="${bd.status}"></span></td>
-                <td>
-                    <div class="action-buttons">
-                        <button th:if="${bd.status == 'PENDING'}" class="btn-approve"
-                                th:attr="onclick='approveNow(' + ${bd.id} + ')'">
-                            <i class="fas fa-check"></i> Duyệt
-                        </button>
-                        <button th:if="${bd.status == 'PENDING'}" class="btn-reject" th:onclick="'rejectDetail(' + ${bd.id} + ')'">
-                            <i class="fas fa-times"></i> Từ chối
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            <tr th:if="${#lists.isEmpty(bookingDetails)}"><td colspan="16" style="text-align:center; padding:40px;">📭 No bookings found</td></tr>
-            </tbody>
-        </table>
-        <div class="table-footer"><span th:text="'Showing ' + ${#lists.size(bookingDetails)} + ' of ' + ${totalBookings} + ' bookings'"></span></div>
+                        <span th:if="${bd.room == null && bd.status != 'PENDING'}" class="text-muted">-</span>
+                    </td>
+                    <td th:text="${bd.roomType.nameType}"></td>
+                    <td th:text="${#temporals.format(bd.booking.checkinDate, 'dd/MM/yyyy')}"></td>
+                    <td th:text="${#temporals.format(bd.booking.checkoutDate, 'dd/MM/yyyy')}"></td>
+                    <td><span th:text="${bd.adultCount} + ' NL'"></span><span th:if="${bd.childCount > 0}" th:text="', ' + ${bd.childCount} + ' TE'"></span></td>
+                    <td th:text="'$' + ${#numbers.formatDecimal(bd.price, 0, 'COMMA', 2, 'POINT')}"></td>
+                    <td><span th:each="fb : ${bd.bookingFBs}" th:text="${fb.fwb.description} + ' x' + ${fb.quantity}" style="font-size:11px;"></span><span th:if="${#lists.isEmpty(bd.bookingFBs)}" class="text-muted">-</span></td>
+                    <td th:with="fbTotal=${#aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity])}">$<span th:text="${#numbers.formatDecimal(fbTotal != null ? fbTotal : 0, 0, 'COMMA', 2, 'POINT')}"></span></td>
+                    <td th:with="fbTotal=${#aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity])}">$<span th:text="${#numbers.formatDecimal(bd.price + (fbTotal != null ? fbTotal : 0), 0, 'COMMA', 2, 'POINT')}"></span></td>
+                    <td><span class="status-badge" th:classappend="${bd.status == 'CONFIRMED'} ? 'confirmed' : (${bd.status == 'PENDING'} ? 'pending' : (${bd.status == 'CANCELLED'} ? 'cancelled' : 'checked'))" th:text="${bd.status == 'PENDING' ? 'CHỜ DUYỆT' : (bd.status == 'CONFIRMED' ? 'ĐÃ DUYỆT' : (bd.status == 'CANCELLED' ? 'ĐÃ HỦY' : 'ĐÃ TRẢ PHÒNG'))}"></span></td>
+                    <td>
+                        <div class="action-buttons">
+                            <button th:if="${bd.status == 'PENDING'}" class="btn-approve"
+                                    th:attr="onclick='approveNow(' + ${bd.id} + ')'">
+                                <i class="fas fa-check"></i> Duyệt
+                            </button>
+                            <button th:if="${bd.status == 'PENDING'}" class="btn-reject" th:onclick="'rejectDetail(' + ${bd.id} + ')'">
+                                <i class="fas fa-times"></i> Từ chối
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(bookingDetails)}"><td colspan="16" style="text-align:center; padding:40px;">📭 Không có đơn đặt phòng nào</td></tr>
+                </tbody>
+            </table>
+            <div class="table-footer"><span th:text="'Hiển thị ' + ${#lists.size(bookingDetails)} + ' / ' + ${totalBookings} + ' đơn'"></span></div>
+        </div>
+
+        <div class="bottom-grid">
+            <div class="staff-logs"><div class="section-title">Nhật ký gần đây <i class="fas fa-clock" style="color:#9AA6C2;"></i></div><div th:each="log : ${recentLogs}" class="log-item"><div class="log-main" th:text="'Đơn #' + ${log.booking.id} + ' - ' + ${log.booking.name}"></div></div></div>
+            <div class="forecast-card"><div class="section-title">Dự báo lấp đầy <i class="fas fa-chart-line" style="color:#9AA6C2;"></i></div><div class="line-chart-container"><canvas id="lineChart"></canvas></div></div>
+        </div>
     </div>
 
-    <div class="bottom-grid">
-        <div class="staff-logs"><div class="section-title">Recent Staff Logs <i class="fas fa-clock" style="color:#9AA6C2;"></i></div><div th:each="log : ${recentLogs}" class="log-item"><div class="log-main" th:text="'Booking #' + ${log.booking.id} + ' - ' + ${log.booking.name}"></div></div></div>
-        <div class="forecast-card"><div class="section-title">Occupancy Forecast <i class="fas fa-chart-line" style="color:#9AA6C2;"></i></div><div class="line-chart-container"><canvas id="lineChart"></canvas></div></div>
+    <!-- TOAST -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- POPUP CHỌN PHÒNG -->
+    <div id="pickRoomPopup" class="popup-overlay">
+        <div class="popup-box">
+            <h3><i class="fas fa-bed"></i> Chọn phòng</h3>
+            <div class="room-card-grid" id="pickRoomCardGrid"><p style="color:#999; text-align:center; grid-column:1/-1; padding:20px;">Đang tải phòng trống...</p></div>
+        </div>
     </div>
-</div>
 
-<!-- TOAST -->
-<div class="toast-container" id="toastContainer"></div>
+    <script th:inline="javascript">
+        var forecastDays = /*[[${forecastDays}]]*/ [];
+        var forecastData = /*[[${forecastData}]]*/ [];
+    </script>
 
-<!-- POPUP CHỌN PHÒNG -->
-<div id="pickRoomPopup" class="popup-overlay">
-    <div class="popup-box">
-        <h3><i class="fas fa-bed"></i> Chọn phòng</h3>
-        <div class="room-card-grid" id="pickRoomCardGrid"><p style="color:#999; text-align:center; grid-column:1/-1; padding:20px;">Đang tải...</p></div>
-    </div>
-</div>
-
-<script th:inline="javascript">
-    var forecastDays = /*[[${forecastDays}]]*/ [];
-    var forecastData = /*[[${forecastData}]]*/ [];
-</script>
-
-<script>
-    // TOAST
-    function showToast(m, t) {
-        const c = document.getElementById('toastContainer');
-        const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
-        const toast = document.createElement('div');
-        toast.className = 'toast ' + t;
-        toast.innerHTML = '<i class="fas ' + icons[t] + '"></i> ' + m;
-        c.appendChild(toast);
-        setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
-    }
-
-    // CHART
-    if (forecastDays.length > 0) {
-        new Chart(document.getElementById('lineChart').getContext('2d'), {
-            type: 'line', data: { labels: forecastDays, datasets: [{ label: 'Occupancy (%)', data: forecastData, borderColor: '#1E6CD4', backgroundColor: 'rgba(30,108,212,0.05)', borderWidth: 2, pointRadius: 4, tension: 0.3, fill: true }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#E2E8F0' } }, x: { grid: { display: false } } } }
-        });
-    }
-
-    // SEARCH
-    document.getElementById('searchInput')?.addEventListener('keyup', function() {
-        const v = this.value.toLowerCase();
-        document.querySelectorAll('#tableBody tr').forEach(row => {
-            if (row.cells && row.cells.length > 1) row.style.display = Array.from(row.cells).map(c => c.innerText.toLowerCase()).join(' ').includes(v) ? '' : 'none';
-        });
-    });
-
-    // ===== LƯU PHÒNG ĐÃ CHỌN TRÊN FORM (chưa vào DB) =====
-    let pickedRooms = {}; // { detailId: { roomId, roomNumber } }
-
-    function openPickRoomPopup(detailId, roomTypeId, cellEl) {
-        document.getElementById('pickRoomCardGrid').innerHTML = '<p style="color:#999; text-align:center; grid-column:1/-1; padding:20px;">Đang tải...</p>';
-        document.getElementById('pickRoomPopup').classList.add('active');
-
-        fetch('/api/admin/booking-details/' + detailId + '/available-rooms')
-        .then(res => res.json())
-        .then(data => {
-            const grid = document.getElementById('pickRoomCardGrid');
-            if (data.success && data.rooms && data.rooms.length > 0) {
-                grid.innerHTML = data.rooms.map(r =>
-                    `<div class="room-card" data-room-id="${r.id}" data-room-number="${r.roomNumber}"
-                          onclick="pickRoom(${detailId}, ${r.id}, '${r.roomNumber}')">
-                        <div class="room-icon"><i class="fas fa-door-open"></i></div>
-                        <div class="room-number">${r.roomNumber}</div>
-                    </div>`
-                ).join('');
-            } else {
-                grid.innerHTML = '<p style="color:#EF4444; text-align:center; grid-column:1/-1; padding:20px;">❌ Hết phòng trống</p>';
-            }
-        });
-    }
-
-    function pickRoom(detailId, roomId, roomNumber) {
-        // Lưu vào biến tạm trên form
-        pickedRooms[detailId] = { roomId: roomId, roomNumber: roomNumber };
-
-        // Cập nhật ô Room trong table
-        const rows = document.querySelectorAll('#tableBody tr');
-        rows.forEach(row => {
-            const firstCell = row.cells[0];
-            if (firstCell && firstCell.innerText.includes('#' + detailId)) {
-                const roomCell = row.cells[5];
-                roomCell.innerHTML = '<span class="room-picked"><i class="fas fa-bed"></i> ' + roomNumber + '</span>';
-            }
-        });
-
-        // Đóng popup
-        document.getElementById('pickRoomPopup').classList.remove('active');
-        showToast('✅ Đã chọn phòng ' + roomNumber + ' (chưa lưu)', 'success');
-    }
-
-    document.getElementById('pickRoomPopup').addEventListener('click', function(e) {
-        if (e.target === this) this.classList.remove('active');
-    });
-
-    // ===== DUYỆT: lưu vào DB =====
-    function approveNow(detailId) {
-        const picked = pickedRooms[detailId];
-        if (!picked) {
-            showToast('⚠️ Vui lòng chọn phòng trước khi duyệt!', 'warning');
-            return;
+    <script>
+        // TOAST
+        function showToast(m, t) {
+            const c = document.getElementById('toastContainer');
+            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
+            const toast = document.createElement('div');
+            toast.className = 'toast ' + t;
+            toast.innerHTML = '<i class="fas ' + icons[t] + '"></i> ' + m;
+            c.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
         }
 
-        fetch('/api/admin/booking-details/' + detailId + '/approve?roomId=' + picked.roomId, {
-            method: 'PUT', headers: { 'Content-Type': 'application/json' }
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast('✅ Đã duyệt - Phòng ' + picked.roomNumber, 'success');
-                setTimeout(() => location.reload(), 1500);
-            } else showToast('❌ ' + data.message, 'error');
-        });
-    }
+        // CHART
+        if (forecastDays.length > 0) {
+            new Chart(document.getElementById('lineChart').getContext('2d'), {
+                type: 'line', data: { labels: forecastDays, datasets: [{ label: 'Tỉ lệ lấp đầy (%)', data: forecastData, borderColor: '#1E6CD4', backgroundColor: 'rgba(30,108,212,0.05)', borderWidth: 2, pointRadius: 4, tension: 0.3, fill: true }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#E2E8F0' } }, x: { grid: { display: false } } } }
+            });
+        }
 
-    // ===== TỪ CHỐI =====
-    function rejectDetail(detailId) {
-        if (!confirm('Từ chối booking #' + detailId + '?')) return;
-        fetch('/api/admin/booking-details/' + detailId + '/reject', { method: 'PUT', headers: { 'Content-Type': 'application/json' } })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) { showToast('❌ Đã từ chối booking #' + detailId, 'warning'); setTimeout(() => location.reload(), 1500); }
-            else showToast('Lỗi: ' + data.message, 'error');
+        // SEARCH
+        document.getElementById('searchInput')?.addEventListener('keyup', function() {
+            const v = this.value.toLowerCase();
+            document.querySelectorAll('#tableBody tr').forEach(row => {
+                if (row.cells && row.cells.length > 1) row.style.display = Array.from(row.cells).map(c => c.innerText.toLowerCase()).join(' ').includes(v) ? '' : 'none';
+            });
         });
-    }
-</script>
-</body>
+
+        let pickedRooms = {};
+
+        function openPickRoomPopup(detailId, roomTypeId, cellEl) {
+            document.getElementById('pickRoomCardGrid').innerHTML = '<p style="color:#999; text-align:center; grid-column:1/-1; padding:20px;">Đang tải phòng trống...</p>';
+            document.getElementById('pickRoomPopup').classList.add('active');
+
+            fetch('/api/admin/booking-details/' + detailId + '/available-rooms')
+            .then(res => res.json())
+            .then(data => {
+                const grid = document.getElementById('pickRoomCardGrid');
+                if (data.success && data.rooms && data.rooms.length > 0) {
+                    grid.innerHTML = data.rooms.map(r =>
+                        `<div class="room-card" data-room-id="${r.id}" data-room-number="${r.roomNumber}"
+                              onclick="pickRoom(${detailId}, ${r.id}, '${r.roomNumber}')">
+                            <div class="room-icon"><i class="fas fa-door-open"></i></div>
+                            <div class="room-number">${r.roomNumber}</div>
+                        </div>`
+                    ).join('');
+                } else {
+                    grid.innerHTML = '<p style="color:#EF4444; text-align:center; grid-column:1/-1; padding:20px;">❌ Hết phòng trống</p>';
+                }
+            });
+        }
+
+        function pickRoom(detailId, roomId, roomNumber) {
+            pickedRooms[detailId] = { roomId: roomId, roomNumber: roomNumber };
+            const rows = document.querySelectorAll('#tableBody tr');
+            rows.forEach(row => {
+                const firstCell = row.cells[0];
+                if (firstCell && firstCell.innerText.includes('#' + detailId)) {
+                    const roomCell = row.cells[5];
+                    roomCell.innerHTML = '<span class="room-picked"><i class="fas fa-bed"></i> ' + roomNumber + '</span>';
+                }
+            });
+            document.getElementById('pickRoomPopup').classList.remove('active');
+            showToast('✅ Đã chọn phòng ' + roomNumber + ' (chưa lưu)', 'success');
+        }
+
+        document.getElementById('pickRoomPopup').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.remove('active');
+        });
+
+        function approveNow(detailId) {
+            const picked = pickedRooms[detailId];
+            if (!picked) {
+                showToast('⚠️ Vui lòng chọn phòng trước khi duyệt!', 'warning');
+                return;
+            }
+            fetch('/api/admin/booking-details/' + detailId + '/approve?roomId=' + picked.roomId, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('✅ Đã duyệt - Phòng ' + picked.roomNumber, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else showToast('❌ ' + data.message, 'error');
+            });
+        }
+
+        function rejectDetail(detailId) {
+            if (!confirm('Từ chối đơn #' + detailId + '?')) return;
+            fetch('/api/admin/booking-details/' + detailId + '/reject', { method: 'PUT', headers: { 'Content-Type': 'application/json' } })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) { showToast('❌ Đã từ chối đơn #' + detailId, 'warning'); setTimeout(() => location.reload(), 1500); }
+                else showToast('Lỗi: ' + data.message, 'error');
+            });
+        }
+    </script>
+</div>
 </html>
