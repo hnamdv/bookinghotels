@@ -18,7 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.stream.Collectors;
 import java.time.LocalDate;
 import java.util.List;
-
+import org.example.bookinghotels.dto.RevenueDTO;
+import org.example.bookinghotels.dto.OccupancyDTO;
+import org.example.bookinghotels.repository.InvoicesRepository;
+import org.example.bookinghotels.repository.RoomRepository;
+import org.example.bookinghotels.repository.BookingDetailRepository;
 @Service
 public class SystemManagementServiceImpl implements SystemManagementService {
 
@@ -34,6 +38,14 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     @Autowired
     private RoomTypeRepository roomTypeRepository;
 
+    @Autowired
+    private InvoicesRepository invoicesRepository;
+
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private BookingDetailRepository bookingDetailRepository;
     @Override
     public Promotion savePromotion(Promotion promotion) {
         validatePromotion(promotion);
@@ -279,4 +291,59 @@ public class SystemManagementServiceImpl implements SystemManagementService {
             );
         }
     }
-}
+    @Override
+    public List<RevenueDTO> getRevenueByDay() {
+
+        return invoicesRepository.getRevenueByDay()
+                .stream()
+                .map(item -> new RevenueDTO(
+                        item[0].toString(),
+                        ((Number) item[1]).doubleValue()
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenueByMonth() {
+
+        return invoicesRepository.getRevenueByMonth()
+                .stream()
+                .map(item -> new RevenueDTO(
+                        item[0].toString(),
+                        ((Number) item[1]).doubleValue()
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenueByYear() {
+
+        return invoicesRepository.getRevenueByYear()
+                .stream()
+                .map(item -> new RevenueDTO(
+                        item[0].toString(),
+                        ((Number) item[1]).doubleValue()
+                ))
+                .toList();
+    }
+
+    @Override
+    public OccupancyDTO getOccupancy() {
+
+        long totalRooms = roomRepository.count();
+
+        long bookedRooms = bookingDetailRepository.countDistinctBookedRooms();
+
+        double occupancyRate = 0;
+
+        if (totalRooms > 0) {
+            occupancyRate = (bookedRooms * 100.0) / totalRooms;
+        }
+
+        return new OccupancyDTO(
+                totalRooms,
+                bookedRooms,
+                Math.round(occupancyRate * 100.0) / 100.0
+        );
+    }
+    }

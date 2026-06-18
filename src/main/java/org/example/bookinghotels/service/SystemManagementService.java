@@ -4,7 +4,8 @@ import org.example.bookinghotels.entity.ActivityLog;
 import org.example.bookinghotels.entity.Promotion;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.dto.PromotionCheckResponse;
-
+import org.example.bookinghotels.dto.RevenueDTO;
+import org.example.bookinghotels.dto.OccupancyDTO;
 import java.util.List;
 
 public interface SystemManagementService {
@@ -32,4 +33,11 @@ public interface SystemManagementService {
     void logActivity(ActivityLog log);
 
     List<ActivityLog> getAllLogs();
+    List<RevenueDTO> getRevenueByDay();
+
+    List<RevenueDTO> getRevenueByMonth();
+
+    List<RevenueDTO> getRevenueByYear();
+
+    OccupancyDTO getOccupancy();
 }
