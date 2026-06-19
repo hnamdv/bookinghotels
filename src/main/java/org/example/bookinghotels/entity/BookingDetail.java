@@ -2,6 +2,8 @@ package org.example.bookinghotels.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "booking_detail")
@@ -22,8 +24,10 @@ public class BookingDetail {
     @JoinColumn(name = "room_type_id")
     private RoomType roomType;
 
+    // Cho phép NULL - phòng sẽ được assign sau khi duyệt
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_id")
+    @JoinColumn(name = "room_id", nullable = true)
     private Room room;
 
     @Column(nullable = false)
@@ -44,4 +48,19 @@ public class BookingDetail {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
+
+    @Column(nullable = false, length = 20)
+    private String status = "PENDING";
+
+    @OneToMany(mappedBy = "bookingDetail", fetch = FetchType.LAZY)
+    private List<BookingFB> bookingFBs = new ArrayList<>();
+
+    // Helper method kiểm tra đã có phòng chưa
+    public boolean hasRoom() {
+        return room != null;
+    }
+
+    public String getRoomNumber() {
+        return room != null ? room.getRoomNumber() : "Null";
+    }
 }

@@ -6,6 +6,8 @@ import org.example.bookinghotels.service.OrderBookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -67,5 +69,44 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     @Override
     public List<FwB> getAllAvailableFoods() {
         return fwbRepository.findAll();
+    }
+    //Bao//
+    @Override
+    public boolean isRoomAvailable(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate) {
+        return !bookingDetailRepository.existsOverlappingBooking(roomId, checkinDate, checkoutDate);
+    }
+
+    @Override
+    public List<Integer> getAvailableRooms(List<Integer> allRoomIds, LocalDate checkinDate, LocalDate checkoutDate) {
+        // B1: Lấy danh sách booking bị gối lịch
+        List<BookingDetail> overlappingBookings =
+                bookingDetailRepository.findOverlappingBookings(allRoomIds, checkinDate, checkoutDate);
+
+        // B2: Lấy ra các roomId đã bị đặt (gối lịch)
+        List<Integer> occupiedRoomIds = overlappingBookings.stream()
+                .map(bd -> bd.getRoom().getId())
+                .distinct()
+                .toList();
+
+        // B3: LOẠI TRỪ phòng gối lịch, trả về phòng trống
+        return allRoomIds.stream()
+                .filter(roomId -> !occupiedRoomIds.contains(roomId))
+                .toList();
+    }
+
+    @Override
+    public void validateBooking(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate) {
+        if (checkinDate == null || checkoutDate == null) {
+            throw new IllegalArgumentException("Ngày check-in và check-out không được để trống");
+        }
+        if (!checkinDate.isBefore(checkoutDate)) {
+            throw new IllegalArgumentException("Ngày check-in phải trước ngày check-out");
+        }
+        if (checkinDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Không thể đặt phòng trong quá khứ");
+        }
+        if (!isRoomAvailable(roomId, checkinDate, checkoutDate)) {
+            throw new IllegalStateException("Phòng đã được đặt trong khoảng thời gian này (gối lịch)");
+        }
     }
 }

@@ -10,4 +10,5 @@ public class HomeController {
     public String welcome() {
         return "Chào mừng đến với hệ thống đặt phòng FeelHome!";
     }
+
 }

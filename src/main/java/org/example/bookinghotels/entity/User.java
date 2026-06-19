@@ -1,8 +1,12 @@
 package org.example.bookinghotels.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "\"USER\"")
@@ -30,6 +34,15 @@ public class User {
 
     @Column(name = "delete_at")
     private Boolean deleteAt = false;
+    @JsonProperty("deleteAt") // Đảm bảo tên này khớp với u.deleteAt trong JS
+    private Boolean deleteAt;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
 
     // Nhiều User thuộc về một Role
     @ManyToOne(fetch = FetchType.EAGER)

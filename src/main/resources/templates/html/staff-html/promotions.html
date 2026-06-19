@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{homeadmin}">
+<head>
+    <title>Quản lý khuyến mãi - FeelHome Luxury</title>
+    <style>
+        /* Tùy chỉnh màu sắc thương hiệu */
+        :root { --brand-gold: #9d5a37; }
+        .card { border: none; border-radius: 1rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); }
+        .btn-gold { background-color: var(--brand-gold); color: white; border-radius: 0.75rem; transition: 0.3s; }
+        .btn-gold:hover { background-color: #7a462b; color: white; }
+        .table thead { background-color: #f8f9fa; }
+        .form-control { border-radius: 0.75rem; border: 1px solid #dee2e6; padding: 0.6rem 1rem; }
+        .form-control:focus { border-color: var(--brand-gold); box-shadow: 0 0 0 0.25rem rgba(157, 90, 55, 0.25); }
+        .table td { vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content" class="container-fluid py-4">
+    <div class="mb-4">
+        <h1 class="h3 fw-bold text-dark">Quản lý Khuyến mãi</h1>
+        <p class="text-muted">Tạo và quản lý các chiến dịch ưu đãi cho hệ thống phòng FeelHome.</p>
+    </div>
+
+    <div class="card p-4 mb-4">
+        <h5 class="fw-bold mb-4" th:text="${promotion.id == null ? 'Thiết lập chiến dịch mới' : 'Cập nhật chiến dịch'}"></h5>
+
+        <form th:action="@{/staff/promotions/save}" th:object="${promotion}" method="post">
+            <input type="hidden" th:field="*{id}" />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Tên chương trình *</label>
+                    <input type="text" th:field="*{promotionName}" required class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Mức giảm giá (%)</label>
+                    <input type="number" th:field="*{discountPercent}" min="0" max="100" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Ngày bắt đầu</label>
+                    <input type="date" th:field="*{startDate}" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Ngày kết thúc *</label>
+                    <input type="date" th:field="*{endDate}" required class="form-control" />
+                </div>
+                <div class="col-12">
+                    <label class="form-label small fw-bold text-uppercase text-muted">Nội dung chi tiết</label>
+                    <textarea th:field="*{description}" rows="2" class="form-control"></textarea>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-gold px-4 py-2 me-2">
+                    <span th:text="${promotion.id == null ? 'Lưu chương trình' : 'Cập nhật thay đổi'}"></span>
+                </button>
+                <a href="/staff/promotions" class="btn btn-outline-secondary px-4 py-2 rounded-3">Làm mới form</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-0 overflow-hidden">
+        <div class="card-header bg-white border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold m-0">Danh sách chiến dịch</h5>
+            <span class="badge bg-light text-dark border"
+                  th:text="|${promotions != null ? #lists.size(promotions) : 0} chiến dịch|"></span>
+        </div>
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                    <tr class="text-uppercase small text-muted">
+                        <th>ID</th>
+                        <th>Tên CT</th>
+                        <th>Giảm giá</th>
+                        <th>Thời gian</th>
+                        <th class="text-end">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${promotions}">
+                        <td class="text-muted fw-bold" th:text="|#${item.id}|"></td>
+                        <td class="fw-bold text-dark" th:text="${item.promotionName}"></td>
+                        <td><span class="badge bg-success-subtle text-success p-2 px-3" th:text="|${item.discountPercent}%|"></span></td>
+                        <td class="text-muted small" th:text="|${item.startDate} đến ${item.endDate}|"></td>
+                        <td class="text-end">
+                            <a th:href="@{/staff/promotions/edit/{id}(id=${item.id})}" class="btn btn-sm btn-outline-primary border-0 me-2"><i class="fa-solid fa-pencil"></i></a>
+                            <a th:href="@{/staff/promotions/delete/{id}(id=${item.id})}" onclick="return confirm('Xóa chiến dịch này?')" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{homeadmin}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý đặt phòng | Dashboard UI</title>
+    <link rel="stylesheet" th:href="@{/css/admin-css/booking.css}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { background: #F5F7FC; font-family: 'Inter', sans-serif; padding: 32px 36px; color: #1E2A3E; }
+        .dashboard { max-width: 1600px; margin: 0 auto; }
+        .page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
+        .stats-row { display: flex; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
+        .stat-card { background: white; border-radius: 24px; padding: 20px; flex: 1; min-width: 220px; border: 1px solid #EDF2F7; }
+        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .stat-title { font-size: 14px; font-weight: 600; text-transform: uppercase; color: #5B6B8C; }
+        .stat-body { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .stat-number { font-size: 36px; font-weight: 800; color: #0F1825; }
+        .search-area { display: flex; justify-content: flex-end; margin-bottom: 20px; }
+        .search-bar-wrapper { background: white; border: 1px solid #E2E8F0; border-radius: 40px; padding: 10px 18px; display: inline-flex; align-items: center; gap: 12px; }
+        .search-bar-wrapper input { border: none; background: transparent; font-size: 14px; width: 240px; outline: none; }
+        .filters-bar { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; margin-bottom: 28px; background: white; padding: 20px 24px; border-radius: 24px; border: 1px solid #EDF2F7; }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 140px; }
+        .filter-group label { font-size: 12px; font-weight: 600; color: #5B6B8C; text-transform: uppercase; }
+        .filter-group select, .filter-group input { padding: 10px 14px; border-radius: 12px; border: 1px solid #E2E8F0; font-size: 14px; background: white; }
+        .btn-apply, .btn-reset, .btn-create { padding: 10px 24px; border-radius: 40px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
+        .btn-apply { background: #1E6CD4; color: white; }
+        .btn-reset { background: #6B7280; color: white; }
+        .btn-create { background: #10B981; color: white; }
+        .table-wrapper { background: white; border-radius: 24px; border: 1px solid #EDF2F7; overflow-x: auto; margin-bottom: 32px; }
+        .booking-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1500px; }
+        .booking-table th { text-align: left; padding: 14px 10px; background: #F9FBFE; color: #516281; font-weight: 600; border-bottom: 1px solid #ECF1F7; white-space: nowrap; }
+        .booking-table td { padding: 12px 10px; border-bottom: 1px solid #F0F4FA; color: #1F2C48; font-weight: 500; }
+        .status-badge { padding: 5px 12px; border-radius: 40px; font-size: 12px; font-weight: 600; display: inline-block; white-space: nowrap; }
+        .status-badge.pending { background: #FEF3C7; color: #D97706; }
+        .status-badge.confirmed { background: #EFF5FF; color: #1E6CD4; }
+        .status-badge.cancelled { background: #FEE2E2; color: #DC2626; }
+        .status-badge.checked { background: #D1FAE5; color: #059669; }
+        .action-buttons { display: flex; gap: 6px; }
+        .btn-approve, .btn-reject { padding: 5px 10px; border-radius: 16px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .btn-approve { background: #10B981; color: white; }
+        .btn-approve:hover { background: #059669; }
+        .btn-reject { background: #EF4444; color: white; }
+        .btn-reject:hover { background: #DC2626; }
+        .room-cell { cursor: pointer; }
+        .room-null { color: #F59E0B; font-weight: 600; text-decoration: underline; }
+        .room-null:hover { color: #D97706; }
+        .room-picked { color: #1E6CD4; font-weight: 600; background: #EFF5FF; padding: 2px 8px; border-radius: 8px; }
+        .room-assigned { color: #1E6CD4; font-weight: 600; }
+        .table-footer { padding: 16px 20px; border-top: 1px solid #EDF2F7; font-size: 14px; color: #4B5563; background: white; border-radius: 0 0 24px 24px; text-align: right; font-weight: 500; }
+        .bottom-grid { display: flex; gap: 28px; margin-top: 0; flex-wrap: wrap; }
+        .staff-logs, .forecast-card { background: white; border-radius: 24px; border: 1px solid #EDF2F7; padding: 20px; flex: 1; min-width: 350px; }
+        .section-title { font-weight: 700; font-size: 16px; padding-bottom: 12px; border-bottom: 1px solid #F0F3F9; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .log-item { padding: 12px 0; border-bottom: 1px solid #F5F8FE; }
+        .log-main { font-weight: 600; margin-bottom: 4px; font-size: 14px; }
+        .text-muted { color: #999; font-style: italic; }
+        .line-chart-container { position: relative; height: 220px; width: 100%; }
+        canvas#lineChart { max-height: 220px; width: 100% !important; }
+
+        .toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 14px 20px; border-radius: 12px; color: white; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; min-width: 320px; }
+        .toast.success { background: #10B981; }
+        .toast.error { background: #EF4444; }
+        .toast.warning { background: #F59E0B; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .popup-overlay.active { display: flex; }
+        .popup-box { background: white; border-radius: 16px; padding: 24px; width: 600px; max-height: 70vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+        .popup-box h3 { margin-bottom: 16px; font-size: 18px; }
+        .room-card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .room-card { padding: 16px; border: 2px solid #E2E8F0; border-radius: 12px; cursor: pointer; transition: all 0.2s; text-align: center; }
+        .room-card:hover { border-color: #1E6CD4; background: #F8FAFF; transform: translateY(-2px); }
+        .room-card.selected { background: #EFF5FF; border-color: #1E6CD4; }
+        .room-card .room-icon { font-size: 28px; color: #1E6CD4; margin-bottom: 8px; }
+        .room-card .room-number { font-size: 18px; font-weight: 700; color: #1F2C48; }
+
+        @media (max-width:780px) { body { padding:20px; } .stats-row { flex-direction:column; } .filters-bar { flex-direction:column; align-items:stretch; } .room-card-grid { grid-template-columns: repeat(2, 1fr); } .bottom-grid { flex-direction:column; } }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <div class="page-header"><h1>Booking Management</h1></div>
+
+    <div class="stats-row">
+        <div class="stat-card"><div class="stat-header"><span class="stat-title">Arrivals Today</span></div><div class="stat-body"><div class="stat-number" th:text="${arrivalsToday}">0</div></div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-title">Departures</span></div><div class="stat-body"><div class="stat-number" th:text="${departuresToday}">0</div></div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-title">Occupancy</span></div><div class="stat-body"><div class="stat-number" th:text="${occupancy} + '%'">0%</div></div></div>
+        <div class="stat-card"><div class="stat-header"><span class="stat-title">Avg Daily Rate</span></div><div class="stat-body"><div class="stat-number" th:text="'$' + ${avgDailyRate}">$0</div></div></div>
+    </div>
+
+    <div class="search-area"><div class="search-bar-wrapper"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search bookings..."></div></div>
+    <form method="get" action="/admin/bookings" class="filters-bar">
+        <div class="filter-group"><label>Room Category</label><select name="roomTypeId"><option value="">All Types</option><option th:each="type : ${roomTypes}" th:value="${type.id}" th:text="${type.nameType}"></option></select></div>
+        <div class="filter-group"><label>Status</label><select name="status"><option value="">All Status</option><option value="PENDING">PENDING</option><option value="CONFIRMED">CONFIRMED</option><option value="CHECKED_OUT">CHECKED OUT</option><option value="CANCELLED">CANCELLED</option></select></div>
+        <div class="filter-group"><label>From Date</label><input type="date" name="startDate"></div>
+        <div class="filter-group"><label>To Date</label><input type="date" name="endDate"></div>
+        <button type="submit" class="btn-apply">Apply Filters</button>
+        <a href="/admin/bookings" class="btn-reset">Reset Filters</a>
+    </form>
+
+    <div class="table-wrapper">
+        <table class="booking-table">
+            <thead><tr><th>ID</th><th>Guest</th><th>Phone</th><th>Email</th><th>Gender</th><th>Room</th><th>Room Type</th><th>Check-In</th><th>Check-Out</th><th>Guests</th><th>Price Room</th><th>F&B</th><th>Price F&B</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="tableBody">
+            <tr th:each="bd, iterStat : ${bookingDetails}" th:if="${bd != null and iterStat.index < 10}">
+                <td th:text="'#' + ${bd.booking.id}"></td>
+                <td th:text="${bd.booking.name}"></td>
+                <td th:text="${bd.booking.phone}"></td>
+                <td th:text="${bd.booking.email}"></td>
+                <td th:text="${bd.booking.gender != null ? (bd.booking.gender ? 'Male' : 'Female') : 'N/A'}"></td>
+                <td>
+                    <!-- Đã duyệt: hiện số phòng -->
+                    <span th:if="${bd.room != null && bd.status != 'PENDING'}" class="room-assigned" th:text="${bd.room.roomNumber}"></span>
+                    <!-- Chưa chọn + PENDING: bấm để chọn -->
+                    <span th:if="${bd.room == null && bd.status == 'PENDING'}"
+                          class="room-null room-cell"
+                          th:attr="onclick='openPickRoomPopup(' + ${bd.id} + ', ' + ${bd.roomType.id} + ', this)'">
+                        <i class="fas fa-bed"></i> Chưa xếp
+                    </span>
+                    <span th:if="${bd.room == null && bd.status != 'PENDING'}" class="text-muted">-</span>
+                </td>
+                <td th:text="${bd.roomType.nameType}"></td>
+                <td th:text="${#temporals.format(bd.booking.checkinDate, 'dd/MM/yyyy')}"></td>
+                <td th:text="${#temporals.format(bd.booking.checkoutDate, 'dd/MM/yyyy')}"></td>
+                <td><span th:text="${bd.adultCount} + ' NL'"></span><span th:if="${bd.childCount > 0}" th:text="', ' + ${bd.childCount} + ' TE'"></span></td>
+                <td th:text="'$' + ${#numbers.formatDecimal(bd.price, 0, 'COMMA', 2, 'POINT')}"></td>
+                <td><span th:each="fb : ${bd.bookingFBs}" th:text="${fb.fwb.description} + ' x' + ${fb.quantity}" style="font-size:11px;"></span><span th:if="${#lists.isEmpty(bd.bookingFBs)}" class="text-muted">-</span></td>
+                <td th:with="fbTotal=${#aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity])}">$<span th:text="${#numbers.formatDecimal(fbTotal != null ? fbTotal : 0, 0, 'COMMA', 2, 'POINT')}"></span></td>
+                <td th:with="fbTotal=${#aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity])}">$<span th:text="${#numbers.formatDecimal(bd.price + (fbTotal != null ? fbTotal : 0), 0, 'COMMA', 2, 'POINT')}"></span></td>
+                <td><span class="status-badge" th:classappend="${bd.status == 'CONFIRMED'} ? 'confirmed' : (${bd.status == 'PENDING'} ? 'pending' : (${bd.status == 'CANCELLED'} ? 'cancelled' : 'checked'))" th:text="${bd.status}"></span></td>
+                <td>
+                    <div class="action-buttons">
+                        <button th:if="${bd.status == 'PENDING'}" class="btn-approve"
+                                th:attr="onclick='approveNow(' + ${bd.id} + ')'">
+                            <i class="fas fa-check"></i> Duyệt
+                        </button>
+                        <button th:if="${bd.status == 'PENDING'}" class="btn-reject" th:onclick="'rejectDetail(' + ${bd.id} + ')'">
+                            <i class="fas fa-times"></i> Từ chối
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(bookingDetails)}"><td colspan="16" style="text-align:center; padding:40px;">📭 No bookings found</td></tr>
+            </tbody>
+        </table>
+        <div class="table-footer"><span th:text="'Showing ' + ${#lists.size(bookingDetails)} + ' of ' + ${totalBookings} + ' bookings'"></span></div>
+    </div>
+
+    <div class="bottom-grid">
+        <div class="staff-logs"><div class="section-title">Recent Staff Logs <i class="fas fa-clock" style="color:#9AA6C2;"></i></div><div th:each="log : ${recentLogs}" class="log-item"><div class="log-main" th:text="'Booking #' + ${log.booking.id} + ' - ' + ${log.booking.name}"></div></div></div>
+        <div class="forecast-card"><div class="section-title">Occupancy Forecast <i class="fas fa-chart-line" style="color:#9AA6C2;"></i></div><div class="line-chart-container"><canvas id="lineChart"></canvas></div></div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- POPUP CHỌN PHÒNG -->
+<div id="pickRoomPopup" class="popup-overlay">
+    <div class="popup-box">
+        <h3><i class="fas fa-bed"></i> Chọn phòng</h3>
+        <div class="room-card-grid" id="pickRoomCardGrid"><p style="color:#999; text-align:center; grid-column:1/-1; padding:20px;">Đang tải...</p></div>
+    </div>
+</div>
+
+<script th:inline="javascript">
+    var forecastDays = /*[[${forecastDays}]]*/ [];
+    var forecastData = /*[[${forecastData}]]*/ [];
+</script>
+
+<script>
+    // TOAST
+    function showToast(m, t) {
+        const c = document.getElementById('toastContainer');
+        const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
+        const toast = document.createElement('div');
+        toast.className = 'toast ' + t;
+        toast.innerHTML = '<i class="fas ' + icons[t] + '"></i> ' + m;
+        c.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+    }
+
+    // CHART
+    if (forecastDays.length > 0) {
+        new Chart(document.getElementById('lineChart').getContext('2d'), {
+            type: 'line', data: { labels: forecastDays, datasets: [{ label: 'Occupancy (%)', data: forecastData, borderColor: '#1E6CD4', backgroundColor: 'rgba(30,108,212,0.05)', borderWidth: 2, pointRadius: 4, tension: 0.3, fill: true }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#E2E8F0' } }, x: { grid: { display: false } } } }
+        });
+    }
+
+    // SEARCH
+    document.getElementById('searchInput')?.addEventListener('keyup', function() {
+        const v = this.value.toLowerCase();
+        document.querySelectorAll('#tableBody tr').forEach(row => {
+            if (row.cells && row.cells.length > 1) row.style.display = Array.from(row.cells).map(c => c.innerText.toLowerCase()).join(' ').includes(v) ? '' : 'none';
+        });
+    });
+
+    // ===== LƯU PHÒNG ĐÃ CHỌN TRÊN FORM (chưa vào DB) =====
+    let pickedRooms = {}; // { detailId: { roomId, roomNumber } }
+
+    function openPickRoomPopup(detailId, roomTypeId, cellEl) {
+        document.getElementById('pickRoomCardGrid').innerHTML = '<p style="color:#999; text-align:center; grid-column:1/-1; padding:20px;">Đang tải...</p>';
+        document.getElementById('pickRoomPopup').classList.add('active');
+
+        fetch('/api/admin/booking-details/' + detailId + '/available-rooms')
+        .then(res => res.json())
+        .then(data => {
+            const grid = document.getElementById('pickRoomCardGrid');
+            if (data.success && data.rooms && data.rooms.length > 0) {
+                grid.innerHTML = data.rooms.map(r =>
+                    `<div class="room-card" data-room-id="${r.id}" data-room-number="${r.roomNumber}"
+                          onclick="pickRoom(${detailId}, ${r.id}, '${r.roomNumber}')">
+                        <div class="room-icon"><i class="fas fa-door-open"></i></div>
+                        <div class="room-number">${r.roomNumber}</div>
+                    </div>`
+                ).join('');
+            } else {
+                grid.innerHTML = '<p style="color:#EF4444; text-align:center; grid-column:1/-1; padding:20px;">❌ Hết phòng trống</p>';
+            }
+        });
+    }
+
+    function pickRoom(detailId, roomId, roomNumber) {
+        // Lưu vào biến tạm trên form
+        pickedRooms[detailId] = { roomId: roomId, roomNumber: roomNumber };
+
+        // Cập nhật ô Room trong table
+        const rows = document.querySelectorAll('#tableBody tr');
+        rows.forEach(row => {
+            const firstCell = row.cells[0];
+            if (firstCell && firstCell.innerText.includes('#' + detailId)) {
+                const roomCell = row.cells[5];
+                roomCell.innerHTML = '<span class="room-picked"><i class="fas fa-bed"></i> ' + roomNumber + '</span>';
+            }
+        });
+
+        // Đóng popup
+        document.getElementById('pickRoomPopup').classList.remove('active');
+        showToast('✅ Đã chọn phòng ' + roomNumber + ' (chưa lưu)', 'success');
+    }
+
+    document.getElementById('pickRoomPopup').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+    });
+
+    // ===== DUYỆT: lưu vào DB =====
+    function approveNow(detailId) {
+        const picked = pickedRooms[detailId];
+        if (!picked) {
+            showToast('⚠️ Vui lòng chọn phòng trước khi duyệt!', 'warning');
+            return;
+        }
+
+        fetch('/api/admin/booking-details/' + detailId + '/approve?roomId=' + picked.roomId, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('✅ Đã duyệt - Phòng ' + picked.roomNumber, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else showToast('❌ ' + data.message, 'error');
+        });
+    }
+
+    // ===== TỪ CHỐI =====
+    function rejectDetail(detailId) {
+        if (!confirm('Từ chối booking #' + detailId + '?')) return;
+        fetch('/api/admin/booking-details/' + detailId + '/reject', { method: 'PUT', headers: { 'Content-Type': 'application/json' } })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) { showToast('❌ Đã từ chối booking #' + detailId, 'warning'); setTimeout(() => location.reload(), 1500); }
+            else showToast('Lỗi: ' + data.message, 'error');
+        });
+    }
+</script>
+</body>
+</html>
