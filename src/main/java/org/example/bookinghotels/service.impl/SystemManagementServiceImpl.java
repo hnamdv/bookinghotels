@@ -1,23 +1,22 @@
 package org.example.bookinghotels.service.impl;
 
+import org.example.bookinghotels.dto.OccupancyDTO;
 import org.example.bookinghotels.dto.PromotionCheckResponse;
 import org.example.bookinghotels.entity.ActivityLog;
 import org.example.bookinghotels.entity.Promotion;
 import org.example.bookinghotels.entity.PromotionRoomType;
 import org.example.bookinghotels.entity.RoomType;
-import org.example.bookinghotels.repository.ActivityLogRepository;
-import org.example.bookinghotels.repository.PromotionRepository;
-import org.example.bookinghotels.repository.PromotionRoomTypeRepository;
-import org.example.bookinghotels.repository.RoomTypeRepository;
+import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.SystemManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
+import org.example.bookinghotels.dto.RevenueDTO;
 import java.time.LocalDate;
 import java.util.List;
-
+import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SystemManagementServiceImpl implements SystemManagementService {
 
@@ -33,6 +32,14 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     @Autowired
     private RoomTypeRepository roomTypeRepository;
 
+    @Autowired
+    private InvoicesRepository invoicesRepository;
+
+    @Autowired
+    private RoomRepository roomRepository;
+
+    @Autowired
+    private BookingDetailRepository bookingDetailRepository;
     @Override
     public Promotion savePromotion(Promotion promotion) {
         validatePromotion(promotion);
@@ -207,5 +214,64 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                     "Ngày kết thúc không được nhỏ hơn ngày bắt đầu"
             );
         }
+    }
+    @Override
+    public List<RevenueDTO> getRevenueByDay() {
+
+        return invoicesRepository.getRevenueByDay()
+                .stream()
+                .map(item -> new RevenueDTO(
+                        item[0].toString(),
+                        ((Number) item[1]).doubleValue()
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenueByMonth() {
+
+        return invoicesRepository.getRevenueByMonth()
+                .stream()
+                .map(item -> new RevenueDTO(
+                        item[0].toString(),
+                        ((Number) item[1]).doubleValue()
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenueByYear() {
+
+        return invoicesRepository.getRevenueByYear()
+                .stream()
+                .map(item -> new RevenueDTO(
+                        item[0].toString(),
+                        ((Number) item[1]).doubleValue()
+                ))
+                .toList();
+    }
+
+    @Override
+    public OccupancyDTO getOccupancy() {
+
+        long totalRooms = roomRepository.count();
+
+        long bookedRooms = bookingDetailRepository.countDistinctBookedRooms();
+
+        double occupancyRate = 0;
+
+        if (totalRooms > 0) {
+            occupancyRate = (bookedRooms * 100.0) / totalRooms;
+        }
+
+        return new OccupancyDTO(
+                totalRooms,
+                bookedRooms,
+                Math.round(occupancyRate * 100.0) / 100.0
+        );
+    }
+    @Override
+    public List<RoomType> getAllRoomTypes() {
+        return roomTypeRepository.findAll();
     }
 }
