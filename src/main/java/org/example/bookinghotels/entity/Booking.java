@@ -1,5 +1,6 @@
 package org.example.bookinghotels.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;  // ← THÊM IMPORT NÀY
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -37,7 +38,14 @@ public class Booking {
 
     @Column(name = "checkout_date", nullable = false)
     private LocalDate checkoutDate;
-    //Bao//
+
+    @Column(name = "actual_checkin")
+    private LocalDateTime actualCheckin;
+
+    @Column(name = "actual_checkout")
+    private LocalDateTime actualCheckout;
+
     @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
+    @JsonIgnore  // ← THÊM DÒNG NÀY
     private List<BookingDetail> bookingDetails = new ArrayList<>();
 }
