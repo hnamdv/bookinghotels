@@ -26,7 +26,6 @@ public class BookingDetail {
 
     // Cho phép NULL - phòng sẽ được assign sau khi duyệt
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "room_id")
     @JoinColumn(name = "room_id", nullable = true)
     private Room room;
 

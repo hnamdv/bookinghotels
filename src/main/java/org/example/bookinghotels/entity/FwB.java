@@ -11,7 +11,6 @@ import lombok.*;
 @AllArgsConstructor
 public class FwB {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)  // Giữ nguyên
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 

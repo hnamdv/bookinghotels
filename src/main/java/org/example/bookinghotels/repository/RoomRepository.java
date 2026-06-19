@@ -28,4 +28,3 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
                                   @Param("checkoutDate") LocalDate checkoutDate);
     //Bao end//
 }
-public interface RoomRepository extends JpaRepository<Room, Integer> {}

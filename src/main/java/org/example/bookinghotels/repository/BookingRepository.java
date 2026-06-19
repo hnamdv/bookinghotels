@@ -33,4 +33,3 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
                                           @Param("startDate") LocalDate startDate,
                                           @Param("endDate") LocalDate endDate);
 }
-public interface BookingRepository extends JpaRepository<Booking, Integer> {}

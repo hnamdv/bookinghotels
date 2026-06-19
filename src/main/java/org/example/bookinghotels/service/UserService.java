@@ -1,7 +1,5 @@
 package org.example.bookinghotels.service;
 
-
-
 import org.example.bookinghotels.entity.Role;
 import org.example.bookinghotels.entity.User;
 import java.util.List;
@@ -21,7 +19,6 @@ public interface UserService {
 
     // Lấy danh sách tất cả các vai trò (roles)
     List<Role> getAllRoles();
-
     User updateUser(Integer id, User userDetails);
     void restoreUser(Integer id);
 }

@@ -40,10 +40,4 @@ public class Booking {
     //Bao//
     @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
     private List<BookingDetail> bookingDetails = new ArrayList<>();
-
-    @Column(name = "actual_checkin")
-    private LocalDateTime actualCheckin;
-
-    @Column(name = "actual_checkout")
-    private LocalDateTime actualCheckout;
 }

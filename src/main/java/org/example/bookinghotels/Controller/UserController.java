@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/users")
-@CrossOrigin(origins = "*") // Cho phép tất cả các nguồn (Frontend sau này) gọi API không bị lỗi CORS
 @RequestMapping("/api/admin/users")
 @CrossOrigin(origins = "*")
 public class UserController {
@@ -21,8 +19,6 @@ public class UserController {
     // 1. Lấy danh sách (GET)
     @GetMapping
     public ResponseEntity<List<User>> getAllUsers() {
-        List<User> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
         return ResponseEntity.ok(userService.getAllUsers());
     }
 

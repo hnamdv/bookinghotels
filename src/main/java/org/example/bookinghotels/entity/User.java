@@ -33,7 +33,6 @@ public class User {
     private String email;
 
     @Column(name = "delete_at")
-    private Boolean deleteAt = false;
     @JsonProperty("deleteAt") // Đảm bảo tên này khớp với u.deleteAt trong JS
     private Boolean deleteAt;
     @ManyToMany(fetch = FetchType.EAGER)
@@ -44,8 +43,4 @@ public class User {
     )
     private Set<Role> roles = new HashSet<>();
 
-    // Nhiều User thuộc về một Role
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id")
-    private Role role;
 }

@@ -11,16 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView; // Import cái này
 
 import java.util.Map;
-
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
     private AuthService authService;
 
-    // 1. API Login (Giữ nguyên)
     @Autowired
     private AuthenticationManager authenticationManager;
     @GetMapping("/api/auth/logout")
@@ -48,18 +45,12 @@ public class AuthController {
         }
 
         try {
-            String token = authService.login(request.get("email"), request.get("password"));
-            return ResponseEntity.ok(Map.of("success", true, "token", token));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(Map.of("success", false, "message", e.getMessage()));
             String result = authService.login(loginId, password);
             return ResponseEntity.ok(Map.of("success", true, "message", "Đăng nhập thành công"));
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", e.getMessage()));
         }
     }
-
-
     @GetMapping("/login")
     public String loginPage() {
         // Nếu đã có Authentication trong SecurityContext, đẩy thẳng vào admin
