@@ -8,7 +8,8 @@ const state = {
   bed: '',
   hasWifi: false,
   hasBathtub: false,
-  hasBalcony: false
+  hasBalcony: false,
+  hotelId: ''
 };
 
 function money(value){
@@ -116,4 +117,126 @@ document.addEventListener('DOMContentLoaded', () => {
 
   syncFilters();
   loadRooms();
+});
+
+let heroSliderTimer = null;
+let heroSliderIndex = 0;
+let currentSlides = [];
+
+function setBrandLogo(headerLogo, circleLogo, siteName){
+  document.querySelectorAll('#siteName,.footer-site-name').forEach(el => el.textContent = siteName || 'FEELHOME');
+
+  const headerImage = document.getElementById('siteLogo');
+  const headerFallback = document.getElementById('siteLogoFallback');
+  if(headerImage){
+    if(headerLogo){ headerImage.src = headerLogo; headerImage.hidden = false; if(headerFallback) headerFallback.hidden = true; }
+    else { headerImage.hidden = true; if(headerFallback) headerFallback.hidden = false; }
+  }
+
+  document.querySelectorAll('.footer-logo-image').forEach(el => {
+    if(headerLogo){ el.src = headerLogo; el.hidden = false; }
+    else el.hidden = true;
+  });
+  document.querySelectorAll('.footer-logo-fallback').forEach(el => el.hidden = Boolean(headerLogo));
+
+  const circleWrap = document.getElementById('heroBranchLogoWrap');
+  const circleImage = document.getElementById('heroBranchLogo');
+  if(circleWrap && circleImage){
+    if(circleLogo){ circleImage.src = circleLogo; circleWrap.hidden = false; }
+    else circleWrap.hidden = true;
+  }
+}
+
+function showHeroSlide(index){
+  const slides = document.querySelectorAll('.hero__slide');
+  const dots = document.querySelectorAll('.hero__dot');
+  if(!slides.length) return;
+  heroSliderIndex = (index + slides.length) % slides.length;
+  slides.forEach((slide, i) => slide.classList.toggle('active', i === heroSliderIndex));
+  dots.forEach((dot, i) => dot.classList.toggle('active', i === heroSliderIndex));
+}
+
+function startHeroSlider(){
+  if(heroSliderTimer) clearInterval(heroSliderTimer);
+  if(currentSlides.length > 1){
+    heroSliderTimer = setInterval(() => showHeroSlide(heroSliderIndex + 1), 5500);
+  }
+}
+
+function renderHeroSlides(slides, fallbackBanner){
+  currentSlides = Array.isArray(slides) && slides.length ? slides.filter(Boolean) : (fallbackBanner ? [fallbackBanner] : []);
+  const container = document.getElementById('heroSlides');
+  const dots = document.getElementById('heroDots');
+  const prev = document.getElementById('heroPrev');
+  const next = document.getElementById('heroNext');
+  if(!container || !dots) return;
+
+  if(!currentSlides.length){
+    container.innerHTML = '';
+    dots.innerHTML = '';
+    if(prev) prev.hidden = true;
+    if(next) next.hidden = true;
+    return;
+  }
+
+  container.innerHTML = currentSlides.map((url, index) =>
+    `<div class="hero__slide ${index === 0 ? 'active' : ''}" style="background-image:url('${String(url).replace(/'/g, "\\'")}')"></div>`
+  ).join('');
+  dots.innerHTML = currentSlides.map((_, index) =>
+    `<button class="hero__dot ${index === 0 ? 'active' : ''}" type="button" data-index="${index}" aria-label="Đến ảnh ${index + 1}"></button>`
+  ).join('');
+  heroSliderIndex = 0;
+  const showControls = currentSlides.length > 1;
+  if(prev) prev.hidden = !showControls;
+  if(next) next.hidden = !showControls;
+  dots.querySelectorAll('.hero__dot').forEach(dot => dot.addEventListener('click', () => {
+    showHeroSlide(Number(dot.dataset.index)); startHeroSlider();
+  }));
+  startHeroSlider();
+}
+
+async function loadSiteConfiguration(){
+  try{
+    const response = await fetch('/api/public/site');
+    if(!response.ok) return;
+    const site = await response.json();
+    const siteName = site.siteName || 'FEELHOME';
+
+    const applyBrand = hotel => {
+      const headerLogo = hotel?.headerLogo || site.headerLogo || '';
+      const circleLogo = hotel?.circleLogo || site.circleLogo || headerLogo;
+      const slides = hotel?.slides?.length ? hotel.slides : site.slides;
+      const fallbackBanner = hotel?.banner || site.banner || '';
+      setBrandLogo(headerLogo, circleLogo, hotel?.name || siteName);
+      renderHeroSlides(slides, fallbackBanner);
+      const eyebrow = document.querySelector('.hero__eyebrow');
+      if(eyebrow) eyebrow.textContent = hotel ? `Chào mừng đến ${hotel.name}` : `Chào mừng đến ${siteName}`;
+    };
+
+    applyBrand(null);
+
+    const select = document.getElementById('hotelId');
+    if(select && Array.isArray(site.hotels)){
+      site.hotels.forEach(h => {
+        const option = document.createElement('option');
+        option.value = h.id;
+        option.textContent = h.name;
+        select.appendChild(option);
+      });
+      select.addEventListener('change', () => {
+        state.hotelId = select.value;
+        const hotel = site.hotels.find(h => String(h.id) === String(select.value));
+        applyBrand(hotel || null);
+        loadRooms();
+      });
+    }
+  }catch(e){ console.warn('Không tải được cấu hình giao diện', e); }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('heroPrev')?.addEventListener('click', () => { showHeroSlide(heroSliderIndex - 1); startHeroSlider(); });
+  document.getElementById('heroNext')?.addEventListener('click', () => { showHeroSlide(heroSliderIndex + 1); startHeroSlider(); });
+  document.getElementById('heroSlider')?.addEventListener('mouseenter', () => { if(heroSliderTimer) clearInterval(heroSliderTimer); });
+  document.getElementById('heroSlider')?.addEventListener('mouseleave', startHeroSlider);
+  loadSiteConfiguration();
 });

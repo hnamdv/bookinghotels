@@ -20,6 +20,8 @@ async function loadDetail(){
           <h1>${room.nameType || 'Chi tiết phòng'}</h1>
           <p><strong>Khách sạn:</strong> ${room.hotelName || 'FeelHome Hotel'}</p>
           <p><strong>Địa chỉ:</strong> ${room.hotelAddress || 'Đang cập nhật'}</p>
+          ${room.hotelPhone ? `<p><strong>Điện thoại:</strong> ${room.hotelPhone}</p>` : ''}
+          ${room.hotelEmail ? `<p><strong>Email:</strong> ${room.hotelEmail}</p>` : ''}
           <p><strong>Giá:</strong> <span class="room-price">${money(room.price)}</span></p>
           <p><strong>Sức chứa:</strong> ${room.capacity || 1} khách</p>
           <p><strong>Giường:</strong> ${room.bed || 'Tiêu chuẩn'}</p>
@@ -28,6 +30,8 @@ async function loadDetail(){
           <button class="fh-btn-primary" onclick="saveFavorite(${room.id})">Lưu phòng yêu thích</button>
         </div>
       </div>`;
+    const contact = document.getElementById('detailHotelContact');
+    if(contact) contact.textContent = [room.hotelName, room.hotelPhone, room.hotelEmail].filter(Boolean).join(' · ') || 'Thông tin liên hệ đang cập nhật.';
   }catch(e){ page.innerHTML = '<div class="empty">Không thể tải dữ liệu chi tiết.</div>'; }
 }
 async function saveFavorite(roomTypeId){

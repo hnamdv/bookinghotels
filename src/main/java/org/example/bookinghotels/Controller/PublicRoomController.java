@@ -37,13 +37,15 @@ public class PublicRoomController {
             @RequestParam(required = false) Boolean hasWifi,
             @RequestParam(required = false) Boolean hasBathtub,
             @RequestParam(required = false) Boolean hasBalcony,
-            @RequestParam(required = false) Boolean hasTv
+            @RequestParam(required = false) Boolean hasTv,
+            @RequestParam(required = false) Integer hotelId
     ) {
         String keywordValue = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
         String bedValue = bed == null ? "" : bed.trim().toLowerCase(Locale.ROOT);
 
         List<RoomTypeSummaryDto> rooms = roomTypeRepository.findAllWithImages()
                 .stream()
+                .filter(room -> hotelId == null || (room.getHotels() != null && hotelId.equals(room.getHotels().getId())))
                 .filter(room -> keywordValue.isBlank() || containsKeyword(room, keywordValue))
                 .filter(room -> minPrice == null || room.getPrice() == null || room.getPrice() >= minPrice)
                 .filter(room -> maxPrice == null || room.getPrice() == null || room.getPrice() <= maxPrice)
