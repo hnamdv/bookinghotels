@@ -42,7 +42,13 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Cho phép truy cập các file tĩnh và API xác thực
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/", "/home", "/layout", "/layout.html", "/client-home.html",
+                                "/login", "/error", "/favicon.ico",
+                                "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
+                                "/favorites.html", "/room-detail.html", "/promo-demo.html", "/offers", "/offers.html",
+                                "/api/auth/**", "/api/public/**"
+                        ).permitAll()
 
                         // 🔥 THAY DÒNG NÀY: Cho phép tất cả, không cần login
                         .anyRequest().permitAll()  // Đã sửa từ authenticated thành permitAll

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{homeadmin}">
+<head>
+    <title>Quản lý hình ảnh</title>
+    <style>
+        .page-card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+        .brand-btn{background:#bd6c3c;color:#fff;border:0;border-radius:10px;padding:10px 18px}.brand-btn:hover{background:#9d5830;color:#fff}
+        .media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}.media-card{border:1px solid #e6e6e6;border-radius:14px;overflow:hidden;background:#fff}
+        .media-card>img{width:100%;height:140px;object-fit:cover;background:#f3f4f6}.media-body{padding:12px}.media-name{font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .form-control,.form-select{border-radius:10px}
+        .brand-accordion{display:grid;gap:14px}.brand-item{border:1px solid #e5e7eb;border-radius:16px;overflow:hidden;background:#fff}
+        .brand-summary{list-style:none;display:flex;align-items:center;gap:14px;padding:15px 18px;cursor:pointer;background:#fafafa}.brand-summary::-webkit-details-marker{display:none}
+        .branch-logo{width:58px;height:58px;border-radius:50%;object-fit:cover;border:3px solid #fff;box-shadow:0 0 0 1px #d8dee8;background:#edf1f5;flex:0 0 auto}
+        .branch-logo.empty{display:flex;align-items:center;justify-content:center;font-weight:800;color:#6b7280}
+        .brand-summary-title{font-weight:800;color:#142238}.brand-summary-note{font-size:.86rem;color:#7a8493}.brand-chevron{margin-left:auto;transition:.2s}.brand-item[open] .brand-chevron{transform:rotate(180deg)}
+        .brand-body{padding:20px;border-top:1px solid #eceff3}
+        .picker-title{font-weight:750;margin-bottom:10px}.image-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:11px;max-height:350px;overflow:auto;padding:4px}
+        .image-option{position:relative;border:2px solid transparent;border-radius:13px;overflow:hidden;background:#f4f6f8;cursor:pointer;min-height:90px}.image-option img{width:100%;height:90px;object-fit:cover;display:block}
+        .image-option input{position:absolute;top:7px;right:7px;width:19px;height:19px;z-index:2}.image-option:has(input:checked){border-color:#bd6c3c;box-shadow:0 0 0 2px rgba(189,108,60,.14)}
+        .logo-picker .image-option img{height:98px;border-radius:50%;width:98px;margin:auto;padding:6px;object-fit:cover}.logo-picker .image-option{background:#fff;text-align:center;padding:5px}
+        .selected-help{font-size:.85rem;color:#6b7280}.section-label{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#ad6338;font-weight:800}
+        .folder-upload{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px;border:1px dashed #d7c4ae;border-radius:18px;background:linear-gradient(180deg,#fffdf9,#fff7ec);cursor:pointer;overflow:hidden}
+        .folder-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:8}
+        .folder-stage{position:relative;width:240px;height:170px;perspective:1500px;margin-bottom:12px}
+        .folder-back,.folder-sheet,.folder-front{position:absolute;left:0;right:0;bottom:0;border-radius:18px;transform-origin:bottom;transition:transform .35s ease,box-shadow .35s ease}
+        .folder-back{height:160px;background:#b96516}.folder-back:before{content:"";position:absolute;bottom:99%;left:0;width:82px;height:17px;background:#b96516;border-radius:14px 14px 0 0}
+        .folder-sheet{inset:13px 9px 8px;height:145px;background:#e5e7eb}.folder-sheet.s2{background:#f1f3f5}.folder-sheet.s3{background:#fff}
+        .folder-front{height:156px;background:linear-gradient(180deg,#f3b23e,#d97706);box-shadow:inset 0 -18px 35px rgba(145,77,8,.25)}.folder-front:after{content:"";position:absolute;bottom:99%;right:0;width:145px;height:16px;background:#f3b23e;border-radius:14px 14px 0 0}
+        .folder-upload:hover .folder-sheet.s1{transform:rotateX(-20deg)}.folder-upload:hover .folder-sheet.s2{transform:rotateX(-30deg)}.folder-upload:hover .folder-sheet.s3{transform:rotateX(-38deg)}.folder-upload:hover .folder-front{transform:rotateX(-46deg) translateY(1px);box-shadow:inset 0 20px 40px #fbbf24,inset 0 -20px 40px #d97706,0 24px 38px rgba(0,0,0,.14)}
+        .upload-library-form{display:flex;flex-direction:column;gap:22px}
+        .upload-library-top{display:flex;justify-content:center}
+        .folder-upload--center{width:min(680px,100%);min-height:280px}
+        .upload-library-bottom{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end;max-width:1100px;width:100%;margin:0 auto}
+        .upload-library-submit{min-width:250px;min-height:46px}
+        @media(max-width:768px){.upload-library-bottom{grid-template-columns:1fr}.upload-library-submit{width:100%;min-width:0}.folder-upload--center{min-height:230px}}
+
+        .folder-caption{font-weight:800;color:#25324a}.folder-file-name{font-size:.86rem;color:#7b8492;margin-top:5px;text-align:center;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        @media(max-width:767px){.page-card{padding:16px}.brand-summary{padding:13px}.branch-logo{width:48px;height:48px}.image-picker{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    </style>
+
+<style>
+.upload-library-form--vertical{display:flex;flex-direction:column;align-items:center;gap:22px}
+.upload-library-form--vertical .upload-library-top{width:100%;display:flex;justify-content:center}
+.upload-library-form--vertical .folder-upload{width:min(560px,100%);margin-inline:auto}
+.upload-library-bottom--stacked{width:min(820px,100%);display:flex!important;flex-direction:column;align-items:stretch;gap:14px;margin-inline:auto}
+.upload-library-bottom--stacked .upload-library-submit{align-self:center;min-width:280px;height:48px}
+.folder-file-size{display:block;margin-top:6px;font-size:13px;color:#16824b;font-weight:750}
+.folder-file-meta{display:none;margin-top:12px;padding:10px 14px;border:1px solid #b9dfca;background:#f0fbf5;border-radius:10px;color:#173b29;font-size:13px;line-height:1.55;text-align:center;max-width:92%}
+.folder-file-meta.is-visible{display:block}
+.media-size{font-size:12px;color:#4b6f5a;font-weight:650}
+@media(max-width:760px){.upload-library-bottom--stacked .upload-library-submit{width:100%;min-width:0}}
+
+.welcome-config-preview{font-size:20px;font-weight:800;letter-spacing:.18em;text-transform:uppercase}
+.form-control-color{height:42px;padding:.35rem}
+</style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="mb-4"><h2 class="fw-bold">Quản lý hình ảnh</h2><p class="text-muted">Tải ảnh một lần vào thư viện, sau đó chỉ cần tick để dùng lại cho logo, slideshow và loại phòng.</p></div>
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="page-card mb-4">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+            <div><h5 class="fw-bold mb-1">Nhận diện từng khách sạn / chi nhánh</h5><p class="text-muted mb-0">Logo đều hiển thị dạng tròn. Mỗi khách sạn được tạo ở mục Quản lý hotels sẽ tự xuất hiện thành một card bên dưới.</p></div>
+            <span class="badge rounded-pill text-bg-light border" th:text="|${#lists.size(hotels)} khách sạn|">0 khách sạn</span>
+        </div>
+
+        <div class="brand-accordion">
+            <details class="brand-item" open>
+                <summary class="brand-summary">
+                    <img th:if="${siteLogo != null and !siteLogo.isEmpty()}" class="branch-logo" th:src="${siteLogo}" alt="Logo mặc định">
+                    <span th:unless="${siteLogo != null and !siteLogo.isEmpty()}" class="branch-logo empty">FH</span>
+                    <span><span class="section-label">Mặc định toàn hệ thống</span><span class="brand-summary-title d-block" th:text="${siteName}">FEELHOME</span><span class="brand-summary-note">Dùng khi người xem chưa chọn khách sạn cụ thể</span></span>
+                    <i class="fa-solid fa-chevron-down brand-chevron"></i>
+                </summary>
+                <div class="brand-body">
+                    <form th:action="@{/admin/media/branding}" method="post">
+                        <div class="row g-4">
+                            <div class="col-lg-4"><label class="form-label fw-semibold">Tên thương hiệu</label><input class="form-control" name="siteName" th:value="${siteName}"></div>
+                            
+                            <div class="col-12">
+                                <div class="picker-title">Dòng chữ chào mừng trên slideshow</div>
+                                <div class="row g-3 align-items-end">
+                                    <div class="col-lg-6"><label class="form-label fw-semibold">Nội dung</label><input class="form-control" name="siteWelcomeText" maxlength="100" th:value="${siteWelcomeText}" placeholder="Chào mừng đến FeelHome"></div>
+                                    <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Màu chữ</label><input class="form-control form-control-color w-100" type="color" name="siteWelcomeColor" th:value="${siteWelcomeColor}"></div>
+                                    <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Hiệu ứng hover</label><select class="form-select" name="siteWelcomeEffect"><option value="shine" th:selected="${siteWelcomeEffect == 'shine'}">Lấp lánh chéo màu cam</option><option value="glow" th:selected="${siteWelcomeEffect == 'glow'}">Phát sáng vàng</option><option value="none" th:selected="${siteWelcomeEffect == 'none'}">Không hiệu ứng</option></select></div>
+                                </div>
+                                <small class="text-muted d-block mt-2">Dòng chữ sẽ hiển thị lớn bên dưới logo tròn ở slideshow trang chủ.</small>
+                            </div>
+                            <div class="col-12">
+                                <div class="picker-title">1. Chọn một logo tròn từ thư viện</div>
+                                <div class="image-picker logo-picker">
+                                    <label class="image-option" th:each="m:${mediaList}"><img th:src="${m.fileUrl}" alt="Logo"><input type="radio" name="siteLogoMediaId" th:value="${m.id}" th:checked="${siteLogo == m.fileUrl}"></label>
+                                </div>
+                                <div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="clearSiteLogo" value="true" id="clearSiteLogo"><label class="form-check-label" for="clearSiteLogo">Bỏ logo hiện tại và dùng chữ FEELHOME</label></div>
+                            </div>
+                            <div class="col-12">
+                                <div class="picker-title">2. Tick các ảnh dùng cho slideshow</div>
+                                <div class="selected-help mb-2">Các ảnh đang tick là toàn bộ slideshow hiện tại. Tick thêm ảnh mới không tạo bản sao ảnh cũ.</div>
+                                <div class="image-picker">
+                                    <label class="image-option" th:each="m:${mediaList}"><img th:src="${m.fileUrl}" alt="Slide"><input type="checkbox" name="siteSlideMediaIds" th:value="${m.id}" th:checked="${#lists.contains(siteSlides,m.fileUrl)}"></label>
+                                </div>
+                                <div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="clearSiteSlides" value="true" id="clearSiteSlides"><label class="form-check-label" for="clearSiteSlides">Xóa toàn bộ slideshow mặc định</label></div>
+                            </div>
+                        </div>
+                        <button class="brand-btn mt-3" type="submit"><i class="fa-solid fa-floppy-disk me-2"></i>Lưu cấu hình mặc định</button>
+                    </form>
+                </div>
+            </details>
+
+            <details class="brand-item" th:each="h:${hotels}">
+                <summary class="brand-summary">
+                    <img th:if="${hotelLogos[h.id] != null and !hotelLogos[h.id].isEmpty()}" class="branch-logo" th:src="${hotelLogos[h.id]}" th:alt="${h.name}">
+                    <span th:unless="${hotelLogos[h.id] != null and !hotelLogos[h.id].isEmpty()}" class="branch-logo empty" th:text="${#strings.substring(h.name,0,1)}">H</span>
+                    <span><span class="section-label">Khách sạn / chi nhánh</span><span class="brand-summary-title d-block" th:text="${h.name}">Hotel</span><span class="brand-summary-note" th:text="${h.address != null and !h.address.isEmpty() ? h.address : 'Chưa cập nhật địa chỉ'}"></span></span>
+                    <i class="fa-solid fa-chevron-down brand-chevron"></i>
+                </summary>
+                <div class="brand-body">
+                    <form th:action="@{/admin/media/branding}" method="post">
+                        <input type="hidden" name="hotelId" th:value="${h.id}">
+                        <div class="picker-title">1. Logo tròn của khách sạn</div>
+                        <div class="image-picker logo-picker mb-2">
+                            <label class="image-option" th:each="m:${mediaList}"><img th:src="${m.fileUrl}" alt="Logo"><input type="radio" name="hotelLogoMediaId" th:value="${m.id}" th:checked="${hotelLogos[h.id] == m.fileUrl}"></label>
+                        </div>
+                        <div class="form-check mb-4"><input class="form-check-input" type="checkbox" name="clearHotelLogo" value="true" th:id="|clearHotelLogo-${h.id}|"><label class="form-check-label" th:for="|clearHotelLogo-${h.id}|">Bỏ logo riêng, dùng logo mặc định hệ thống</label></div>
+
+                        <div class="picker-title">2. Slideshow riêng của khách sạn</div>
+                        <div class="selected-help mb-2">Tick đúng các ảnh cần hiển thị. Hệ thống lưu theo URL duy nhất, không nhân đôi ảnh.</div>
+                        <div class="image-picker">
+                            <label class="image-option" th:each="m:${mediaList}"><img th:src="${m.fileUrl}" alt="Slide"><input type="checkbox" name="hotelSlideMediaIds" th:value="${m.id}" th:checked="${#lists.contains(hotelSlides[h.id],m.fileUrl)}"></label>
+                        </div>
+                        <div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="clearHotelSlides" value="true" th:id="|clearHotelSlides-${h.id}|"><label class="form-check-label" th:for="|clearHotelSlides-${h.id}|">Xóa slideshow riêng, dùng slideshow mặc định</label></div>
+                        
+                        <div class="picker-title mt-4">3. Dòng chữ chào mừng của khách sạn</div>
+                        <div class="row g-3 align-items-end mb-3">
+                            <div class="col-lg-6"><label class="form-label fw-semibold">Nội dung</label><input class="form-control" name="hotelWelcomeText" maxlength="100" th:value="${hotelWelcomeTexts[h.id]}" th:placeholder="|Chào mừng đến ${h.name}|"></div>
+                            <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Màu chữ</label><input class="form-control form-control-color w-100" type="color" name="hotelWelcomeColor" th:value="${hotelWelcomeColors[h.id]}"></div>
+                            <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Hiệu ứng hover</label><select class="form-select" name="hotelWelcomeEffect"><option value="shine" th:selected="${hotelWelcomeEffects[h.id] == 'shine'}">Lấp lánh chéo màu cam</option><option value="glow" th:selected="${hotelWelcomeEffects[h.id] == 'glow'}">Phát sáng vàng</option><option value="none" th:selected="${hotelWelcomeEffects[h.id] == 'none'}">Không hiệu ứng</option></select></div>
+                        </div>
+                        <button class="brand-btn mt-3" type="submit"><i class="fa-solid fa-floppy-disk me-2"></i>Lưu cho <span th:text="${h.name}"></span></button>
+                    </form>
+                </div>
+            </details>
+        </div>
+    </div>
+
+    <div class="page-card mb-4">
+        <h5 class="fw-bold mb-2">Tải ảnh mới vào thư viện</h5>
+        <p class="text-muted">Mỗi ảnh tối đa 10 MB. Chỉ tải một lần; sau đó ảnh sẽ xuất hiện trong tất cả bộ chọn phía trên và ở trang Quản lý loại phòng.</p>
+        <form th:action="@{/admin/media/upload}" method="post" enctype="multipart/form-data" class="upload-library-form upload-library-form--vertical">
+            <div class="upload-library-top">
+                <label class="folder-upload folder-upload--center" for="libraryImageInput">
+                    <input class="image-input" id="libraryImageInput" type="file" name="file" accept="image/jpeg,image/png,image/webp,image/gif" required>
+                    <span class="folder-stage" aria-hidden="true"><span class="folder-back"></span><span class="folder-sheet s1"></span><span class="folder-sheet s2"></span><span class="folder-sheet s3"></span><span class="folder-front"></span></span>
+                    <span class="folder-caption"><i class="fa-solid fa-folder-open me-2"></i>Chọn ảnh đưa vào thư viện</span>
+                    <span class="folder-file-name" id="libraryImageName">Chưa chọn ảnh · tối đa 10 MB</span>
+                    <span class="folder-file-size" id="libraryImageSize">Dung lượng sẽ hiển thị sau khi chọn ảnh</span>
+                    <span class="folder-file-meta" id="libraryImageMeta"></span>
+                </label>
+            </div>
+            <div class="upload-library-bottom upload-library-bottom--stacked">
+                <div class="upload-attach-field">
+                    <label class="form-label fw-semibold">Gắn ngay vào loại phòng <span class="text-muted fw-normal">(không bắt buộc)</span></label>
+                    <select class="form-select" name="roomTypeId"><option value="">Chỉ lưu vào thư viện dùng chung</option><option th:each="rt:${roomTypes}" th:value="${rt.id}" th:text="${rt.nameType}"></option></select>
+                    <small class="text-muted d-block mt-2">Ảnh chỉ tải một lần. Sau đó có thể chọn lại cho logo, slideshow, câu chuyện thương hiệu hoặc nhiều loại phòng.</small>
+                </div>
+                <button class="brand-btn upload-library-submit" type="submit"><i class="fa-solid fa-cloud-arrow-up me-2"></i>Tải ảnh vào thư viện</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="page-card">
+        <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold m-0">Thư viện ảnh dùng chung</h5><span class="badge bg-light text-dark border" th:text="|${#lists.size(mediaList)} ảnh|"></span></div>
+        <div class="media-grid">
+            <div class="media-card" th:each="m:${mediaList}">
+                <img th:src="${m.fileUrl}" alt="Ảnh">
+                <div class="media-body">
+                    <div class="media-name fw-semibold" th:text="${m.fileName}"></div>
+                    <div class="media-size mb-2"><i class="fa-solid fa-file-image me-1"></i><span th:text="${m.fileType != null ? m.fileType : 'image'}">image</span> · <i class="fa-solid fa-hard-drive ms-1 me-1"></i><span th:text="${mediaSizes[m.id]}">0 KB</span></div>
+                    <form th:action="@{/admin/media/{id}/attach(id=${m.id})}" method="post" class="mb-2">
+                        <select class="form-select form-select-sm mb-2" name="roomTypeId" required><option value="">Chọn loại phòng</option><option th:each="rt:${roomTypes}" th:value="${rt.id}" th:text="${rt.nameType}"></option></select>
+                        <button class="btn btn-sm btn-outline-primary w-100" type="submit">Gắn vào loại phòng</button>
+                    </form>
+                    <div class="d-flex gap-2"><button class="btn btn-sm btn-outline-secondary flex-fill" type="button" th:attr="data-url=${m.fileUrl}" onclick="navigator.clipboard.writeText(this.dataset.url)">Sao chép link</button><form th:action="@{/admin/media/{id}/delete(id=${m.id})}" method="post" onsubmit="return confirm('Xóa ảnh này? Ảnh đang dùng ở loại phòng cũng sẽ bị gỡ.')"><button class="btn btn-sm btn-outline-danger" type="submit"><i class="fa-solid fa-trash"></i></button></form></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (() => {
+            const input = document.getElementById('libraryImageInput');
+            const nameBox = document.getElementById('libraryImageName');
+            const sizeBox = document.getElementById('libraryImageSize');
+            const metaBox = document.getElementById('libraryImageMeta');
+            if (!input) return;
+            const readable = bytes => bytes >= 1024 * 1024
+                ? (bytes / (1024 * 1024)).toFixed(2) + ' MB'
+                : Math.max(bytes / 1024, 0.1).toFixed(1) + ' KB';
+            const reset = () => {
+                if (nameBox) nameBox.textContent = 'Chưa chọn ảnh · tối đa 10 MB';
+                if (sizeBox) sizeBox.textContent = 'Dung lượng sẽ hiển thị sau khi chọn ảnh';
+                if (metaBox) { metaBox.textContent = ''; metaBox.classList.remove('is-visible'); }
+            };
+            input.addEventListener('change', () => {
+                const file = input.files && input.files[0];
+                if (!file) { reset(); return; }
+                if (file.size > 10 * 1024 * 1024) {
+                    alert('Ảnh "' + file.name + '" vượt quá giới hạn 10 MB.');
+                    input.value = '';
+                    reset();
+                    return;
+                }
+                const size = readable(file.size);
+                if (nameBox) nameBox.textContent = file.name;
+                if (sizeBox) sizeBox.textContent = size;
+                if (metaBox) {
+                    metaBox.innerHTML = '<b>Tên ảnh:</b> ' + file.name.replace(/[&<>"']/g, '')
+                        + '<br><b>Dung lượng:</b> ' + size
+                        + '<br><b>Định dạng:</b> ' + (file.type || 'Không xác định');
+                    metaBox.classList.add('is-visible');
+                }
+            });
+        })();
+    </script>
+</div>
+</body>
+</html>

@@ -22,8 +22,13 @@ public class RoomTypeSummaryDto {
     private String bedOptions;
     private Integer totalRooms;
     private Double taxAndFee;
+    private Integer hotelId;
     private String hotelName;
     private String hotelAddress;
+    private String hotelPhone;
+    private String hotelEmail;
+    private String hotelLogo;
+    private String hotelBanner;
     private String thumbnail;
     private List<String> images;
 
@@ -48,8 +53,13 @@ public class RoomTypeSummaryDto {
 
         Hotels hotel = roomType.getHotels();
         if (hotel != null) {
+            this.hotelId = hotel.getId();
             this.hotelName = hotel.getName();
             this.hotelAddress = hotel.getAddress();
+            this.hotelPhone = hotel.getPhone();
+            this.hotelEmail = hotel.getEmail();
+            this.hotelLogo = hotel.getLogo();
+            this.hotelBanner = hotel.getThumbnail();
         }
 
         this.images = new ArrayList<>();
@@ -91,10 +101,20 @@ public class RoomTypeSummaryDto {
     public void setTotalRooms(Integer totalRooms) { this.totalRooms = totalRooms; }
     public Double getTaxAndFee() { return taxAndFee; }
     public void setTaxAndFee(Double taxAndFee) { this.taxAndFee = taxAndFee; }
+    public Integer getHotelId() { return hotelId; }
+    public void setHotelId(Integer hotelId) { this.hotelId = hotelId; }
     public String getHotelName() { return hotelName; }
     public void setHotelName(String hotelName) { this.hotelName = hotelName; }
     public String getHotelAddress() { return hotelAddress; }
     public void setHotelAddress(String hotelAddress) { this.hotelAddress = hotelAddress; }
+    public String getHotelPhone() { return hotelPhone; }
+    public void setHotelPhone(String hotelPhone) { this.hotelPhone = hotelPhone; }
+    public String getHotelEmail() { return hotelEmail; }
+    public void setHotelEmail(String hotelEmail) { this.hotelEmail = hotelEmail; }
+    public String getHotelLogo() { return hotelLogo; }
+    public void setHotelLogo(String hotelLogo) { this.hotelLogo = hotelLogo; }
+    public String getHotelBanner() { return hotelBanner; }
+    public void setHotelBanner(String hotelBanner) { this.hotelBanner = hotelBanner; }
     public String getThumbnail() { return thumbnail; }
     public void setThumbnail(String thumbnail) { this.thumbnail = thumbnail; }
     public List<String> getImages() { return images; }

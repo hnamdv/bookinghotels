@@ -2,48 +2,63 @@ package org.example.bookinghotels.service;
 
 import org.example.bookinghotels.entity.Media;
 import org.example.bookinghotels.repository.MediaRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
 public class MediaService {
+    private final MediaRepository mediaRepository;
+    private final DatabaseSequenceService sequenceService;
+    private final Path uploadDirectory;
 
-    private final String UPLOAD_DIR = "C:/Users/HP/Documents/img/";
-
-    @Autowired
-    private MediaRepository mediaRepository;
+    public MediaService(MediaRepository mediaRepository,
+                        DatabaseSequenceService sequenceService,
+                        @Value("${app.upload-dir:uploads}") String uploadDir) {
+        this.mediaRepository = mediaRepository;
+        this.sequenceService = sequenceService;
+        this.uploadDirectory = Paths.get(uploadDir).toAbsolutePath().normalize();
+    }
 
     public Media uploadToLocal(MultipartFile file) throws IOException {
-        File folder = new File(UPLOAD_DIR);
-        if (!folder.exists()) {
-            boolean created = folder.mkdirs(); // Gán biến để hết bị cảnh báo "ignored result"
+        validate(file);
+        Files.createDirectories(uploadDirectory);
+
+        String original = file.getOriginalFilename() == null ? "image" : file.getOriginalFilename();
+        String extension = original.contains(".") ? original.substring(original.lastIndexOf('.')).toLowerCase(Locale.ROOT) : "";
+        String safeName = UUID.randomUUID() + extension;
+        Path target = uploadDirectory.resolve(safeName).normalize();
+        if (!target.startsWith(uploadDirectory)) {
+            throw new IOException("Đường dẫn tệp không hợp lệ");
         }
+        Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-        String originalFilename = file.getOriginalFilename();
-        String extension = "";
-        if (originalFilename != null && originalFilename.contains(".")) {
-            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        }
-        String safeFileName = UUID.randomUUID().toString() + extension;
-
-        Path targetPath = Paths.get(UPLOAD_DIR).resolve(safeFileName);
-        Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
-
+        sequenceService.synchronize("media");
         Media media = new Media();
-        media.setFileName(safeFileName);
+        media.setFileName(safeName);
         media.setFileType(file.getContentType());
-        media.setUploadPath(targetPath.toAbsolutePath().toString()); // Dùng toAbsolutePath() chuẩn mã nguồn
-        media.setFileUrl("/uploads/" + safeFileName);
+        media.setUploadPath(target.toString());
+        media.setFileUrl("/uploads/" + safeName);
+        return mediaRepository.saveAndFlush(media);
+    }
 
-        return mediaRepository.save(media);
+    public void deletePhysicalFile(Media media) {
+        if (media == null || media.getUploadPath() == null) return;
+        try {
+            Files.deleteIfExists(Paths.get(media.getUploadPath()));
+        } catch (IOException ignored) {
+        }
+    }
+
+    private void validate(MultipartFile file) {
+        if (file == null || file.isEmpty()) throw new IllegalArgumentException("Vui lòng chọn ảnh.");
+        String type = file.getContentType();
+        if (type == null || !type.startsWith("image/")) throw new IllegalArgumentException("Tệp tải lên phải là hình ảnh.");
+        if (file.getSize() > 10L * 1024 * 1024) throw new IllegalArgumentException("Ảnh không được vượt quá 10 MB.");
     }
 }

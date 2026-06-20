@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -37,13 +39,22 @@ public class PublicRoomController {
             @RequestParam(required = false) Boolean hasWifi,
             @RequestParam(required = false) Boolean hasBathtub,
             @RequestParam(required = false) Boolean hasBalcony,
-            @RequestParam(required = false) Boolean hasTv
+            @RequestParam(required = false) Boolean hasTv,
+            @RequestParam(required = false) Integer hotelId
     ) {
         String keywordValue = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
         String bedValue = bed == null ? "" : bed.trim().toLowerCase(Locale.ROOT);
 
-        List<RoomTypeSummaryDto> rooms = roomTypeRepository.findAllWithImages()
+        Map<Integer, RoomType> uniqueRoomTypes = new LinkedHashMap<>();
+        for (RoomType roomType : roomTypeRepository.findAllWithImages()) {
+            if (roomType != null && roomType.getId() != null) {
+                uniqueRoomTypes.putIfAbsent(roomType.getId(), roomType);
+            }
+        }
+
+        List<RoomTypeSummaryDto> rooms = uniqueRoomTypes.values()
                 .stream()
+                .filter(room -> hotelId == null || (room.getHotels() != null && hotelId.equals(room.getHotels().getId())))
                 .filter(room -> keywordValue.isBlank() || containsKeyword(room, keywordValue))
                 .filter(room -> minPrice == null || room.getPrice() == null || room.getPrice() >= minPrice)
                 .filter(room -> maxPrice == null || room.getPrice() == null || room.getPrice() <= maxPrice)
