@@ -1,5 +1,6 @@
     package org.example.bookinghotels.entity;
 
+    import com.fasterxml.jackson.annotation.JsonIgnore;
     import jakarta.persistence.*;
     import lombok.*;
     import java.util.List;
@@ -17,6 +18,7 @@
 
         @ManyToOne(fetch = FetchType.EAGER)
         @JoinColumn(name = "hotels_id")
+        @JsonIgnore
         private Hotels hotels;
 
         @Column(nullable = false)
@@ -57,8 +59,10 @@
         private Double taxAndFee = 0.0;
 
         @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+        @JsonIgnore
         private List<Room> rooms;
 
         @OneToMany(mappedBy = "roomType", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+        @JsonIgnore
         private List<RoomImg> images;
     }
