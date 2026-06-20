@@ -1,55 +1,25 @@
 package org.example.bookinghotels.service.impl;
 
-import jakarta.mail.internet.MimeMessage;
 import org.example.bookinghotels.entity.*;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.OrderBookingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class OrderBookingServiceImpl implements OrderBookingService {
 
-    @Autowired
-    private BookingRepository bookingRepository;
-    @Autowired
-    private BookingDetailRepository bookingDetailRepository;
-    @Autowired
-    private FwbRepository fwbRepository;
-    @Autowired
-    private BookingFBRepository bookingFBRepository;
-    @Autowired
-    private InvoicesRepository invoicesRepository;
-    @Autowired
-    private RoomTypeRepository roomTypeRepository;
-    @Override
-    @Transactional
-    public Booking saveAndReturn(Booking booking, Integer roomTypeId) {
-        // 1. Lưu Booking vào DB và lấy đối tượng vừa lưu (đã có ID)
-        Booking savedBooking = bookingRepository.save(booking);
+    @Autowired private BookingRepository bookingRepository;
+    @Autowired private BookingDetailRepository bookingDetailRepository;
+    @Autowired private FwbRepository fwbRepository;
+    @Autowired private BookingFBRepository bookingFBRepository;
+    @Autowired private InvoicesRepository invoicesRepository;
+    @Autowired private RoomTypeRepository roomTypeRepository;
 
-        // 2. Tạo BookingDetail cơ bản (bạn có thể bổ sung thêm logic gán RoomType tại đây nếu cần)
-        BookingDetail detail = new BookingDetail();
-        detail.setBooking(savedBooking);
-
-        // Giả sử lấy thông tin roomType từ ID (bạn cần truyền đúng tham số này vào)
-        RoomType rt = roomTypeRepository.findById(roomTypeId).orElse(null);
-        detail.setRoomType(rt);
-        detail.setPrice(rt != null ? rt.getPrice() : 0.0);
-
-        bookingDetailRepository.save(detail);
-
-        // 3. Trả về Booking đã có ID để Controller dùng
-        return savedBooking;
-    }
     @Override
     @Transactional // Đảm bảo tính toàn vẹn dữ liệu: Nếu một bảng lỗi, tất cả sẽ rollback
     public Booking processBooking(Booking booking, BookingDetail detail, List<BookingFB> orderedFoods, String paymentMethod) {
@@ -100,7 +70,6 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     public List<FwB> getAllAvailableFoods() {
         return fwbRepository.findAll();
     }
-
     //Bao//
     @Override
     public boolean isRoomAvailable(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate) {
@@ -139,57 +108,5 @@ public class OrderBookingServiceImpl implements OrderBookingService {
         if (!isRoomAvailable(roomId, checkinDate, checkoutDate)) {
             throw new IllegalStateException("Phòng đã được đặt trong khoảng thời gian này (gối lịch)");
         }
-    }
-    //
-    //
-    //
-    //
-    //
-    //                 Trang cua khach hang ////
-
-    //
-
-    @Autowired
-    private JavaMailSender mailSender;
-
-    public void saveAndSendEmail(Booking booking, Integer roomId) {
-        // 1. Lưu Booking
-        bookingRepository.save(booking);
-// 2. Tạm thời ẩn gửi mail để không bị lỗi
-    /*
-    sendEmail(booking);
-
-        // 2. Gửi mail (Sử dụng MimeMessage để gửi HTML cho đẹp)
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true);
-            helper.setTo(booking.getEmail());
-            helper.setSubject("Xác nhận đơn đặt phòng thành công");
-            helper.setText("<h1>Cảm ơn bạn đã đặt phòng!</h1><p>Thông tin check-in: " + booking.getCheckinDate() + "</p>", true);
-            mailSender.send(message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    */
-    }
-
-
-    @Override
-    public List<RoomType> getAvailableRoomTypes(LocalDate checkin, LocalDate checkout) {
-        List<RoomType> allRoomTypes = roomTypeRepository.findAll();
-        List<RoomType> availableTypes = new ArrayList<>();
-
-        for (RoomType type : allRoomTypes) {
-            // 1. Đếm số lượng phòng loại này đã bị đặt trong khoảng thời gian checkin - checkout
-            // Điều kiện trùng lịch: (startA <= endB) AND (endA >= startB)
-            long bookedCount = bookingRepository.countBookedRoomsByTypeId(
-                    type.getId(), checkin, checkout);
-
-            // 2. Nếu số phòng đã đặt < tổng số phòng thì loại này còn trống
-            if (bookedCount < type.getTotalRooms()) {
-                availableTypes.add(type);
-            }
-        }
-        return availableTypes;
     }
 }

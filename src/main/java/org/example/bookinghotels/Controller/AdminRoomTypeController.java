@@ -3,6 +3,7 @@ package org.example.bookinghotels.Controller;
 import org.example.bookinghotels.entity.*;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.DatabaseSequenceService;
+import org.example.bookinghotels.service.RoomTypeImageService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class AdminRoomTypeController {
     private final MediaRepository mediaRepository;
     private final RoomImgRepository roomImgRepository;
     private final DatabaseSequenceService sequenceService;
+    private final RoomTypeImageService roomTypeImageService;
 
     public AdminRoomTypeController(RoomTypeRepository roomTypeRepository,
                                    HotelsRepository hotelsRepository,
@@ -27,7 +29,8 @@ public class AdminRoomTypeController {
                                    PromotionRoomTypeRepository promotionRoomTypeRepository,
                                    MediaRepository mediaRepository,
                                    RoomImgRepository roomImgRepository,
-                                   DatabaseSequenceService sequenceService) {
+                                   DatabaseSequenceService sequenceService,
+                                   RoomTypeImageService roomTypeImageService) {
         this.roomTypeRepository = roomTypeRepository;
         this.hotelsRepository = hotelsRepository;
         this.promotionRepository = promotionRepository;
@@ -35,6 +38,7 @@ public class AdminRoomTypeController {
         this.mediaRepository = mediaRepository;
         this.roomImgRepository = roomImgRepository;
         this.sequenceService = sequenceService;
+        this.roomTypeImageService = roomTypeImageService;
     }
 
     @GetMapping
@@ -104,33 +108,8 @@ public class AdminRoomTypeController {
             if (id == null) sequenceService.synchronize("room_type");
             rt = roomTypeRepository.saveAndFlush(rt);
 
-            // Đồng bộ chính xác tập ảnh đã tick: không nhân bản ảnh cũ khi thêm ảnh mới.
-            LinkedHashSet<String> desiredImageUrls = new LinkedHashSet<>();
-            if (mediaIds != null) {
-                for (Integer mediaId : new LinkedHashSet<>(mediaIds)) {
-                    mediaRepository.findById(mediaId).map(Media::getFileUrl).ifPresent(desiredImageUrls::add);
-                }
-            }
-
-            List<RoomImg> currentImages = roomImgRepository.findByRoomTypeId(rt.getId());
-            Set<String> keptUrls = new HashSet<>();
-            for (RoomImg current : currentImages) {
-                String url = current.getImage();
-                // Xóa ảnh bỏ tick và xóa luôn bản ghi trùng URL, chỉ giữ đúng một bản ghi/ảnh.
-                if (!desiredImageUrls.contains(url) || !keptUrls.add(url)) {
-                    roomImgRepository.delete(current);
-                }
-            }
-            roomImgRepository.flush();
-
-            for (String url : desiredImageUrls) {
-                if (keptUrls.contains(url)) continue;
-                sequenceService.synchronize("room_img");
-                RoomImg image = new RoomImg();
-                image.setRoomType(rt);
-                image.setImage(url);
-                roomImgRepository.saveAndFlush(image);
-            }
+            // Đồng bộ tuyệt đối ảnh theo checkbox: bỏ tick là gỡ ngay, không giữ bản ghi cũ và không nhân bản.
+            roomTypeImageService.replaceImages(rt, mediaIds);
 
             promotionRoomTypeRepository.deleteByRoomTypeId(rt.getId());
             if (promotionId != null) {

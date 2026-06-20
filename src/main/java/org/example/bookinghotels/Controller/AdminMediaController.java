@@ -18,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @Controller
 @RequestMapping("/admin/media")
@@ -51,23 +54,40 @@ public class AdminMediaController {
         List<Media> mediaList = mediaRepository.findAll();
         List<Hotels> hotels = hotelsRepository.findAll();
         model.addAttribute("mediaList", mediaList);
+        Map<Integer, String> mediaSizes = new HashMap<>();
+        for (Media media : mediaList) {
+            mediaSizes.put(media.getId(), readableFileSize(media));
+        }
+        model.addAttribute("mediaSizes", mediaSizes);
         model.addAttribute("roomTypes", roomTypeRepository.findAllWithImages());
         model.addAttribute("hotels", hotels);
         model.addAttribute("siteName", brandingService.get("site.name", "FEELHOME"));
         model.addAttribute("siteLogo", brandingService.get("site.logo", brandingService.get("site.circleLogo", brandingService.get("site.headerLogo", ""))));
         model.addAttribute("siteSlides", brandingService.getList("site.slides"));
+        model.addAttribute("siteWelcomeText", brandingService.get("site.welcomeText", "Chào mừng đến FeelHome"));
+        model.addAttribute("siteWelcomeColor", brandingService.get("site.welcomeColor", "#d7b34f"));
+        model.addAttribute("siteWelcomeEffect", brandingService.get("site.welcomeEffect", "shine"));
 
         Map<Integer, String> hotelLogos = new HashMap<>();
         Map<Integer, List<String>> hotelSlides = new HashMap<>();
+        Map<Integer, String> hotelWelcomeTexts = new HashMap<>();
+        Map<Integer, String> hotelWelcomeColors = new HashMap<>();
+        Map<Integer, String> hotelWelcomeEffects = new HashMap<>();
         for (Hotels hotel : hotels) {
             String prefix = "hotel." + hotel.getId() + ".";
             hotelLogos.put(hotel.getId(), brandingService.get(prefix + "logo",
                     brandingService.get(prefix + "circleLogo",
                             brandingService.get(prefix + "headerLogo", hotel.getLogo() == null ? "" : hotel.getLogo()))));
             hotelSlides.put(hotel.getId(), brandingService.getList(prefix + "slides"));
+            hotelWelcomeTexts.put(hotel.getId(), brandingService.get(prefix + "welcomeText", "Chào mừng đến " + hotel.getName()));
+            hotelWelcomeColors.put(hotel.getId(), brandingService.get(prefix + "welcomeColor", brandingService.get("site.welcomeColor", "#d7b34f")));
+            hotelWelcomeEffects.put(hotel.getId(), brandingService.get(prefix + "welcomeEffect", brandingService.get("site.welcomeEffect", "shine")));
         }
         model.addAttribute("hotelLogos", hotelLogos);
         model.addAttribute("hotelSlides", hotelSlides);
+        model.addAttribute("hotelWelcomeTexts", hotelWelcomeTexts);
+        model.addAttribute("hotelWelcomeColors", hotelWelcomeColors);
+        model.addAttribute("hotelWelcomeEffects", hotelWelcomeEffects);
         return "html/admin-html/media";
     }
 
@@ -103,17 +123,26 @@ public class AdminMediaController {
     @PostMapping("/branding")
     public String updateBranding(@RequestParam(required = false) String siteName,
                                  @RequestParam(required = false) Integer siteLogoMediaId,
+                                 @RequestParam(required = false) String siteWelcomeText,
+                                 @RequestParam(required = false) String siteWelcomeColor,
+                                 @RequestParam(required = false) String siteWelcomeEffect,
                                  @RequestParam(required = false) List<Integer> siteSlideMediaIds,
                                  @RequestParam(defaultValue = "false") boolean clearSiteLogo,
                                  @RequestParam(defaultValue = "false") boolean clearSiteSlides,
                                  @RequestParam(required = false) Integer hotelId,
                                  @RequestParam(required = false) Integer hotelLogoMediaId,
+                                 @RequestParam(required = false) String hotelWelcomeText,
+                                 @RequestParam(required = false) String hotelWelcomeColor,
+                                 @RequestParam(required = false) String hotelWelcomeEffect,
                                  @RequestParam(required = false) List<Integer> hotelSlideMediaIds,
                                  @RequestParam(defaultValue = "false") boolean clearHotelLogo,
                                  @RequestParam(defaultValue = "false") boolean clearHotelSlides,
                                  RedirectAttributes ra) {
         try {
             if (siteName != null && !siteName.isBlank()) brandingService.set("site.name", siteName.trim());
+            if (siteWelcomeText != null && !siteWelcomeText.isBlank()) brandingService.set("site.welcomeText", siteWelcomeText.trim());
+            if (siteWelcomeColor != null && siteWelcomeColor.matches("^#[0-9a-fA-F]{6}$")) brandingService.set("site.welcomeColor", siteWelcomeColor);
+            if (siteWelcomeEffect != null && List.of("shine", "glow", "none").contains(siteWelcomeEffect)) brandingService.set("site.welcomeEffect", siteWelcomeEffect);
             if (clearSiteLogo) setSiteLogo("");
             else if (siteLogoMediaId != null) setSiteLogo(mediaUrl(siteLogoMediaId));
 
@@ -124,6 +153,9 @@ public class AdminMediaController {
                 Hotels hotel = hotelsRepository.findById(hotelId)
                         .orElseThrow(() -> new IllegalArgumentException("Khách sạn/chi nhánh không tồn tại."));
                 String prefix = "hotel." + hotelId + ".";
+                if (hotelWelcomeText != null && !hotelWelcomeText.isBlank()) brandingService.set(prefix + "welcomeText", hotelWelcomeText.trim());
+                if (hotelWelcomeColor != null && hotelWelcomeColor.matches("^#[0-9a-fA-F]{6}$")) brandingService.set(prefix + "welcomeColor", hotelWelcomeColor);
+                if (hotelWelcomeEffect != null && List.of("shine", "glow", "none").contains(hotelWelcomeEffect)) brandingService.set(prefix + "welcomeEffect", hotelWelcomeEffect);
                 if (clearHotelLogo) {
                     setHotelLogo(prefix, hotel, "");
                 } else if (hotelLogoMediaId != null) {
@@ -197,6 +229,33 @@ public class AdminMediaController {
         roomImg.setRoomType(roomType);
         roomImg.setImage(imageUrl);
         roomImgRepository.saveAndFlush(roomImg);
+    }
+
+    private String readableFileSize(Media media) {
+        if (media == null) return "Không rõ dung lượng";
+        try {
+            Path path = null;
+            if (media.getUploadPath() != null && !media.getUploadPath().isBlank()) {
+                path = Paths.get(media.getUploadPath()).toAbsolutePath().normalize();
+            }
+            if ((path == null || !Files.exists(path)) && media.getFileUrl() != null && media.getFileUrl().startsWith("/uploads/")) {
+                String fileName = media.getFileUrl().substring("/uploads/".length());
+                path = Paths.get("uploads").resolve(fileName).toAbsolutePath().normalize();
+            }
+            long bytes = path != null && Files.exists(path) ? Files.size(path) : 0L;
+            if (bytes <= 0L) return "Không rõ dung lượng";
+            double value = bytes;
+            String[] units = {"B", "KB", "MB", "GB"};
+            int unit = 0;
+            while (value >= 1024 && unit < units.length - 1) {
+                value /= 1024.0;
+                unit++;
+            }
+            return unit == 0 ? String.format(Locale.ROOT, "%.0f %s", value, units[unit])
+                    : String.format(Locale.ROOT, "%.2f %s", value, units[unit]);
+        } catch (Exception ignored) {
+            return "Không rõ dung lượng";
+        }
     }
 
     private String rootMessage(Throwable ex) {

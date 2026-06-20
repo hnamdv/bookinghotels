@@ -30,6 +30,9 @@ public class PublicSiteController {
         response.put("headerLogo", siteLogo);
         response.put("circleLogo", siteLogo);
         response.put("slides", brandingService.getList("site.slides"));
+        response.put("welcomeText", brandingService.get("site.welcomeText", "Chào mừng đến FeelHome"));
+        response.put("welcomeColor", brandingService.get("site.welcomeColor", "#d7b34f"));
+        response.put("welcomeEffect", brandingService.get("site.welcomeEffect", "shine"));
         response.put("banner", brandingService.get("site.banner", ""));
         response.put("hotels", hotelsRepository.findAll().stream().map(this::hotelMap).toList());
         return ResponseEntity.ok(response);
@@ -48,6 +51,9 @@ public class PublicSiteController {
         map.put("headerLogo", hotelLogo);
         map.put("circleLogo", hotelLogo);
         map.put("slides", brandingService.getList(prefix + "slides"));
+        map.put("welcomeText", brandingService.get(prefix + "welcomeText", "Chào mừng đến " + hotel.getName()));
+        map.put("welcomeColor", brandingService.get(prefix + "welcomeColor", brandingService.get("site.welcomeColor", "#d7b34f")));
+        map.put("welcomeEffect", brandingService.get(prefix + "welcomeEffect", brandingService.get("site.welcomeEffect", "shine")));
         map.put("banner", hotel.getThumbnail());
         map.put("slug", hotel.getSlug());
         return map;

@@ -53,5 +53,5 @@ document.addEventListener('DOMContentLoaded', () => {
   const ham = document.getElementById('fh-hamburger');
   const nav = document.getElementById('fh-nav');
   ham?.addEventListener('click', () => nav?.classList.toggle('open'));
-  loadOffers();
+  loadOffers().then(() => { if(window.gsap){ gsap.registerPlugin(ScrollTrigger); gsap.from('.page-hero > div',{y:30,opacity:0,duration:.8}); gsap.from('.offer-card',{scrollTrigger:{trigger:'.offers-grid',start:'top 85%'},y:35,opacity:0,duration:.65,stagger:.1,ease:'power3.out'}); } });
 });

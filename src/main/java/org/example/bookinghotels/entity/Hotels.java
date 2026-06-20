@@ -1,7 +1,6 @@
 package org.example.bookinghotels.entity;
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.util.List;
@@ -39,7 +38,6 @@ public class Hotels {
     private String thumbnail;
 
     @OneToMany(mappedBy = "hotels", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JsonIgnore
     private List<RoomType> roomTypes;
 
 }

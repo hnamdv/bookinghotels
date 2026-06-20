@@ -12,7 +12,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -43,7 +45,14 @@ public class PublicRoomController {
         String keywordValue = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
         String bedValue = bed == null ? "" : bed.trim().toLowerCase(Locale.ROOT);
 
-        List<RoomTypeSummaryDto> rooms = roomTypeRepository.findAllWithImages()
+        Map<Integer, RoomType> uniqueRoomTypes = new LinkedHashMap<>();
+        for (RoomType roomType : roomTypeRepository.findAllWithImages()) {
+            if (roomType != null && roomType.getId() != null) {
+                uniqueRoomTypes.putIfAbsent(roomType.getId(), roomType);
+            }
+        }
+
+        List<RoomTypeSummaryDto> rooms = uniqueRoomTypes.values()
                 .stream()
                 .filter(room -> hotelId == null || (room.getHotels() != null && hotelId.equals(room.getHotels().getId())))
                 .filter(room -> keywordValue.isBlank() || containsKeyword(room, keywordValue))
