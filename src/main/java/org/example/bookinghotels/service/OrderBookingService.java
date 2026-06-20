@@ -16,4 +16,6 @@ public interface OrderBookingService {
     List<Integer> getAvailableRooms(List<Integer> allRoomIds, LocalDate checkinDate, LocalDate checkoutDate);
     // Validate booking (throw Exception nếu gối lịch)
     void validateBooking(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate);
+    List<RoomType> getAvailableRoomTypes(LocalDate checkin, LocalDate checkout);
+    Booking saveAndReturn(Booking booking, Integer roomTypeId);
 }

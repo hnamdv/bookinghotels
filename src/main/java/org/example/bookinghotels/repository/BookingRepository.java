@@ -4,6 +4,7 @@ import org.example.bookinghotels.entity.Booking;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,6 +16,18 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             "LEFT JOIN FETCH b.bookingDetails bd " +
             "LEFT JOIN FETCH bd.roomType rt")
     List<Booking> findAllWithDetails();
+
+
+    // Logic: Tìm số lượng phòng thuộc RoomType đã bị đặt trong khoảng thời gian
+    @Query("SELECT COUNT(bd) FROM BookingDetail bd " +
+            "JOIN bd.booking b " +
+            "WHERE bd.roomType.id = :typeId " +
+            "AND b.checkinDate < :checkout " +
+            "AND b.checkoutDate > :checkin")
+    long countBookedRoomsByTypeId(@Param("typeId") Integer typeId,
+                                  @Param("checkin") LocalDate checkin,
+                                  @Param("checkout") LocalDate checkout);
+
 
     // Filter theo status, ngày, roomType
     @Query("SELECT DISTINCT b FROM Booking b " +

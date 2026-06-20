@@ -33,7 +33,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         // Cho phép truy cập các file tĩnh và API xác thực
-                        .requestMatchers("/login", "/css/**", "/js/**", "/images/**", "/api/auth/**").permitAll()
+                        .requestMatchers(
+                                "/", "/home", "/layout", "/layout.html", "/client-home.html",
+                                "/login", "/error", "/favicon.ico",
+                                "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
+                                "/favorites.html", "/room-detail.html", "/promo-demo.html", "/offers", "/offers.html",
+                                "/api/auth/**", "/api/public/**"
+                        ).permitAll()
 
                         // Mọi request còn lại chỉ cần ĐĂNG NHẬP là vào được.
                         // Việc phân quyền chi tiết cho từng chức năng sẽ do @PreAuthorize lo.
