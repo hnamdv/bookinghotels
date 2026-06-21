@@ -32,36 +32,47 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập tất cả file HTML tĩnh
-                        .requestMatchers(
-                                "/*.html",
-                                "/reception-pos.html",
-                                "/fwb-manager.html",
-                                "/pos-order.html",
-                                "/favicon.ico"
-                        ).permitAll()
-
-                        // Cho phép truy cập các file tĩnh và API xác thực
+                        // Cho phép truy cập các trang công khai (không cần login)
                         .requestMatchers(
                                 "/", "/home", "/layout", "/layout.html", "/client-home.html",
-                                "/login", "/error", "/favicon.ico",
+                                "/login", "/register", "/error", "/favicon.ico",
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
                                 "/favorites.html", "/room-detail.html", "/promo-demo.html", "/offers", "/offers.html",
                                 "/api/auth/**", "/api/public/**"
                         ).permitAll()
 
-                        // 🔥 THAY DÒNG NÀY: Cho phép tất cả, không cần login
-                        .anyRequest().permitAll()  // Đã sửa từ authenticated thành permitAll
+                        // Cho phép truy cập các file HTML tĩnh (cần login)
+                        .requestMatchers(
+                                "/*.html",
+                                "/reception-pos.html",
+                                "/fwb-manager.html",
+                                "/pos-order.html"
+                        ).hasAnyRole("USER", "ADMIN")  // Chỉ USER hoặc ADMIN mới vào được
+
+                        // Các endpoint yêu cầu quyền cụ thể
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/staff/**").hasAnyRole("USER", "ADMIN")
+
+                        // Tất cả request khác đều cần xác thực
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .loginProcessingUrl("/api/auth/login")
+                        .defaultSuccessUrl("/dashboard", true)
+                        .failureUrl("/login?error=true")
+                        .permitAll()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
-                        .logoutSuccessUrl("/login")
+                        .logoutSuccessUrl("/login?logout=true")
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
+                        .permitAll()
                 );
 
         return http.build();
