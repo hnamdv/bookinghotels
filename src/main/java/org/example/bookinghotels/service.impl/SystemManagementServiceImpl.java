@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.example.bookinghotels.dto.RevenueDTO;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,6 +73,8 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         oldPromotion.setDiscountPercent(promotion.getDiscountPercent());
         oldPromotion.setStartDate(promotion.getStartDate());
         oldPromotion.setEndDate(promotion.getEndDate());
+        oldPromotion.setStartTime(promotion.getStartTime());
+        oldPromotion.setEndTime(promotion.getEndTime());
 
         return promotionRepository.save(oldPromotion);
     }
@@ -109,9 +113,13 @@ public class SystemManagementServiceImpl implements SystemManagementService {
             );
         }
 
-        LocalDate today = LocalDate.now();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startsAt = promotion.getStartDate() == null ? null
+                : LocalDateTime.of(promotion.getStartDate(), promotion.getStartTime() == null ? LocalTime.MIDNIGHT : promotion.getStartTime());
+        LocalDateTime endsAt = promotion.getEndDate() == null ? null
+                : LocalDateTime.of(promotion.getEndDate(), promotion.getEndTime() == null ? LocalTime.of(23, 59) : promotion.getEndTime());
 
-        if (promotion.getStartDate() != null && today.isBefore(promotion.getStartDate())) {
+        if (startsAt != null && now.isBefore(startsAt)) {
             return new PromotionCheckResponse(
                     false,
                     "Mã giảm giá chưa đến thời gian sử dụng",
@@ -121,7 +129,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
             );
         }
 
-        if (promotion.getEndDate() != null && today.isAfter(promotion.getEndDate())) {
+        if (endsAt != null && now.isAfter(endsAt)) {
             return new PromotionCheckResponse(
                     false,
                     "Mã giảm giá đã hết hạn",
@@ -207,12 +215,20 @@ public class SystemManagementServiceImpl implements SystemManagementService {
             );
         }
 
-        if (promotion.getStartDate() != null
-                && promotion.getEndDate().isBefore(promotion.getStartDate())) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Ngày kết thúc không được nhỏ hơn ngày bắt đầu"
-            );
+        LocalTime startTime = promotion.getStartTime() == null ? LocalTime.MIDNIGHT : promotion.getStartTime();
+        LocalTime endTime = promotion.getEndTime() == null ? LocalTime.of(23, 59) : promotion.getEndTime();
+        promotion.setStartTime(startTime);
+        promotion.setEndTime(endTime);
+
+        if (promotion.getStartDate() != null) {
+            LocalDateTime startsAt = LocalDateTime.of(promotion.getStartDate(), startTime);
+            LocalDateTime endsAt = LocalDateTime.of(promotion.getEndDate(), endTime);
+            if (!endsAt.isAfter(startsAt)) {
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST,
+                        "Thời gian kết thúc phải sau thời gian bắt đầu"
+                );
+            }
         }
     }
     @Override
