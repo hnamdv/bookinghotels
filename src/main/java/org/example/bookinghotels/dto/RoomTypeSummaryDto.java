@@ -22,6 +22,7 @@ public class RoomTypeSummaryDto {
     private String bedOptions;
     private Integer totalRooms;
     private Double taxAndFee;
+    private Integer hotelId;
     private String hotelName;
     private String hotelAddress;
     private String hotelPhone;
@@ -52,6 +53,7 @@ public class RoomTypeSummaryDto {
 
         Hotels hotel = roomType.getHotels();
         if (hotel != null) {
+            this.hotelId = hotel.getId();
             this.hotelName = hotel.getName();
             this.hotelAddress = hotel.getAddress();
             this.hotelPhone = hotel.getPhone();
@@ -99,6 +101,8 @@ public class RoomTypeSummaryDto {
     public void setTotalRooms(Integer totalRooms) { this.totalRooms = totalRooms; }
     public Double getTaxAndFee() { return taxAndFee; }
     public void setTaxAndFee(Double taxAndFee) { this.taxAndFee = taxAndFee; }
+    public Integer getHotelId() { return hotelId; }
+    public void setHotelId(Integer hotelId) { this.hotelId = hotelId; }
     public String getHotelName() { return hotelName; }
     public void setHotelName(String hotelName) { this.hotelName = hotelName; }
     public String getHotelAddress() { return hotelAddress; }

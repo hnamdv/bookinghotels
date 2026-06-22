@@ -1,19 +1,15 @@
 package org.example.bookinghotels.Controller;
 
+import org.example.bookinghotels.dto.RoomAvailabilityDto;
 import org.example.bookinghotels.dto.RoomTypeSummaryDto;
 import org.example.bookinghotels.entity.RoomType;
+import org.example.bookinghotels.repository.BookingDetailRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.time.LocalDate;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -22,9 +18,12 @@ import java.util.stream.Collectors;
 public class PublicRoomController {
 
     private final RoomTypeRepository roomTypeRepository;
+    private final BookingDetailRepository bookingDetailRepository;
 
-    public PublicRoomController(RoomTypeRepository roomTypeRepository) {
+    public PublicRoomController(RoomTypeRepository roomTypeRepository,
+                                BookingDetailRepository bookingDetailRepository) {
         this.roomTypeRepository = roomTypeRepository;
+        this.bookingDetailRepository = bookingDetailRepository;
     }
 
     @GetMapping
@@ -43,8 +42,14 @@ public class PublicRoomController {
         String keywordValue = keyword == null ? "" : keyword.trim().toLowerCase(Locale.ROOT);
         String bedValue = bed == null ? "" : bed.trim().toLowerCase(Locale.ROOT);
 
-        List<RoomTypeSummaryDto> rooms = roomTypeRepository.findAllWithImages()
-                .stream()
+        Map<Integer, RoomType> uniqueRoomTypes = new LinkedHashMap<>();
+        for (RoomType roomType : roomTypeRepository.findAllWithImages()) {
+            if (roomType != null && roomType.getId() != null) {
+                uniqueRoomTypes.putIfAbsent(roomType.getId(), roomType);
+            }
+        }
+
+        List<RoomTypeSummaryDto> rooms = uniqueRoomTypes.values().stream()
                 .filter(room -> hotelId == null || (room.getHotels() != null && hotelId.equals(room.getHotels().getId())))
                 .filter(room -> keywordValue.isBlank() || containsKeyword(room, keywordValue))
                 .filter(room -> minPrice == null || room.getPrice() == null || room.getPrice() >= minPrice)
@@ -58,7 +63,6 @@ public class PublicRoomController {
                 .sorted(Comparator.comparing(RoomType::getId, Comparator.nullsLast(Integer::compareTo)))
                 .map(RoomTypeSummaryDto::new)
                 .collect(Collectors.toList());
-
         return ResponseEntity.ok(rooms);
     }
 
@@ -70,6 +74,46 @@ public class PublicRoomController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}/availability")
+    public ResponseEntity<?> getAvailability(@PathVariable Integer id,
+                                             @RequestParam LocalDate checkin,
+                                             @RequestParam LocalDate checkout) {
+        if (!checkout.isAfter(checkin)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Ngày đi phải sau ngày đến."));
+        }
+        return roomTypeRepository.findById(id)
+                .<ResponseEntity<?>>map(roomType -> ResponseEntity.ok(toAvailability(roomType, checkin, checkout)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/availability")
+    public ResponseEntity<?> getAllAvailability(@RequestParam LocalDate checkin,
+                                                @RequestParam LocalDate checkout,
+                                                @RequestParam(required = false) Integer hotelId) {
+        if (!checkout.isAfter(checkin)) {
+            return ResponseEntity.badRequest().body(Map.of("message", "Ngày đi phải sau ngày đến."));
+        }
+        Map<Integer, RoomType> unique = new LinkedHashMap<>();
+        for (RoomType roomType : roomTypeRepository.findAllWithImages()) {
+            if (roomType != null && roomType.getId() != null
+                    && (hotelId == null || (roomType.getHotels() != null && hotelId.equals(roomType.getHotels().getId())))) {
+                unique.putIfAbsent(roomType.getId(), roomType);
+            }
+        }
+        return ResponseEntity.ok(unique.values().stream()
+                .map(roomType -> toAvailability(roomType, checkin, checkout))
+                .toList());
+    }
+
+    private RoomAvailabilityDto toAvailability(RoomType roomType, LocalDate checkin, LocalDate checkout) {
+        int total = roomType.getTotalRooms() == null ? 0 : Math.max(0, roomType.getTotalRooms());
+        long booked = Optional.ofNullable(bookingDetailRepository
+                        .sumReservedQuantityByRoomTypeAndDateRange(roomType.getId(), checkin, checkout))
+                .orElse(0L);
+        int available = Math.max(0, total - Math.toIntExact(Math.min(booked, Integer.MAX_VALUE)));
+        return new RoomAvailabilityDto(roomType.getId(), total, booked, available, checkin, checkout);
+    }
+
     private boolean containsKeyword(RoomType room, String keyword) {
         return safe(room.getNameType()).toLowerCase(Locale.ROOT).contains(keyword)
                 || safe(room.getDescription()).toLowerCase(Locale.ROOT).contains(keyword)
@@ -78,7 +122,5 @@ public class PublicRoomController {
                 || (room.getHotels() != null && safe(room.getHotels().getAddress()).toLowerCase(Locale.ROOT).contains(keyword));
     }
 
-    private String safe(String value) {
-        return value == null ? "" : value;
-    }
+    private String safe(String value) { return value == null ? "" : value; }
 }

@@ -1,112 +1,71 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FeelHome Hotel</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-<<<<<<<< HEAD:src/main/resources/static/client-home.html
-    <link rel="stylesheet" href="/css/style.css">
-========
-    <link rel="stylesheet" th:href="@{/css/style.css}">
->>>>>>>> 75966d2a6e6e1dc796e1abdfea2eb21e9a7c5514:src/main/resources/templates/layout.html
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FeelHome Hotel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/style.css?v=20260622-header-exact-v3">
 </head>
 <body>
 <header class="fh-header" id="fh-header">
-    <div class="fh-header__inner">
-        <a href="/home" class="fh-logo"><img id="siteLogo" class="fh-logo__image" alt="Logo" hidden><span class="fh-logo__icon" id="siteLogoFallback">◈</span><span class="fh-logo__text" id="siteName">FEELHOME</span></a>
-        <nav class="fh-nav" id="fh-nav">
-            <a href="/home" class="fh-nav__link active">Trang Chủ</a>
-            <a href="#rooms-section" class="fh-nav__link">Phòng Nghỉ</a>
-            <a href="/offers" class="fh-nav__link">Ưu Đãi</a>
-            <a href="#about" class="fh-nav__link">Về Chúng Tôi</a>
-            <a href="/favorites.html" class="fh-nav__link">Yêu Thích</a>
-        </nav>
-        <div class="fh-header__actions">
-            <a href="booking" class="fh-btn-primary">Đặt Ngay</a>
-            <button class="fh-hamburger" id="fh-hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
-        </div>
-    </div>
+  <div class="fh-header__inner">
+    <a href="/home" class="fh-logo" aria-label="FeelHome - Trang chủ"><img id="siteLogo" class="fh-logo__image" alt="Logo FeelHome" hidden><span class="fh-logo__icon" id="siteLogoFallback">◈</span><span class="fh-logo__text" id="siteName">FEELHOME</span></a>
+    <nav class="fh-nav" id="fh-nav">
+      <a href="/home" class="fh-nav__link active" data-text="Trang Chủ"><span data-text="Trang Chủ">Trang Chủ</span></a><a href="#rooms-section" class="fh-nav__link" data-text="Phòng Nghỉ"><span data-text="Phòng Nghỉ">Phòng Nghỉ</span></a><a href="/offers" class="fh-nav__link" data-text="Ưu Đãi"><span data-text="Ưu Đãi">Ưu Đãi</span></a><a href="#story" class="fh-nav__link" data-text="Câu Chuyện"><span data-text="Câu Chuyện">Câu Chuyện</span></a><a href="/favorites.html" class="fh-nav__link" data-text="Yêu Thích"><span data-text="Yêu Thích">Yêu Thích</span></a>
+    </nav>
+    <div class="fh-header__actions"><a href="#rooms-section" class="header-booking-pill"><span class="header-booking-pill__bg"><span class="header-booking-pill__layers"><span class="header-booking-pill__layer header-booking-pill__layer--1"></span><span class="header-booking-pill__layer header-booking-pill__layer--2"></span><span class="header-booking-pill__layer header-booking-pill__layer--3"></span></span></span><span class="header-booking-pill__inner"><span class="header-booking-pill__static">Đặt Ngay</span><span class="header-booking-pill__hover">Đặt Ngay</span></span></a><button class="fh-hamburger" id="fh-hamburger" aria-label="Menu"><span></span><span></span><span></span></button></div>
+  </div>
 </header>
-
 <main>
-    <section class="hero" id="heroSlider">
-        <div class="hero__slides" id="heroSlides" aria-hidden="true"></div>
-        <button class="hero__control hero__control--prev" id="heroPrev" type="button" aria-label="Ảnh trước"><i class="bi bi-chevron-left"></i></button>
-        <button class="hero__control hero__control--next" id="heroNext" type="button" aria-label="Ảnh tiếp"><i class="bi bi-chevron-right"></i></button>
-        <div class="hero__dots" id="heroDots"></div>
-        <div class="hero__content">
-            <div class="hero__branch-logo-wrap" id="heroBranchLogoWrap" hidden><img id="heroBranchLogo" class="hero__branch-logo" alt="Logo khách sạn"></div>
-            <p class="hero__eyebrow">Chào mừng đến FeelHome Hotel</p>
-            <h1 class="hero__title">Trải nghiệm <em>sự khác biệt</em></h1>
-            <p class="hero__sub">Tìm phòng nghỉ phù hợp, lọc theo giá, số khách và tiện ích chỉ trong vài giây.</p>
-
-            <form class="search-box" id="quickSearchForm">
-                <div class="field"><label>Ngày đến</label><input type="date" id="checkIn"></div>
-                <div class="field"><label>Ngày đi</label><input type="date" id="checkOut"></div>
-                <div class="field"><label>Số khách</label><input type="number" id="guestCount" min="1" value="1"></div>
-                <div class="field"><label>Khách sạn</label><select id="hotelId"><option value="">Tất cả khách sạn</option></select></div><div class="field"><label>Từ khóa</label><input type="text" id="keyword" placeholder="Tên phòng, khách sạn..."></div>
-                <button type="submit" class="fh-btn-primary">Tìm Kiếm</button>
-            </form>
-        </div>
-    </section>
-
-    <section class="room-section" id="rooms-section">
-        <div class="section-heading">
-            <p>Danh sách phòng</p>
-            <h2>Chọn không gian nghỉ dưỡng của bạn</h2>
-        </div>
-
-        <div class="room-layout">
-            <aside class="filter-panel">
-                <h3>Bộ lọc</h3>
-                <label>Giá tối thiểu</label>
-                <input type="number" id="minPrice" placeholder="VD: 500000">
-                <label>Giá tối đa</label>
-                <input type="number" id="maxPrice" placeholder="VD: 3000000">
-                <label>Số khách</label>
-                <input type="number" id="capacity" min="1" placeholder="VD: 2">
-                <label>Loại giường</label>
-                <input type="text" id="bed" placeholder="Queen, King...">
-                <div class="check-row"><input type="checkbox" id="hasWifi"><span>Wifi</span></div>
-                <div class="check-row"><input type="checkbox" id="hasBathtub"><span>Bồn tắm</span></div>
-                <div class="check-row"><input type="checkbox" id="hasBalcony"><span>Ban công</span></div>
-                <button class="filter-clear" id="clearFilter">Xóa lọc</button>
-            </aside>
-            <div class="room-grid" id="roomGrid"></div>
-        </div>
-    </section>
-
-
-    <section class="offers-section" id="offers">
-        <div class="section-heading">
-            <p>Ưu đãi nổi bật</p>
-            <h2>Giá tốt cho kỳ nghỉ trọn vẹn</h2>
-            <span>Những loại phòng đang có chương trình khuyến mãi còn hiệu lực.</span>
-        </div>
-        <div class="offers-grid" id="homeOffersGrid">
-            <div class="empty">Đang tải ưu đãi...</div>
-        </div>
-        <div class="section-action"><a class="fh-btn-outline" href="/offers">Xem tất cả ưu đãi</a></div>
-    </section>
-
-    <section class="about" id="about">
-        <h2>FeelHome Hotel</h2>
-        <p>Hệ thống đặt phòng khách sạn đơn giản, rõ ràng, phù hợp cho đồ án Spring Boot + HTML + JPA.</p>
-    </section>
-</main>
-
-<footer class="fh-footer">
-    <div class="fh-footer__inner">
-        <div><a href="/home" class="fh-logo"><img class="fh-logo__image footer-logo-image" alt="Logo" hidden><span class="fh-logo__icon footer-logo-fallback">◈</span><span class="fh-logo__text footer-site-name">FEELHOME</span></a><p>Nơi sự sang trọng giao thoa cùng cảm giác bình yên.</p></div>
-        <div><h4>KHÁM PHÁ</h4><a href="#rooms-section">Phòng & Suite</a><a href="#about">Về chúng tôi</a></div>
-        <div><h4>LIÊN HỆ</h4><p>Email: info@feelhome.vn</p><p>Hotline: 1900 0000</p></div>
+  <section class="hero" id="heroSlider">
+    <div class="hero__slides" id="heroSlides"></div>
+    <button class="hero__control hero__control--prev" id="heroPrev" type="button"><i class="bi bi-chevron-left"></i></button><button class="hero__control hero__control--next" id="heroNext" type="button"><i class="bi bi-chevron-right"></i></button><div class="hero__dots" id="heroDots"></div>
+    <div class="hero__content">
+      <div class="hero__branch-logo-wrap" id="heroBranchLogoWrap" hidden><img id="heroBranchLogo" class="hero__branch-logo" alt="Logo khách sạn"></div>
+      <p class="hero__eyebrow hero__welcome hero__welcome--shine" id="heroWelcomeText">Chào mừng đến FeelHome Hotel</p><h1 class="hero__title">Trải nghiệm <em>sự khác biệt</em></h1><p class="hero__sub">Mỗi điểm đến là một câu chuyện, mỗi căn phòng là một khoảng nghỉ được chăm chút riêng cho bạn.</p>
+      <form class="search-box" id="quickSearchForm">
+        <div class="field"><label>Ngày đến</label><input type="date" id="checkIn"></div><div class="field"><label>Ngày đi</label><input type="date" id="checkOut"></div><div class="field"><label>Số khách</label><input type="number" id="guestCount" min="1" value="1"></div><div class="field"><label>Khách sạn</label><select id="hotelId"><option value="">Tất cả khách sạn</option></select></div><div class="field"><label>Từ khóa</label><input type="text" id="keyword" placeholder="Tên phòng, khách sạn..."></div><button type="submit" class="fh-btn-primary">Tìm Kiếm</button>
+      </form>
     </div>
-</footer>
+  </section>
 
-<script src="/js/app.js"></script>
-<script src="/js/offers.js"></script>
-</body>
-</html>
+  <section class="showcase" id="showcase">
+    <div class="section-heading reveal"><p>Khám phá FeelHome</p><h2>Một hành trình nghỉ dưỡng đầy cảm hứng</h2><span>Ảnh được lấy trực tiếp từ thư viện và slideshow mà quản trị viên đã cấu hình.</span></div>
+    <div class="showcase-shell reveal">
+      <button class="showcase-arrow prev" id="showcasePrev"><i class="bi bi-chevron-left"></i></button>
+      <div class="showcase-track" id="showcaseTrack"></div>
+      <button class="showcase-arrow next" id="showcaseNext"><i class="bi bi-chevron-right"></i></button>
+      <div class="showcase-dots" id="showcaseDots"></div>
+    </div>
+  </section>
+
+  <section class="room-section" id="rooms-section">
+    <div class="section-heading reveal"><p>Danh sách phòng</p><h2>Chọn không gian dành riêng cho bạn</h2></div>
+    <div class="room-layout">
+      <aside class="filter-panel reveal"><h3>Bộ lọc</h3>
+        <div class="filter-date-block">
+          <label>Ngày đến</label><input type="date" id="sideCheckIn">
+          <label>Ngày đi</label><input type="date" id="sideCheckOut">
+          <small>Đổi ngày để tự động kiểm tra phòng trống và ưu đãi.</small>
+        </div>
+        <label>Giá tối thiểu</label><input type="number" id="minPrice" placeholder="VD: 500000"><label>Giá tối đa</label><input type="number" id="maxPrice" placeholder="VD: 3000000"><label>Số khách</label><input type="number" id="capacity" min="1" placeholder="VD: 2"><label>Loại giường</label><input type="text" id="bed" placeholder="Queen, King..."><div class="check-row"><input type="checkbox" id="hasWifi"><span>Wifi</span></div><div class="check-row"><input type="checkbox" id="hasBathtub"><span>Bồn tắm</span></div><div class="check-row"><input type="checkbox" id="hasBalcony"><span>Ban công</span></div><button class="filter-clear" id="clearFilter">Xóa lọc</button></aside>
+      <div class="room-results"><div class="room-results__bar"><span id="roomResultCount">Đang tải danh sách phòng...</span></div><div class="room-grid" id="roomGrid"></div></div>
+    </div>
+  </section>
+
+  <section class="offers-section" id="offers"><div class="section-heading reveal"><p>Ưu đãi nổi bật</p><h2>Giá tốt cho kỳ nghỉ trọn vẹn</h2><span>Những loại phòng đang có chương trình khuyến mãi còn hiệu lực.</span></div><div class="offers-grid" id="homeOffersGrid"><div class="empty">Đang tải ưu đãi...</div></div><div class="section-action"><a class="fh-btn-outline" href="/offers">Xem tất cả ưu đãi</a></div></section>
+
+  <section class="story" id="story">
+    <div class="story-copy reveal"><p class="story-kicker">Câu chuyện FeelHome</p><h2>Không chỉ là một nơi để ở</h2><p>Chúng tôi kiến tạo những khoảnh khắc nghỉ ngơi thật sự: một chiếc giường êm, ánh sáng dịu, mùi hương dễ chịu và sự phục vụ vừa đủ để bạn luôn cảm thấy được chào đón.</p><a href="#rooms-section" class="fh-btn-primary">Khám phá phòng</a></div>
+    <div class="story-stack" id="storyStack"></div>
+  </section>
+
+  <section class="promise"><div class="promise-grid"><article class="reveal"><i class="bi bi-stars"></i><h3>Không gian tinh tế</h3><p>Mỗi phòng được chọn lọc để mang lại cảm giác cân bằng, riêng tư và thoải mái.</p></article><article class="reveal"><i class="bi bi-heart"></i><h3>Chăm sóc chân thành</h3><p>Đội ngũ luôn sẵn sàng đồng hành, từ lúc bạn tìm phòng đến khi kết thúc chuyến đi.</p></article><article class="reveal"><i class="bi bi-geo-alt"></i><h3>Nhiều điểm đến</h3><p>Quản lý đa khách sạn, đa chi nhánh nhưng vẫn giữ trải nghiệm thống nhất và dễ sử dụng.</p></article></div></section>
+</main>
+<footer class="fh-footer"><div class="fh-footer__inner"><div><a href="/home" class="fh-logo"><img class="fh-logo__image footer-logo-image" alt="Logo" hidden><span class="fh-logo__icon footer-logo-fallback">◈</span><span class="fh-logo__text footer-site-name">FEELHOME</span></a><p>Nơi mỗi kỳ nghỉ trở thành một phần ký ức đẹp.</p></div><div><h4>KHÁM PHÁ</h4><a href="#rooms-section">Phòng & Suite</a><a href="/offers">Ưu đãi</a></div><div><h4>LIÊN HỆ</h4><p>Email: info@feelhome.vn</p><p>Hotline: 1900 0000</p></div></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script><script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script><script src="/js/app.js"></script><script src="/js/offers.js"></script>
+<script src="/js/public-header.js"></script>
+</body></html>

@@ -76,4 +76,18 @@ SELECT COUNT(DISTINCT b.room.id)
 FROM BookingDetail b
 """)
     long countDistinctBookedRooms();
+
+    @Query("""
+            SELECT COALESCE(SUM(bd.roomQuantity), 0)
+            FROM BookingDetail bd
+            JOIN bd.booking b
+            WHERE bd.roomType.id = :roomTypeId
+              AND b.checkinDate < :checkoutDate
+              AND b.checkoutDate > :checkinDate
+              AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING', 'APPROVED', 'CONFIRMED', 'CHECKED_IN')
+            """)
+    Long sumReservedQuantityByRoomTypeAndDateRange(
+            @Param("roomTypeId") Integer roomTypeId,
+            @Param("checkinDate") LocalDate checkinDate,
+            @Param("checkoutDate") LocalDate checkoutDate);
 }
