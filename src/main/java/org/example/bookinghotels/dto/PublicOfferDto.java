@@ -6,6 +6,7 @@ import org.example.bookinghotels.entity.RoomImg;
 import org.example.bookinghotels.entity.RoomType;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 public class PublicOfferDto {
     private final Integer mappingId;
@@ -20,6 +21,8 @@ public class PublicOfferDto {
     private final String promotionName;
     private final LocalDate startDate;
     private final LocalDate endDate;
+    private final LocalTime startTime;
+    private final LocalTime endTime;
     private final Integer capacity;
     private final String bed;
     private final Double area;
@@ -38,6 +41,8 @@ public class PublicOfferDto {
         this.promotionName = promotion == null ? null : promotion.getPromotionName();
         this.startDate = promotion == null ? null : promotion.getStartDate();
         this.endDate = promotion == null ? null : promotion.getEndDate();
+        this.startTime = promotion == null ? null : promotion.getStartTime();
+        this.endTime = promotion == null ? null : promotion.getEndTime();
         this.capacity = roomType == null ? null : roomType.getCapacity();
         this.bed = roomType == null ? null : roomType.getBed();
         this.area = roomType == null ? null : roomType.getArea();
@@ -62,6 +67,8 @@ public class PublicOfferDto {
     public String getPromotionName() { return promotionName; }
     public LocalDate getStartDate() { return startDate; }
     public LocalDate getEndDate() { return endDate; }
+    public LocalTime getStartTime() { return startTime; }
+    public LocalTime getEndTime() { return endTime; }
     public Integer getCapacity() { return capacity; }
     public String getBed() { return bed; }
     public Double getArea() { return area; }

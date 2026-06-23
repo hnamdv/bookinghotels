@@ -4,6 +4,7 @@ package org.example.bookinghotels.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "promotion")
@@ -30,4 +31,10 @@ public class Promotion {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    @Column(name = "start_time")
+    private LocalTime startTime = LocalTime.of(0, 0);
+
+    @Column(name = "end_time")
+    private LocalTime endTime = LocalTime.of(23, 59);
 }
