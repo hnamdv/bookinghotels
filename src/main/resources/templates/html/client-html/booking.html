@@ -1,259 +1,261 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{homeadmin}">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Đặt phòng | Feel Home</title>
-    <link rel="stylesheet" href="/static/css/client-css/booking.css">
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <!-- Font Awesome 6 -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <style>
+        :root {
+            --fh-dark: #111111;
+            --fh-gold: #c5a880;
+            --fh-gold-hover: #b3956b;
+            --fh-light-bg: #fafafa;
+            --fh-border: #eaeaea;
+            --fh-text-muted: #777777;
+        }
+
+        body {
+            font-family: 'Jost', sans-serif;
+            background-color: var(--fh-light-bg);
+            color: #333333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 60px 20px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 45px;
+        }
+        .page-header h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
+            color: var(--fh-dark);
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .page-header h1 span {
+            color: var(--fh-gold);
+        }
+        .page-header p {
+            color: var(--fh-text-muted);
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            border-bottom: 1px solid var(--fh-border);
+            margin-bottom: 40px;
+            padding-bottom: 1px;
+        }
+        .tab {
+            background: none;
+            border: none;
+            padding: 12px 28px;
+            font-weight: 500;
+            color: var(--fh-text-muted);
+            cursor: pointer;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            position: relative;
+            transition: color 0.3s ease;
+        }
+        .tab:hover {
+            color: var(--fh-dark);
+        }
+        .tab.active {
+            color: var(--fh-gold);
+            font-weight: 600;
+        }
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--fh-gold);
+        }
+
+        .rooms-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+        .room-card {
+            background: #ffffff;
+            border: 1px solid var(--fh-border);
+            border-radius: 4px;
+            padding: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .room-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.04);
+            border-color: #dcdcdc;
+        }
+
+        .room-info h3 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            color: var(--fh-dark);
+            letter-spacing: 0.5px;
+        }
+        .room-dates {
+            margin-bottom: 15px;
+        }
+        .date-badge {
+            background-color: #f5f5f5;
+            padding: 6px 16px;
+            border-radius: 2px;
+            font-size: 0.85rem;
+            color: #555555;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .date-badge i {
+            color: var(--fh-gold);
+        }
+        .room-meta {
+            display: flex;
+            gap: 24px;
+            font-size: 0.9rem;
+            color: var(--fh-text-muted);
+        }
+        .room-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .room-meta i {
+            font-size: 0.95rem;
+        }
+
+        .room-price {
+            text-align: right;
+            min-width: 200px;
+        }
+        .price {
+            font-family: 'Jost', sans-serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--fh-dark);
+            margin-bottom: 12px;
+        }
+
+        .btn-detail {
+            background-color: var(--fh-dark);
+            color: #ffffff;
+            border: 1px solid var(--fh-dark);
+            padding: 12px 28px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            border-radius: 0;
+            cursor: pointer;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-detail:hover {
+            background-color: var(--fh-gold);
+            border-color: var(--fh-gold);
+            color: var(--fh-dark);
+        }
+        .no-rooms-alert {
+            text-align: center;
+            padding: 40px;
+            color: var(--fh-text-muted);
+            border: 1px dashed var(--fh-gold);
+            background: #fff;
+        }
+    </style>
 </head>
 <body>
 <div class="container">
-    <!-- Header -->
     <div class="page-header">
-        <h1>🏠 Feel Home</h1>
-        <p>Chọn phòng yêu thích và trải nghiệm tuyệt vời tại Feel Home</p>
+        <h1>◈ FeelHome<span> Hotel</span></h1>
+        <p>Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn</p>
     </div>
 
-    <!-- Tab điều hướng: Đặt phòng, Lịch sử đặt phòng, Đặt tiền, Đặt hoàn thành, Đặt bảy -->
     <div class="tabs">
-        <button class="tab active" data-tab="booking">Đặt phòng</button>
-        <button class="tab" data-tab="history">Lịch sử đặt phòng</button>
-        <button class="tab" data-tab="deposit">Đặt tiền</button>
-        <button class="tab" data-tab="completed">Đặt hoàn thành</button>
-        <button class="tab" data-tab="seven">Đặt bảy</button>
+        <button class="tab active" data-tab="booking">Phòng còn trống</button>
+        <button class="tab" data-tab="history">Lịch sử của bạn</button>
     </div>
 
-    <!-- NỘI DUNG: DANH SÁCH PHÒNG (ĐẶT PHÒNG) -->
     <div id="bookingSection" class="booking-section-content">
         <div class="rooms-grid">
-            <!-- Card phòng 1: DELUXE ROOM -->
-            <div class="room-card">
+
+            <div th:each="room : ${availableRooms}" class="room-card">
                 <div class="room-info">
-                    <div class="room-type">
-                        <i class="fas fa-bed"></i> DELUXE ROOM
-                    </div>
+                    <h3 th:text="${room.roomType != null ? room.roomType.nameType : 'PHÒNG NGHỈ TIÊU CHUẨN'}">
+                        DELUXE ROOM
+                    </h3>
                     <div class="room-dates">
-                        <span class="date-badge"><i class="far fa-calendar-alt"></i> 29/05/2026 - 30/05/2026</span>
+                        <span class="date-badge">
+                            <i class="bi bi-calendar3"></i>
+                            <span th:text="${checkin}">2026-06-25</span> <i class="bi bi-arrow-right text-xs px-1"></i> <span th:text="${checkout}">2026-06-28</span>
+                        </span>
                     </div>
                     <div class="room-meta">
-                        <span><i class="fas fa-moon"></i> 1 Đêm</span>
-                        <span><i class="fas fa-user-friends"></i> 2 Người, 1 Phòng</span>
+                        <span><i class="bi bi-door-open"></i> Phòng số: <span th:text="${room.roomNumber}">101</span></span>
+                        <span><i class="bi bi-people"></i> Tối đa: <span th:text="${room.roomType != null ? room.roomType.capacity : 2}">2</span> khách</span>
                     </div>
                 </div>
                 <div class="room-price">
-                    <div class="price">2.500.000 VND</div>
-                    <button class="btn-detail" onclick="goToBookingDetail('deluxe')">
-                        ĐẶT NGAY <i class="fas fa-arrow-right"></i>
+                    <div class="price" th:text="${room.roomType != null ? #numbers.formatDecimal(room.roomType.price, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">1.350.000 VND</div>
+                    <button class="btn-detail" th:data-room-id="${room.id}" th:data-checkin="${checkin}" th:data-checkout="${checkout}" onclick="goToBookingDetail(this)">
+                        ĐẶT NGAY <i class="bi bi-chevron-right text-xs"></i>
                     </button>
                 </div>
             </div>
 
-            <!-- Card phòng 2: STANDARD ROOM -->
-            <div class="room-card">
-                <div class="room-info">
-                    <div class="room-type">
-                        <i class="fas fa-hotel"></i> STANDARD ROOM
-                    </div>
-                    <div class="room-dates">
-                        <span class="date-badge"><i class="far fa-calendar-alt"></i> 29/05/2026 - 30/05/2026</span>
-                    </div>
-                    <div class="room-meta">
-                        <span><i class="fas fa-moon"></i> 1 Đêm</span>
-                        <span><i class="fas fa-user-friends"></i> 2 Người, 1 Phòng</span>
-                    </div>
-                </div>
-                <div class="room-price">
-                    <div class="price">1.800.000 VND</div>
-                    <button class="btn-detail" onclick="goToBookingDetail('standard')">
-                        ĐẶT NGAY <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
+            <div th:if="${#lists.isEmpty(availableRooms)}" class="no-rooms-alert">
+                <i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--fh-gold);"></i>
+                <p style="margin-top: 10px;">Hiện tại không có phòng nào trống phù hợp.</p>
+                <a href="/booking/check" style="color: var(--fh-dark); font-weight: 500; text-decoration: underline;">Xem tất cả phòng còn trống</a>
             </div>
 
-            <!-- Card phòng 3: SUITE ROOM -->
-            <div class="room-card">
-                <div class="room-info">
-                    <div class="room-type">
-                        <i class="fas fa-crown"></i> SUITE ROOM
-                    </div>
-                    <div class="room-dates">
-                        <span class="date-badge"><i class="far fa-calendar-alt"></i> 03/06/2026 - 05/06/2026</span>
-                    </div>
-                    <div class="room-meta">
-                        <span><i class="fas fa-moon"></i> 2 Đêm</span>
-                        <span><i class="fas fa-user-friends"></i> 2 Người, 1 Phòng</span>
-                    </div>
-                </div>
-                <div class="room-price">
-                    <div class="price">12.000.000 VND</div>
-                    <button class="btn-detail" onclick="goToBookingDetail('suite')">
-                        ĐẶT NGAY <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Card phòng 4: FAMILY ROOM -->
-            <div class="room-card">
-                <div class="room-info">
-                    <div class="room-type">
-                        <i class="fas fa-users"></i> FAMILY ROOM
-                    </div>
-                    <div class="room-dates">
-                        <span class="date-badge"><i class="far fa-calendar-alt"></i> 10/06/2026 - 12/06/2026</span>
-                    </div>
-                    <div class="room-meta">
-                        <span><i class="fas fa-moon"></i> 2 Đêm</span>
-                        <span><i class="fas fa-user-friends"></i> 4 Người, 1 Phòng</span>
-                    </div>
-                </div>
-                <div class="room-price">
-                    <div class="price">3.800.000 VND</div>
-                    <button class="btn-detail" onclick="goToBookingDetail('family')">
-                        ĐẶT NGAY <i class="fas fa-arrow-right"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- NỘI DUNG: LỊCH SỬ ĐẶT PHÒNG (form hiển thị khi bấm vào tab Lịch sử) -->
-    <div id="historySection" class="history-section" style="display: none;">
-        <div class="history-header">📋 Lịch sử đặt phòng</div>
-        <div class="history-sub">Guinly cốt chuyển đi của bạn và xem lại những trải nghiệm tuyệt vời tại Feel Home</div>
-
-        <div class="history-item">
-            <div class="history-info">
-                <h4>DELUXE ROOM</h4>
-                <div class="history-dates">29/05/2026 - 30/05/2026</div>
-                <div class="history-meta">1 Đêm · 2 Người, 1 Phòng</div>
-                <span class="history-status">Đã hoàn thành</span>
-            </div>
-            <div class="history-price">2.500.000 VND</div>
-            <button class="btn-view-detail" onclick="viewHistoryDetail('deluxe')">Xem chi tiết</button>
-        </div>
-
-        <div class="history-item">
-            <div class="history-info">
-                <h4>STANDARD ROOM</h4>
-                <div class="history-dates">20/04/2026 - 21/04/2026</div>
-                <div class="history-meta">1 Đêm · 2 Người, 1 Phòng</div>
-                <span class="history-status">Đã hoàn thành</span>
-            </div>
-            <div class="history-price">1.800.000 VND</div>
-            <button class="btn-view-detail" onclick="viewHistoryDetail('standard')">Xem chi tiết</button>
-        </div>
-
-        <div class="history-item">
-            <div class="history-info">
-                <h4>SUITE ROOM</h4>
-                <div class="history-dates">03/06/2026 - 05/06/2026</div>
-                <div class="history-meta">2 Đêm · 2 Người, 1 Phòng</div>
-                <span class="history-status">Sắp diễn ra</span>
-            </div>
-            <div class="history-price">12.000.000 VND</div>
-            <button class="btn-view-detail" onclick="viewHistoryDetail('suite')">Xem chi tiết</button>
-        </div>
-    </div>
-
-    <!-- Các form cho Đặt tiền, Đặt hoàn thành, Đặt bảy (giữ để đầy đủ điều hướng) -->
-    <div id="depositSection" class="history-section" style="display: none;">
-        <div class="history-header">💰 Đặt tiền (Đang xử lý cọc)</div>
-        <div class="history-sub">Các đơn đặt cọc đang chờ thanh toán hoặc xác nhận</div>
-        <div class="empty-history">
-            <i class="fas fa-hourglass-half" style="font-size: 48px; opacity: 0.5;"></i>
-            <p style="margin-top: 12px;">Hiện chưa có đơn đặt tiền nào</p>
-        </div>
-    </div>
-
-    <div id="completedSection" class="history-section" style="display: none;">
-        <div class="history-header">✅ Đặt hoàn thành</div>
-        <div class="history-sub">Những chuyến đi đã kết thúc và trải nghiệm tuyệt vời</div>
-        <div class="empty-history">
-            <i class="fas fa-check-circle" style="font-size: 48px; opacity: 0.5;"></i>
-            <p style="margin-top: 12px;">Chưa có đơn đặt hoàn thành nào</p>
-        </div>
-    </div>
-
-    <div id="sevenSection" class="history-section" style="display: none;">
-        <div class="history-header">📅 Đặt bảy</div>
-        <div class="history-sub">Các đơn đặt phòng trong vòng 7 ngày qua</div>
-        <div class="empty-history">
-            <i class="fas fa-calendar-week" style="font-size: 48px; opacity: 0.5;"></i>
-            <p style="margin-top: 12px;">Không có đơn đặt nào trong 7 ngày gần đây</p>
         </div>
     </div>
 </div>
 
-<script>
-    // Hàm chuyển sang trang chi tiết phòng (booking-detail.html)
-    function goToBookingDetail(roomType) {
-        window.location.href = `booking-detail.html?room=${encodeURIComponent(roomType)}`;
+<script th:inline="javascript">
+    function goToBookingDetail(button) {
+        const roomId = button.getAttribute('data-room-id');
+        const checkin = button.getAttribute('data-checkin');
+        const checkout = button.getAttribute('data-checkout');
+
+        // SỬA LỖI TẠI ĐÂY: Điều hướng chuẩn qua API của BookingController chứ không gọi trực tiếp file .html nữa
+        window.location.href = `/booking/payment?roomId=${roomId}&checkin=${checkin}&checkout=${checkout}`;
     }
-
-    // Hàm xem chi tiết lịch sử đặt phòng
-    function viewHistoryDetail(roomName) {
-        alert(`Xem chi tiết lịch sử đặt phòng: ${roomName}\nChức năng đang phát triển.`);
-        // Có thể chuyển hướng: window.location.href = `history-detail.html?room=${roomName}`;
-    }
-
-    // XỬ LÝ ĐIỀU HƯỚNG TABS (Tất cả đều nằm trong booking.html)
-    const tabs = document.querySelectorAll('.tab');
-    const bookingSection = document.getElementById('bookingSection');
-    const historySection = document.getElementById('historySection');
-    const depositSection = document.getElementById('depositSection');
-    const completedSection = document.getElementById('completedSection');
-    const sevenSection = document.getElementById('sevenSection');
-
-    function showSection(sectionId) {
-        // Ẩn tất cả
-        if (bookingSection) bookingSection.style.display = 'none';
-        if (historySection) historySection.style.display = 'none';
-        if (depositSection) depositSection.style.display = 'none';
-        if (completedSection) completedSection.style.display = 'none';
-        if (sevenSection) sevenSection.style.display = 'none';
-
-        // Hiện section được chọn
-        const section = document.getElementById(sectionId);
-        if (section) section.style.display = 'block';
-    }
-
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            // Xóa active cũ
-            tabs.forEach(t => t.classList.remove('active'));
-            this.classList.add('active');
-
-            const tabValue = this.getAttribute('data-tab');
-            switch(tabValue) {
-                case 'booking':
-                    showSection('bookingSection');
-                    break;
-                case 'history':
-                    showSection('historySection');
-                    break;
-                case 'deposit':
-                    showSection('depositSection');
-                    break;
-                case 'completed':
-                    showSection('completedSection');
-                    break;
-                case 'seven':
-                    showSection('sevenSection');
-                    break;
-                default:
-                    showSection('bookingSection');
-            }
-        });
-    });
-
-    // Mặc định hiển thị phần đặt phòng (booking)
-    showSection('bookingSection');
 </script>
 </body>
 </html>

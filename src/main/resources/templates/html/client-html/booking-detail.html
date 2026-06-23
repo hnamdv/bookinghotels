@@ -1,95 +1,85 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorate="~{homeadmin}">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Chi tiết phòng | Feel Home</title>
-
-    <link rel="stylesheet" href="/static/css/client-css/booking-detail.css">
-    <!-- Google Fonts Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <!-- Font Awesome 6 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; padding: 0; color: #1e293b; }
+        .container { max-width: 800px; margin: 40px auto; padding: 30px; background: white; border-radius: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05); }
+        .back-btn { background: none; border: none; color: #6366f1; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; margin-bottom: 24px; font-size: 15px; }
+        .room-header h1 { margin: 0 0 10px 0; font-size: 28px; color: #0f172a; }
+        .room-capacity { display: flex; gap: 20px; color: #64748b; font-size: 14px; margin-top: 10px; }
+        .details-grid { display: grid; grid-template-cols: 1fr 1fr; gap: 24px; margin: 30px 0; }
+        .info-card { border: 1px solid #f1f5f9; background: #f8fafc; padding: 20px; border-radius: 12px; }
+        .info-card h3 { margin-top: 0; color: #0f172a; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px; }
+        .amenity-item, .policy-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; }
+        .booking-section { display: flex; justify-content: space-between; align-items: center; background: #e0e7ff; padding: 24px; border-radius: 16px; margin-top: 30px; }
+        .price-amount { font-size: 24px; font-weight: 800; color: #4f46e5; display: block; }
+        .btn-book { background: #4f46e5; color: white; border: none; padding: 14px 28px; font-weight: 700; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3); }
+        .btn-book:hover { background: #4338ca; }
+    </style>
 </head>
 <body>
 <div class="container">
-    <!-- Nút quay lại danh sách phòng -->
     <button class="back-btn" onclick="goBackToRooms()">
         <i class="fas fa-arrow-left"></i> Quay lại danh sách phòng
     </button>
 
-    <!-- Header phòng: DELUXE ROOM -->
     <div class="room-header">
-        <h1>🏷️ DELUXE ROOM</h1>
-        <div class="rating">
-            <div class="stars">
-                <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-            </div>
-            <span class="rating-text">5.0/6.0 Lượt điểm giá</span>
-        </div>
+        <h1 th:text="${room != null && room.roomType != null ? '🏷️ ' + room.roomType.nameType : '🏷️ DELUXE ROOM'}">🏷️ DELUXE ROOM</h1>
         <div class="room-capacity">
-            <span class="capacity-item"><i class="fas fa-user-friends"></i> 2 người</span>
-            <span class="capacity-item"><i class="fas fa-bed"></i> 2 giường lớn</span>
-            <span class="capacity-item"><i class="fas fa-expand-alt"></i> 25m²</span>
+            <span><i class="fas fa-user-friends"></i> Sức chứa: <span th:text="${room != null && room.roomType != null ? room.roomType.capacity : '2'}">2</span> người</span>
+            <span><i class="fas fa-expand-alt"></i> Diện tích: <span th:text="${room != null && room.roomType != null ? room.roomType.area : '25'}">25</span>m²</span>
         </div>
     </div>
 
-    <!-- Grid 2 cột: Tiện ích + Chính sách -->
     <div class="details-grid">
-        <!-- Tiện ích phòng ngủ -->
         <div class="info-card">
-            <h3><i class="fas fa-bed"></i> Tiện nghi phòng ngủ</h3>
+            <h3><i class="fas fa-bed"></i> Tiện nghi</h3>
             <div class="amenity-list">
-                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-wifi"></i> Wi-Fi</span><span class="amenity-value">1 nơi</span></div>
-                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-tv"></i> TV</span><span class="amenity-value">1 nơi</span></div>
-                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-phone-alt"></i> Điện thoại</span><span class="amenity-value">1 nơi</span></div>
-                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-thermometer-half"></i> Điều hòa</span><span class="amenity-value">1 nơi</span></div>
+                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-wifi"></i> Wi-Fi</span><span class="amenity-value">Miễn phí</span></div>
+                <div class="amenity-item"><span class="amenity-label"><i class="fas fa-tv"></i> Tivi</span><span class="amenity-value">Smart TV</span></div>
             </div>
         </div>
 
-        <!-- Chính sách & giờ giấc -->
         <div class="info-card">
-            <h3><i class="fas fa-clock"></i> Chính sách & giờ giấc</h3>
+            <h3><i class="fas fa-clock"></i> Quy định</h3>
             <div class="policy-list">
-                <div class="policy-item"><span class="amenity-label">Nhận phòng</span><span class="amenity-value">14:00</span></div>
-                <div class="policy-item"><span class="amenity-label">Trả phòng</span><span class="amenity-value">12:00</span></div>
-                <div class="policy-item"><span class="amenity-label">Hệ thống phòng</span><span class="amenity-value">1 nơi</span></div>
-                <div class="policy-item"><span class="amenity-label">Điểm bảo mật</span><span class="amenity-value">1.000.000 VNĐ/điểm</span></div>
+                <div class="policy-item"><span>Nhận phòng</span><span>14:00</span></div>
+                <div class="policy-item"><span>Trả phòng</span><span>12:00</span></div>
             </div>
         </div>
     </div>
 
-    <!-- Phần giá và đặt phòng (tổng cộng, điện thoại) -->
     <div class="booking-section">
         <div class="price-box">
-            <span class="price-label">Tổng cộng (đã bao gồm VAT)</span>
-            <span class="price-amount">1.000.000 VND</span>
-            <span class="price-note"><i class="fas fa-phone-alt"></i> Điện thoại hỗ trợ: 1.000.000 VND (đặt cọc)</span>
+            <span style="font-size: 14px; color: #475569;">Đơn giá phòng / đêm</span>
+            <span class="price-amount" th:text="${room != null && room.roomType != null ? #numbers.formatDecimal(room.roomType.price, 0, 'COMMA', 0, 'POINT') + ' VND' : '1,000,000 VND'}">1,000,000 VND</span>
         </div>
-        <button class="btn-book" onclick="proceedToBooking()">
-            ĐẶT PHÒNG <i class="fas fa-chevron-right"></i>
-        </button>
-    </div>
 
-    <!-- Dòng thông tin bổ sung (điện thoại, liên hệ) -->
-    <div style="margin-top: 20px; text-align: center; font-size: 13px; color: #8A99B4; padding: 16px 0;">
-        <i class="fas fa-headset"></i> Hotline hỗ trợ: 1900 1234 | Email: booking@feelhome.com
+        <button class="btn-book" onclick="proceedToPayment()">
+            TIẾP TỤC ĐẶT PHÒNG <i class="fas fa-chevron-right"></i>
+        </button>
     </div>
 </div>
 
 <script>
-    // Hàm quay lại trang danh sách phòng (rooms.html hoặc tên file bạn đặt)
+    // Đọc tham số đính kèm trên URL trình duyệt
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomId = urlParams.get('roomId') || '1';
+    const checkin = urlParams.get('checkin') || new Date().toISOString().split('T')[0];
+    const checkout = urlParams.get('checkout') || new Date(Date.now() + 86400000).toISOString().split('T')[0];
+
     function goBackToRooms() {
-        // Chuyển về trang danh sách phòng (có thể đổi tên file phù hợp)
-        window.location.href = 'booking.html';
+        window.location.href = '/booking/check';
     }
 
-    // Hàm xử lý đặt phòng (chuyển sang bước tiếp theo)
-    function proceedToBooking() {
-        alert('Chức năng đặt phòng đang được phát triển. Bạn sẽ được chuyển đến trang thanh toán.');
-        // Có thể chuyển hướng: window.location.href = 'payment.html';
+    function proceedToPayment() {
+        // Chuyển hướng sang endpoint thanh toán GET /booking/payment của Spring Boot
+        window.location.href = `/booking/payment?roomId=${roomId}&checkin=${checkin}&checkout=${checkout}`;
     }
 </script>
 </body>
