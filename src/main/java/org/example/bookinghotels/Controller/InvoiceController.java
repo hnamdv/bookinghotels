@@ -1,6 +1,8 @@
 package org.example.bookinghotels.Controller;
 
+import org.example.bookinghotels.entity.Booking;
 import org.example.bookinghotels.entity.Invoices;
+import org.example.bookinghotels.repository.BookingRepository;
 import org.example.bookinghotels.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,35 +18,57 @@ public class InvoiceController {
     @Autowired
     private InvoiceService invoiceService;
 
+    @Autowired
+    private BookingRepository bookingRepository;
+
+    // =====================================================
+    // DANH SÁCH HÓA ĐƠN (GIỮ NGUYÊN CHỨC NĂNG CŨ)
+    // =====================================================
     @GetMapping("/payments")
     public String showInvoicesPage(
-            // 🛠️ Đổi từ Long sang Integer cho đồng bộ hoàn toàn với Entity và Service
             @RequestParam(name = "id", required = false) Integer id,
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "status", required = false) String status,
             Model model) {
 
-        // 1. Lấy danh sách hóa đơn theo từ khóa tìm kiếm và trạng thái lọc từ DB
+        // 1. Lấy danh sách hóa đơn
         List<Invoices> invoicesList = invoiceService.searchInvoices(keyword, status);
         model.addAttribute("invoices", invoicesList);
 
-        // 2. Xử lý hiển thị vùng "Chi tiết hóa đơn" và "Lịch sử ghi nhận" bên dưới
+        // 2. Hiển thị chi tiết hóa đơn
         if (id != null) {
-            // Khách hàng chủ động bấm vào icon mắt để xem một hóa đơn cụ thể (Tham số truyền vào bây giờ là Integer)
             Invoices selected = invoiceService.findById(id);
             model.addAttribute("selectedInvoice", selected);
         } else {
-            // Mặc định khi vừa vào trang, nếu danh sách có dữ liệu thì lấy phần tử đầu tiên hiển thị luôn cho đẹp giao diện
             if (invoicesList != null && !invoicesList.isEmpty()) {
                 model.addAttribute("selectedInvoice", invoicesList.get(0));
             }
         }
 
-        // 3. Giữ lại giá trị trên các ô input/select để không bị mất dữ liệu sau khi bấm nút "Lọc"
+        // 3. Giữ filter
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
 
-        // Trả về file giao diện payments.html nằm trong thư mục templates
         return "payments";
+    }
+
+    // =====================================================
+    // TRANG QR THANH TOÁN MỚI
+    // =====================================================
+    @GetMapping("/invoice/qr")
+    public String showQR(
+            @RequestParam Integer bookingId,
+            Model model) {
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy booking"));
+
+        // lấy invoice theo booking id
+        Invoices invoice = invoiceService.findByBookingId(bookingId);
+
+        model.addAttribute("booking", booking);
+        model.addAttribute("invoice", invoice);
+
+        return "html/client-html/qr-payment";
     }
 }

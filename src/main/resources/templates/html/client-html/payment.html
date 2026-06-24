@@ -2,8 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thanh toán - FeelHome Hotel</title>
+    <title>Thanh toán</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -11,250 +10,274 @@
 
     <style>
         :root {
-          --fh-dark: #111111;
-          --fh-gold: #c5a880;
-          --fh-gold-hover: #b3956b;
-          --fh-light-bg: #fafafa;
-          --fh-border: #eaeaea;
+            --fh-dark: #111111;
+            --fh-gold: #c5a880;
+            --fh-light-bg: #fafafa;
+            --fh-border: #eaeaea;
         }
 
         body {
-          background-color: var(--fh-light-bg);
-          color: #333333;
-          font-family: 'Jost', sans-serif;
+            background-color: var(--fh-light-bg);
+            color: #333;
+            font-family: 'Jost', sans-serif;
         }
 
-        /* Định dạng tiêu đề nghệ thuật giống trang chủ */
         .fh-title-serif {
-          font-family: 'Cormorant Garamond', serif;
-          font-weight: 600;
-          letter-spacing: 0.5px;
+            font-family: 'Cormorant Garamond', serif;
+            font-weight: 600;
         }
 
-        /* Header đồng bộ */
-        .fh-mini-header {
-          background-color: var(--fh-dark);
-          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-          padding: 15px 0;
-        }
-        .fh-mini-header .navbar-brand {
-          color: #ffffff;
-          font-weight: 600;
-          letter-spacing: 2px;
-        }
-        .fh-mini-header .navbar-brand span {
-          color: var(--fh-gold);
-        }
-
-        /* Các khối thông tin */
         .payment-card {
-          background: #ffffff;
-          border: 1px solid var(--fh-border);
-          border-radius: 4px;
-          padding: 25px;
-          margin-bottom: 25px;
+            background: #fff;
+            border: 1px solid var(--fh-border);
+            border-radius: 4px;
+            padding: 25px;
+            margin-bottom: 25px;
         }
 
         .card-title-line {
-          font-size: 1.25rem;
-          border-bottom: 1px solid var(--fh-border);
-          padding-bottom: 12px;
-          margin-bottom: 20px;
-          text-transform: uppercase;
-          letter-spacing: 1px;
-          color: var(--fh-dark);
+            font-size: 1.25rem;
+            border-bottom: 1px solid var(--fh-border);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            text-transform: uppercase;
         }
 
-        /* Form Custom */
-        .form-control, .form-select {
-          border: 1px solid #d1d1d1;
-          border-radius: 2px;
-          padding: 10px 15px;
-          font-size: 0.95rem;
-        }
-        .form-control:focus, .form-select:focus {
-          border-color: var(--fh-gold);
-          box-shadow: none;
+        .form-control {
+            border: 1px solid #d1d1d1;
+            border-radius: 2px;
+            padding: 10px 15px;
         }
 
-        /* Tùy chỉnh Payment Method thành các ô sang trọng */
-        .method-option {
-          border: 1px solid var(--fh-border);
-          border-radius: 4px;
-          padding: 15px;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          display: flex;
-          align-items: center;
-        }
-        .method-option:hover {
-          border-color: var(--fh-gold);
-          background-color: #fdfcf9;
-        }
-        .method-radio:checked + .method-box-inner {
-          border-color: var(--fh-gold);
-          background-color: #fdfcf9;
+        .form-control:focus {
+            border-color: var(--fh-gold);
+            box-shadow: none;
         }
 
-        /* Sidebar Hóa Đơn */
         .invoice-sidebar {
-          background-color: #ffffff;
-          border: 1px solid var(--fh-dark);
-          border-radius: 4px;
-          padding: 25px;
-          position: sticky;
-          top: 30px;
+            background: #fff;
+            border: 1px solid var(--fh-dark);
+            border-radius: 4px;
+            padding: 25px;
+            position: sticky;
+            top: 30px;
         }
 
         .total-box {
-          background-color: #f8f6f2;
-          border-left: 3px solid var(--fh-gold);
-          padding: 15px;
-          margin: 20px 0;
+            background: #f8f6f2;
+            border-left: 3px solid var(--fh-gold);
+            padding: 15px;
+            margin: 20px 0;
         }
 
-        /* Nút Đặt Ngay chuẩn FeelHome */
         .btn-fh-primary {
-          background-color: var(--fh-dark);
-          color: #ffffff;
-          border: 1px solid var(--fh-dark);
-          border-radius: 0;
-          padding: 12px 25px;
-          font-weight: 500;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          transition: all 0.3s ease;
-          width: 100%;
-        }
-        .btn-fh-primary:hover {
-          background-color: var(--fh-gold);
-          border-color: var(--fh-gold);
-          color: var(--fh-dark);
+            background: var(--fh-dark);
+            color: #fff;
+            border: 1px solid var(--fh-dark);
+            padding: 12px 25px;
+            text-transform: uppercase;
+            width: 100%;
         }
 
-        .footer-light {
-          background-color: #ffffff;
-          border-top: 1px solid var(--fh-border);
-          padding: 20px 0;
-          font-size: 0.85rem;
-          color: #777777;
+        .btn-fh-primary:hover {
+            background: var(--fh-gold);
+            border-color: var(--fh-gold);
+            color: var(--fh-dark);
         }
     </style>
 </head>
-<body class="d-flex flex-column min-vh-screen">
+<body>
 
-<header class="fh-mini-header shadow-sm">
-    <div class="container d-flex justify-between align-items-center">
-        <a href="/home" class="navbar-brand fh-title-serif m-0 fs-4">
-            ◈ FEELHOME<span>HOTEL</span>
-        </a>
-        <span class="text-white-50 small"><i class="bi bi-shield-check text-success me-1"></i> Thanh toán mã hóa an toàn</span>
-    </div>
-</header>
-
-<main class="container my-5 flex-grow-1">
-    <h1 class="fh-title-serif h2 mb-4 text-uppercase text-dark" style="letter-spacing: 1px;">
-        Xác nhận thông tin đặt phòng
-    </h1>
+<div class="container py-5">
 
     <form th:action="@{/booking/confirm-payment}" method="post">
-        <input type="hidden" name="bookingId" th:value="${booking.id}">
+
+        <!-- Hidden -->
+        <input type="hidden" name="roomId" th:value="${booking.roomId}">
 
         <div class="row g-4">
+
+            <!-- LEFT -->
             <div class="col-lg-8">
 
+                <!-- CUSTOMER INFO -->
                 <div class="payment-card shadow-sm">
                     <h2 class="card-title-line fh-title-serif">
-                        <i class="bi bi-person-check me-2"></i> Thông tin khách lưu trú
+                        <i class="bi bi-person-check me-2"></i>
+                        Thông tin khách lưu trú
                     </h2>
+
                     <div class="row g-3">
+
                         <div class="col-md-6">
-                            <label class="form-label font-weight-medium small text-secondary">Họ và tên <span class="text-danger">*</span></label>
-                            <input type="text" name="customerName" required placeholder="Ví dụ: Nguyễn Văn A" class="form-control">
+                            <label>Họ và tên</label>
+                            <input type="text"
+                                   name="customerName"
+                                   required
+                                   class="form-control">
                         </div>
+
                         <div class="col-md-6">
-                            <label class="form-label font-weight-medium small text-secondary">Số điện thoại liên hệ <span class="text-danger">*</span></label>
-                            <input type="tel" name="customerPhone" required placeholder="Ví dụ: 0901234567" class="form-control">
+                            <label>Số điện thoại</label>
+                            <input type="tel"
+                                   name="customerPhone"
+                                   required
+                                   class="form-control">
                         </div>
+
+                        <div class="col-12">
+                            <label>Email</label>
+                            <input type="email"
+                                   name="customerEmail"
+                                   required
+                                   class="form-control">
+                        </div>
+
+                        <!-- CHECKIN -->
+                        <div class="col-md-6">
+                            <label>Ngày nhận phòng</label>
+                            <input type="date"
+                                   id="checkinDate"
+                                   name="checkinDate"
+                                   th:value="${booking.checkinDate}"
+                                   class="form-control"
+                                   onchange="calculateTotal()">
+                        </div>
+
+                        <!-- CHECKOUT -->
+                        <div class="col-md-6">
+                            <label>Ngày trả phòng</label>
+                            <input type="date"
+                                   id="checkoutDate"
+                                   name="checkoutDate"
+                                   th:value="${booking.checkoutDate}"
+                                   class="form-control"
+                                   onchange="calculateTotal()">
+                        </div>
+
+                        <!-- GUEST -->
+                        <div class="col-md-6">
+                            <label>Người lớn</label>
+                            <input type="number"
+                                   name="adultCount"
+                                   value="2"
+                                   min="1"
+                                   class="form-control">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label>Trẻ em</label>
+                            <input type="number"
+                                   name="childCount"
+                                   value="0"
+                                   min="0"
+                                   class="form-control">
+                        </div>
+
                     </div>
                 </div>
 
+                <!-- PAYMENT -->
                 <div class="payment-card shadow-sm">
                     <h2 class="card-title-line fh-title-serif">
-                        <i class="bi bi-wallet2 me-2"></i> Chọn phương thức thanh toán
+                        <i class="bi bi-wallet2 me-2"></i>
+                        Phương thức thanh toán
                     </h2>
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <div class="method-option">
-                                <input type="radio" name="paymentMethod" value="BANK_TRANSFER" checked id="payBank" class="form-check-input me-3">
-                                <label for="payBank" class="w-full row align-items-center m-0 cursor-pointer">
-                                    <div class="col-auto fs-3 text-secondary px-2">
-                                        <i class="bi bi-bank"></i>
-                                    </div>
-                                    <div class="col">
-                                        <strong class="d-block text-dark small">Chuyển khoản Ngân hàng nội địa</strong>
-                                        <span class="text-muted text-xs">Tự động khởi tạo mã QR thanh toán tức thì qua ứng dụng Internet Banking</span>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
+
+                    <div class="mb-3">
+                        <input type="radio"
+                               name="paymentMethod"
+                               value="VIETQR"
+                               checked
+                               class="form-check-input me-2">
+                        <label>Chuyển khoản ngân hàng (VietQR)</label>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        Sau khi nhấn xác nhận, hệ thống sẽ tạo booking và chuyển sang trang QR.
                     </div>
                 </div>
 
             </div>
 
+            <!-- RIGHT -->
             <div class="col-lg-4">
+
                 <div class="invoice-sidebar shadow-sm">
-                    <h2 class="card-title-line fh-title-serif border-dark">
-                        <i class="bi bi-receipt me-2"></i> Chi tiết hóa đơn
+
+                    <h2 class="card-title-line fh-title-serif">
+                        <i class="bi bi-receipt me-2"></i>
+                        Chi tiết hóa đơn
                     </h2>
 
-                    <div class="d-flex justify-content-between mb-3 pb-2 border-bottom border-light">
-                        <span class="text-muted small">Mã đơn hàng:</span>
-                        <span class="fw-bold text-dark font-monospace" th:text="${booking.id}">BK-000000</span>
+                    <div class="mb-3">
+                        <span class="text-muted">Loại phòng:</span>
+                        <div class="fw-bold" th:text="${booking.roomName}"></div>
                     </div>
 
                     <div class="mb-3">
-                        <span class="text-muted d-block small">Loại phòng nghỉ:</span>
-                        <span class="fw-medium text-dark fs-5 fh-title-serif" th:text="${booking.roomName}">Deluxe Room</span>
+                        <span class="text-muted">Ngày nhận:</span>
+                        <div id="showCheckin" th:text="${booking.checkinDate}"></div>
                     </div>
 
-                    <div class="row g-2 py-3 my-2 border-top border-bottom border-light bg-light p-2 rounded-1">
-                        <div class="col-6">
-                            <span class="text-muted d-block text-xs">Ngày nhận:</span>
-                            <span class="fw-medium text-dark small" th:text="${booking.checkinDate}">--/--/----</span>
-                        </div>
-                        <div class="col-6">
-                            <span class="text-muted d-block text-xs">Ngày trả:</span>
-                            <span class="fw-medium text-dark small" th:text="${booking.checkoutDate}">--/--/----</span>
-                        </div>
+                    <div class="mb-3">
+                        <span class="text-muted">Ngày trả:</span>
+                        <div id="showCheckout" th:text="${booking.checkoutDate}"></div>
                     </div>
 
-                    <div class="d-flex justify-content-between my-3 small text-secondary">
-                        <span>Tổng số đêm lưu trú:</span>
-                        <span class="fw-bold text-dark" th:text="${booking.days + ' đêm'}">1 đêm</span>
+                    <div class="mb-3">
+                        <span class="text-muted">Số đêm:</span>
+                        <div id="totalDays" th:text="${booking.days} + ' đêm'"></div>
                     </div>
 
-                    <div class="total-box d-flex justify-content-between align-items-center">
-                        <span class="fw-medium text-dark small">Tổng thanh toán:</span>
-                        <span class="fs-4 fw-bold" style="color: #a48253;" th:text="${#numbers.formatDecimal(booking.totalAmount, 0, 'COMMA', 0, 'POINT') + ' ₫'}">0 ₫</span>
+                    <div class="total-box d-flex justify-content-between">
+                        <span>Tổng thanh toán:</span>
+                        <span id="totalAmount"
+                              class="fw-bold"
+                              th:text="${#numbers.formatDecimal(booking.totalAmount,0,'COMMA',0,'POINT')} + ' ₫'">
+                        </span>
                     </div>
 
-                    <button type="submit" class="btn btn-fh-primary mt-2">
-                        XÁC NHẬN ĐẶT PHÒNG <i class="bi bi-arrow-right ms-1"></i>
+                    <button type="submit" class="btn btn-fh-primary">
+                        XÁC NHẬN ĐẶT PHÒNG
+                        <i class="bi bi-arrow-right ms-2"></i>
                     </button>
+
                 </div>
+
             </div>
+
         </div>
+
     </form>
-</main>
 
-<footer class="footer-light text-center mt-auto">
-    <div class="container">
-        <p class="m-0">&copy; 2026 FeelHome Hotel. Thiết kế đồng bộ hệ thống nghỉ dưỡng cao cấp.</p>
-    </div>
-</footer>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function calculateTotal() {
+        const checkin = document.getElementById("checkinDate").value;
+        const checkout = document.getElementById("checkoutDate").value;
+
+        const roomPrice = [[${booking.roomPrice}]];
+
+        if (checkin && checkout) {
+            const start = new Date(checkin);
+            const end = new Date(checkout);
+
+            let diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+
+            if (diff <= 0) diff = 1;
+
+            const total = roomPrice * diff;
+
+            document.getElementById("showCheckin").innerText = checkin;
+            document.getElementById("showCheckout").innerText = checkout;
+            document.getElementById("totalDays").innerText = diff + " đêm";
+            document.getElementById("totalAmount").innerText =
+                total.toLocaleString('vi-VN') + " ₫";
+        }
+    }
+</script>
+
 </body>
 </html>

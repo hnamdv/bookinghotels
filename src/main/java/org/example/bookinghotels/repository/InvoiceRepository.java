@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoices, Integer> { // Đổi Long thành Integer cho khớp với Entity id nhé
@@ -18,4 +19,6 @@ public interface InvoiceRepository extends JpaRepository<Invoices, Integer> { //
     List<Invoices> searchInvoices(@Param("keyword") String keyword,
                                   @Param("keyword_1") String keyword_1,
                                   @Param("status") String status);
+
+    Optional<Invoices> findByBookingId(Integer bookingId);
 }
