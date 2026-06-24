@@ -71,11 +71,15 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
     @Transactional
     @Query("UPDATE BookingDetail bd SET bd.status = :status WHERE bd.id = :bookingDetailId")
     int updateBookingDetailStatus(@Param("bookingDetailId") Integer bookingDetailId, @Param("status") String status);
+
     @Query("""
 SELECT COUNT(DISTINCT b.room.id)
 FROM BookingDetail b
 """)
     long countDistinctBookedRooms();
+
+    // ===== THÊM METHOD NÀY =====
+    List<BookingDetail> findByBookingId(Integer bookingId);
 
     @Query("""
             SELECT COALESCE(SUM(bd.roomQuantity), 0)

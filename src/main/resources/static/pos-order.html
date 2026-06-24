@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS - Gọi món nhanh | FeelHome Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<header class="fh-header" id="fh-header">
+    <div class="fh-header__inner">
+        <a href="/" class="fh-logo"><span class="fh-logo__icon">◈</span><span class="fh-logo__text">FEELHOME</span></a>
+        <nav class="fh-nav" id="fh-nav">
+            <a href="/" class="fh-nav__link">Trang Chủ</a>
+            <a href="/#rooms-section" class="fh-nav__link">Phòng Nghỉ</a>
+            <a href="/favorites.html" class="fh-nav__link">Yêu Thích</a>
+            <a href="/pos-order.html" class="fh-nav__link active">Gọi Món POS</a>
+            <a href="/fwb-manager.html" class="fh-nav__link">Quản Lý Menu</a>
+        </nav>
+        <div class="fh-header__actions">
+            <a href="/#rooms-section" class="fh-btn-primary">Đặt Ngay</a>
+            <button class="fh-hamburger" id="fh-hamburger"><span></span><span></span><span></span></button>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="pos-container">
+        <div class="pos-layout">
+            <div class="pos-left">
+                <div class="pos-header">
+                    <h1>🍽️ Gọi món nhanh - POS</h1>
+                    <p>Chọn phòng → Chọn món → Xác nhận</p>
+                </div>
+                <div class="pos-card">
+                    <label>🏠 Chọn phòng / Booking</label>
+                    <select id="roomSelect"></select>
+                    <div class="flex-row">
+                        <input type="number" id="manualBookingId" placeholder="Hoặc nhập Booking ID">
+                        <button onclick="selectManualRoom()" class="btn-secondary">Chọn</button>
+                    </div>
+                    <div id="roomInfo" class="mt-2"></div>
+                </div>
+                <div class="pos-card">
+                    <h2 style="font-family:var(--font-serif); margin-bottom:16px;">📋 Danh mục món</h2>
+                    <div id="menuList" class="menu-grid"></div>
+                </div>
+            </div>
+            <div class="pos-right">
+                <div class="cart-card">
+                    <div class="cart-header">🛒 Giỏ gọi món</div>
+                    <div id="cart" class="cart-items"><div class="empty" style="padding:40px;">Chưa có món</div></div>
+                    <div class="cart-footer">
+                        <div class="total"><span>Tổng cộng:</span><span id="totalCart">0đ</span></div>
+                        <button onclick="submitOrder()" class="btn-submit">✅ Xác nhận gọi món</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="fh-footer">
+    <div class="fh-footer__inner">
+        <div><a href="/" class="fh-logo"><span class="fh-logo__icon">◈</span><span class="fh-logo__text">FEELHOME</span></a><p>Nơi sự sang trọng giao thoa cùng cảm giác bình yên.</p></div>
+        <div><h4>KHÁM PHÁ</h4><a href="/#rooms-section">Phòng & Suite</a></div>
+        <div><h4>LIÊN HỆ</h4><p>Email: info@feelhome.vn</p><p>Hotline: 1900 0000</p></div>
+    </div>
+</footer>
+
+<script>
+    let menuData = [], cart = [], currentBookingId = null;
+
+    async function loadRooms() {
+        try {
+            const res = await fetch('/api/fnb-order/bookings');
+            const rooms = await res.json();
+            const select = document.getElementById('roomSelect');
+            select.innerHTML = '<option value="">-- Chọn phòng --</option>';
+            if(rooms.length) {
+                rooms.forEach(r => {
+                    const opt = document.createElement('option');
+                    opt.value = r.id;
+                    opt.textContent = `Phòng ${r.id} - ${r.name || 'Khách'} (${r.checkinDate || '?'} → ${r.checkoutDate || '?'})`;
+                    select.appendChild(opt);
+                });
+            } else {
+                select.innerHTML += '<option disabled>Chưa có booking</option>';
+            }
+            select.onchange = () => {
+                if(select.value) {
+                    currentBookingId = parseInt(select.value);
+                    document.getElementById('roomInfo').innerHTML = `<div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">✅ Đã chọn: Phòng #${currentBookingId}</div>`;
+                    document.getElementById('manualBookingId').value = '';
+                }
+            };
+        } catch(e) {
+            console.error(e);
+            document.getElementById('roomInfo').innerHTML = '<div style="color:red;">Lỗi tải danh sách phòng</div>';
+        }
+    }
+
+    function selectManualRoom() {
+        const bid = document.getElementById('manualBookingId').value;
+        if(!bid) { alert('Nhập Booking ID'); return; }
+        currentBookingId = parseInt(bid);
+        document.getElementById('roomInfo').innerHTML = `<div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">✅ Đã chọn: Phòng #${currentBookingId}</div>`;
+        document.getElementById('roomSelect').value = '';
+    }
+
+    async function loadMenu() {
+        try {
+            const res = await fetch('/api/fwb');
+            const items = await res.json();
+            menuData = items.filter(i => i.status !== 'hidden');
+            renderMenu();
+        } catch(e) {
+            document.getElementById('menuList').innerHTML = '<div class="empty">Lỗi tải món</div>';
+        }
+    }
+
+    function renderMenu() {
+        const container = document.getElementById('menuList');
+        if(!menuData.length) {
+            container.innerHTML = '<div class="empty">Chưa có món nào</div>';
+            return;
+        }
+        container.innerHTML = '';
+        menuData.forEach(item => {
+            const price = item.price || 0;
+            const img = item.image || 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png';
+            const card = document.createElement('div');
+            card.className = 'menu-card';
+            card.innerHTML = `
+                <img src="${img}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/1046/1046784.png'">
+                <div class="name">${escapeHtml(item.name) || 'Chưa có tên'}</div>
+                <div class="price">${price.toLocaleString('vi-VN')}đ</div>
+                <div class="unit">${escapeHtml(item.unit) || ''}</div>
+                <button class="btn-order" onclick="addToCart(${item.id},'${escapeHtml(item.name)}',${price})">+ Gọi món</button>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function addToCart(id, name, price) {
+        if(!currentBookingId) { alert('Chọn phòng trước!'); return; }
+        const ex = cart.find(c => c.id === id);
+        if(ex) ex.quantity++;
+        else cart.push({ id, name, price, quantity: 1 });
+        renderCart();
+    }
+
+    function updateQuantity(idx, delta) {
+        const item = cart[idx];
+        const nq = item.quantity + delta;
+        if(nq <= 0) cart.splice(idx, 1);
+        else item.quantity = nq;
+        renderCart();
+    }
+
+    function renderCart() {
+        const cartDiv = document.getElementById('cart');
+        let total = 0;
+        if(!cart.length) {
+            cartDiv.innerHTML = '<div class="empty">Chưa có món nào</div>';
+            document.getElementById('totalCart').innerText = '0đ';
+            return;
+        }
+        cartDiv.innerHTML = '';
+        cart.forEach((item, idx) => {
+            const sub = item.price * item.quantity;
+            total += sub;
+            cartDiv.innerHTML += `
+                <div class="cart-item">
+                    <div>
+                        <div class="cart-item-name">${escapeHtml(item.name)}</div>
+                        <div class="cart-item-price">${item.price.toLocaleString('vi-VN')}đ</div>
+                    </div>
+                    <div class="cart-qty">
+                        <button class="btn-minus" onclick="updateQuantity(${idx},-1)">-</button>
+                        <span>${item.quantity}</span>
+                        <button class="btn-plus" onclick="updateQuantity(${idx},1)">+</button>
+                    </div>
+                    <div style="min-width:70px;text-align:right;font-weight:600;color:var(--gold);">${sub.toLocaleString('vi-VN')}đ</div>
+                </div>
+            `;
+        });
+        document.getElementById('totalCart').innerText = total.toLocaleString('vi-VN') + 'đ';
+    }
+
+    async function submitOrder() {
+        if(!currentBookingId) { alert('Chọn phòng!'); return; }
+        if(!cart.length) { alert('Chưa có món nào!'); return; }
+        const payload = { bookingId: currentBookingId, items: cart.map(i => ({ fwbId: i.id, quantity: i.quantity })) };
+        try {
+            const res = await fetch('/api/fnb-order/create', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const result = await res.json();
+            if(res.ok) {
+                alert(`✅ Gọi món thành công!\nTổng: ${result.totalAmount.toLocaleString('vi-VN')}đ`);
+                cart = [];
+                renderCart();
+            } else {
+                alert(`❌ Lỗi: ${result.error}`);
+            }
+        } catch(e) {
+            alert('Lỗi kết nối server!');
+        }
+    }
+
+    function escapeHtml(str) { return str ? str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])) : ''; }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const ham = document.getElementById('fh-hamburger');
+        const nav = document.getElementById('fh-nav');
+        ham?.addEventListener('click', () => nav?.classList.toggle('open'));
+        loadRooms();
+        loadMenu();
+    });
+</script>
+</body>
+</html>
