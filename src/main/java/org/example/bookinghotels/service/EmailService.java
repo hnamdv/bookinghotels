@@ -44,4 +44,27 @@ public class EmailService {
             System.err.println("❌ Lỗi khi gửi email: " + e.getMessage());
         }
     }
+
+    public void sendStayNotification(String toEmail, String customerName, String subject, String body,
+                                     String roomNumber, java.time.LocalDate checkinDate, java.time.LocalDate checkoutDate) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(toEmail);
+            helper.setSubject("◈ FEELHOME HOTEL - " + subject);
+            String htmlContent = "<div style='font-family:Arial,sans-serif;max-width:620px;margin:auto;border:1px solid #e5e7eb;padding:24px'>"
+                    + "<h2 style='text-align:center;color:#b18a55'>FEELHOME HOTEL</h2>"
+                    + "<p>Xin chào <strong>" + customerName + "</strong>,</p>"
+                    + "<p>" + body + "</p>"
+                    + "<div style='background:#faf7f2;padding:16px;border-left:4px solid #c5a880'>"
+                    + "<p><strong>Phòng:</strong> " + roomNumber + "</p>"
+                    + "<p><strong>Nhận phòng:</strong> " + checkinDate + "</p>"
+                    + "<p><strong>Trả phòng:</strong> " + checkoutDate + "</p>"
+                    + "</div><p style='color:#777;font-size:13px'>Email được gửi tự động từ hệ thống FeelHome.</p></div>";
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Không gửi được email lưu trú: " + e.getMessage());
+        }
+    }
 }

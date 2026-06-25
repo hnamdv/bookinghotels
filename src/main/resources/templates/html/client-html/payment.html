@@ -84,6 +84,19 @@
             border-color: var(--fh-gold);
             color: var(--fh-dark);
         }
+
+        .promo-box {
+            border: 1px solid #e7c98f;
+            background: linear-gradient(135deg, #fffaf0, #fff);
+            padding: 14px 16px;
+            margin-bottom: 18px;
+        }
+        .promo-name { color: #9a6519; font-weight: 600; }
+        .promo-countdown { color: #a96500; font-size: .9rem; margin-top: 6px; }
+        .price-old { color: #999; text-decoration: line-through; margin-right: 8px; }
+        .price-new { color: #b35f23; font-size: 1.25rem; font-weight: 700; }
+        .discount-row { color: #0b8f52; font-weight: 600; }
+        .promo-expired { color: #9b1c1c; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -215,6 +228,26 @@
                         <div class="fw-bold" th:text="${booking.roomName}"></div>
                     </div>
 
+                    <div id="promotionBox" class="promo-box" th:if="${booking.promoted}">
+                        <div class="promo-name">
+                            <i class="bi bi-tags me-1"></i>
+                            <span th:text="${booking.promotionName}">Ưu đãi</span>
+                            <span th:text="|-${#numbers.formatDecimal(booking.discountPercent,0,0)}%|">-10%</span>
+                        </div>
+                        <div id="promoCountdown" class="promo-countdown"
+                             th:attr="data-end=${booking.promotionEndAt}">Đang tính thời gian ưu đãi...</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <span class="text-muted">Giá mỗi đêm:</span>
+                        <div>
+                            <span id="oldNightlyPrice" class="price-old" th:if="${booking.promoted}"
+                                  th:text="${#numbers.formatDecimal(booking.originalRoomPrice,0,'COMMA',0,'POINT')} + ' ₫'">0 ₫</span>
+                            <span id="effectiveNightlyPrice" class="price-new"
+                                  th:text="${#numbers.formatDecimal(booking.roomPrice,0,'COMMA',0,'POINT')} + ' ₫'">0 ₫</span>
+                        </div>
+                    </div>
+
                     <div class="mb-3">
                         <span class="text-muted">Ngày nhận:</span>
                         <div id="showCheckin" th:text="${booking.checkinDate}"></div>
@@ -228,6 +261,19 @@
                     <div class="mb-3">
                         <span class="text-muted">Số đêm:</span>
                         <div id="totalDays" th:text="${booking.days} + ' đêm'"></div>
+                    </div>
+
+                    <div class="mb-2 d-flex justify-content-between">
+                        <span class="text-muted">Tiền phòng:</span>
+                        <span id="roomSubtotal"></span>
+                    </div>
+                    <div id="discountRow" class="mb-2 d-flex justify-content-between discount-row" th:if="${booking.promoted}">
+                        <span>Giảm giá:</span>
+                        <span id="discountAmount" th:text="'-' + ${#numbers.formatDecimal(booking.discountAmount,0,'COMMA',0,'POINT')} + ' ₫'">-0 ₫</span>
+                    </div>
+                    <div class="mb-2 d-flex justify-content-between">
+                        <span class="text-muted">Thuế/phí:</span>
+                        <span id="taxAndFee" th:text="${#numbers.formatDecimal(booking.taxAndFee,0,'COMMA',0,'POINT')} + ' ₫'">0 ₫</span>
                     </div>
 
                     <div class="total-box d-flex justify-content-between">
@@ -253,30 +299,83 @@
 
 </div>
 
-<script>
+<script th:inline="javascript">
+    const pricing = {
+        originalNightly: Number(/*[[${booking.originalRoomPrice}]]*/ 0),
+        effectiveNightly: Number(/*[[${booking.roomPrice}]]*/ 0),
+        taxAndFee: Number(/*[[${booking.taxAndFee}]]*/ 0),
+        promoted: Boolean(/*[[${booking.promoted}]]*/ false),
+        promotionEndAt: /*[[${booking.promotionEndAt}]]*/ null
+    };
+
+    const money = value => Math.max(0, Number(value || 0)).toLocaleString('vi-VN') + ' ₫';
+
+    function currentNightlyPrice() {
+        if (!pricing.promoted || !pricing.promotionEndAt) return pricing.originalNightly;
+        return new Date() <= new Date(pricing.promotionEndAt) ? pricing.effectiveNightly : pricing.originalNightly;
+    }
+
     function calculateTotal() {
-        const checkin = document.getElementById("checkinDate").value;
-        const checkout = document.getElementById("checkoutDate").value;
+        const checkin = document.getElementById('checkinDate').value;
+        const checkout = document.getElementById('checkoutDate').value;
+        if (!checkin || !checkout) return;
 
-        const roomPrice = [[${booking.roomPrice}]];
+        const start = new Date(checkin + 'T00:00:00');
+        const end = new Date(checkout + 'T00:00:00');
+        let days = Math.round((end - start) / 86400000);
+        if (days <= 0) days = 1;
 
-        if (checkin && checkout) {
-            const start = new Date(checkin);
-            const end = new Date(checkout);
+        const nightly = currentNightlyPrice();
+        const roomSubtotal = nightly * days;
+        const originalSubtotal = pricing.originalNightly * days;
+        const discount = Math.max(0, originalSubtotal - roomSubtotal);
+        const total = roomSubtotal + pricing.taxAndFee;
 
-            let diff = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+        document.getElementById('showCheckin').innerText = checkin;
+        document.getElementById('showCheckout').innerText = checkout;
+        document.getElementById('totalDays').innerText = days + ' đêm';
+        document.getElementById('effectiveNightlyPrice').innerText = money(nightly);
+        document.getElementById('roomSubtotal').innerText = money(roomSubtotal);
+        document.getElementById('totalAmount').innerText = money(total);
 
-            if (diff <= 0) diff = 1;
-
-            const total = roomPrice * diff;
-
-            document.getElementById("showCheckin").innerText = checkin;
-            document.getElementById("showCheckout").innerText = checkout;
-            document.getElementById("totalDays").innerText = diff + " đêm";
-            document.getElementById("totalAmount").innerText =
-                total.toLocaleString('vi-VN') + " ₫";
+        const discountRow = document.getElementById('discountRow');
+        const oldPrice = document.getElementById('oldNightlyPrice');
+        const promotionBox = document.getElementById('promotionBox');
+        if (discount > 0) {
+            if (discountRow) discountRow.style.display = 'flex';
+            if (oldPrice) oldPrice.style.display = 'inline';
+            const discountAmount = document.getElementById('discountAmount');
+            if (discountAmount) discountAmount.innerText = '-' + money(discount);
+        } else {
+            if (discountRow) discountRow.style.display = 'none';
+            if (oldPrice) oldPrice.style.display = 'none';
+            if (promotionBox) promotionBox.classList.add('promo-expired');
         }
     }
+
+    function updateCountdown() {
+        const el = document.getElementById('promoCountdown');
+        if (!el || !pricing.promotionEndAt) return;
+        const diff = new Date(pricing.promotionEndAt).getTime() - Date.now();
+        if (diff <= 0) {
+            el.innerText = 'Ưu đãi đã kết thúc – giá đã trở về giá gốc';
+            el.classList.add('promo-expired');
+            pricing.promoted = false;
+            calculateTotal();
+            return;
+        }
+        const days = Math.floor(diff / 86400000);
+        const hours = Math.floor((diff % 86400000) / 3600000);
+        const minutes = Math.floor((diff % 3600000) / 60000);
+        const seconds = Math.floor((diff % 60000) / 1000);
+        el.innerText = `Còn ${days} ngày ${hours.toString().padStart(2,'0')}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        calculateTotal();
+        updateCountdown();
+        setInterval(updateCountdown, 1000);
+    });
 </script>
 
 </body>

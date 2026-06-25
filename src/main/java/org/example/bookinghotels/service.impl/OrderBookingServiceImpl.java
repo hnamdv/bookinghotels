@@ -3,6 +3,7 @@ package org.example.bookinghotels.service.impl;
 import org.example.bookinghotels.entity.*;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.OrderBookingService;
+import org.example.bookinghotels.service.PromotionPricingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +34,9 @@ public class OrderBookingServiceImpl implements OrderBookingService {
 
     @Autowired
     private RoomTypeRepository roomTypeRepository;
+
+    @Autowired
+    private PromotionPricingService promotionPricingService;
 
     @Override
     @Transactional
@@ -65,22 +69,27 @@ public class OrderBookingServiceImpl implements OrderBookingService {
             days = 1;
         }
 
-        // 4. Save booking detail liên kết với Booking vừa tạo
+        // 4. Tính lại ưu đãi tại backend để không phụ thuộc dữ liệu từ trình duyệt.
+        PromotionPricingService.PriceQuote quote = promotionPricingService.quote(
+                roomType,
+                savedBooking.getCheckinDate(),
+                savedBooking.getCheckoutDate()
+        );
+        double originalRoomTotal = quote.originalNightlyPrice() * days;
+        double discountedRoomTotal = quote.effectiveNightlyPrice() * days;
+        double discount = Math.max(0D, originalRoomTotal - discountedRoomTotal);
+
+        // 5. Lưu booking detail với giá thực trả sau ưu đãi.
         detail.setBooking(savedBooking);
-        detail.setPrice(roomType.getPrice() * days);
-        BookingDetail savedDetail = bookingDetailRepository.save(detail);
+        detail.setPrice(discountedRoomTotal);
+        detail.setDiscountAmount(discount);
+        BookingDetail savedDetail = bookingDetailRepository.saveAndFlush(detail);
 
-        // 5. Tính tổng tiền phòng (đã gồm thuế phí và giảm giá)
-        double discount = detail.getDiscountAmount() == null
-                ? 0
-                : detail.getDiscountAmount();
+        // 6. Tổng hóa đơn = giá phòng sau ưu đãi + thuế/phí.
+        double totalAmount = discountedRoomTotal
+                + (roomType.getTaxAndFee() == null ? 0D : roomType.getTaxAndFee());
 
-        double totalAmount =
-                (roomType.getPrice() * days)
-                        + roomType.getTaxAndFee()
-                        - discount;
-
-        // 6. Nếu có dịch vụ đồ ăn / thức uống kèm theo
+        // 7. Nếu có dịch vụ đồ ăn / thức uống kèm theo
         if (orderedFoods != null && !orderedFoods.isEmpty()) {
             for (BookingFB foodOrder : orderedFoods) {
                 foodOrder.setBookingDetail(savedDetail);
@@ -93,7 +102,7 @@ public class OrderBookingServiceImpl implements OrderBookingService {
             }
         }
 
-        // 7. Tạo mới và Lưu hóa đơn (Invoice) đảm bảo khóa ngoại booking_id đã tồn tại
+        // 8. Tạo mới và Lưu hóa đơn (Invoice) đảm bảo khóa ngoại booking_id đã tồn tại
         Invoices invoice = new Invoices();
         invoice.setBooking(savedBooking);
         invoice.setTotalAmount(totalAmount);

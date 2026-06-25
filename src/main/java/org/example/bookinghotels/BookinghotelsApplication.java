@@ -3,7 +3,9 @@ package org.example.bookinghotels;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
+@EnableScheduling
 @SpringBootApplication(exclude = { SecurityAutoConfiguration.class })
 public class BookinghotelsApplication {
 

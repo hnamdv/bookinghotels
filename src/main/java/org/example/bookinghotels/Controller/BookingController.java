@@ -5,7 +5,9 @@ import org.example.bookinghotels.entity.BookingDetail;
 import org.example.bookinghotels.entity.Invoices;
 import org.example.bookinghotels.entity.Room;
 import org.example.bookinghotels.repository.RoomRepository;
+import org.example.bookinghotels.repository.BookingDetailRepository;
 import org.example.bookinghotels.service.OrderBookingService;
+import org.example.bookinghotels.service.PromotionPricingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -27,6 +29,12 @@ public class BookingController {
 
     @Autowired
     private RoomRepository roomRepository;
+
+    @Autowired
+    private BookingDetailRepository bookingDetailRepository;
+
+    @Autowired
+    private PromotionPricingService promotionPricingService;
 
     // =====================================================
     // TRANG KIỂM TRA PHÒNG TRỐNG (GET)
@@ -66,9 +74,15 @@ public class BookingController {
                     .collect(Collectors.toList());
         }
 
+        List<Room> displayRooms = roomTypeId == null
+                ? allRooms
+                : allRooms.stream().filter(r -> r.getRoomType() != null && r.getRoomType().getId().equals(roomTypeId)).toList();
+        List<Map<String, Object>> roomCards = buildRoomCards(displayRooms, availableRoomIds, checkin, checkout);
+
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
         model.addAttribute("availableRooms", availableRooms);
+        model.addAttribute("roomCards", roomCards);
         model.addAttribute("today", LocalDate.now().toString());
 
         return "html/client-html/booking";
@@ -140,10 +154,12 @@ public class BookingController {
             List<Room> bookedRooms =
                     roomRepository.findAllById(bookedRoomIds);
 
+            List<Room> displayRooms = roomRepository.findAllById(roomIds);
             model.addAttribute("checkin", checkin);
             model.addAttribute("checkout", checkout);
             model.addAttribute("availableRooms", availableRooms);
             model.addAttribute("bookedRooms", bookedRooms);
+            model.addAttribute("roomCards", buildRoomCards(displayRooms, availableRoomIds, checkin, checkout));
             model.addAttribute("totalAvailable", availableRooms.size());
             model.addAttribute("totalBooked", bookedRooms.size());
 
@@ -187,8 +203,11 @@ public class BookingController {
         long days = ChronoUnit.DAYS.between(start, end);
         if (days <= 0) days = 1;
 
-        double roomPrice = room.getRoomType().getPrice();
-        double totalAmount = roomPrice * days;
+        PromotionPricingService.PriceQuote quote = promotionPricingService.quote(room.getRoomType(), start, end);
+        double roomPrice = quote.effectiveNightlyPrice();
+        double originalRoomPrice = quote.originalNightlyPrice();
+        double taxAndFee = room.getRoomType().getTaxAndFee() == null ? 0D : room.getRoomType().getTaxAndFee();
+        double totalAmount = roomPrice * days + taxAndFee;
 
         Map<String, Object> bookingData = new HashMap<>();
         bookingData.put("roomId", roomId);
@@ -201,6 +220,13 @@ public class BookingController {
                         + " (#" + room.getRoomNumber() + ")"
         );
         bookingData.put("roomPrice", roomPrice);
+        bookingData.put("originalRoomPrice", originalRoomPrice);
+        bookingData.put("taxAndFee", taxAndFee);
+        bookingData.put("discountAmount", Math.max(0D, (originalRoomPrice - roomPrice) * days));
+        bookingData.put("discountPercent", quote.discountPercent());
+        bookingData.put("promotionName", quote.promotionName());
+        bookingData.put("promotionEndAt", quote.promotionEndAt());
+        bookingData.put("promoted", quote.promoted());
         bookingData.put("totalAmount", totalAmount);
 
         model.addAttribute("booking", bookingData);
@@ -307,5 +333,54 @@ public class BookingController {
         );
 
         return result;
+    }
+
+    private List<Map<String, Object>> buildRoomCards(List<Room> rooms,
+                                                      List<Integer> availableRoomIds,
+                                                      LocalDate checkin,
+                                                      LocalDate checkout) {
+        Set<Integer> available = new HashSet<>(availableRoomIds);
+        List<Integer> ids = rooms.stream().map(Room::getId).toList();
+        Map<Integer, BookingDetail> overlapByRoom = new HashMap<>();
+        if (!ids.isEmpty()) {
+            for (BookingDetail bd : bookingDetailRepository.findOverlappingBookings(ids, checkin, checkout)) {
+                if (bd.getRoom() != null) overlapByRoom.putIfAbsent(bd.getRoom().getId(), bd);
+            }
+        }
+        List<Map<String, Object>> cards = new ArrayList<>();
+        for (Room room : rooms) {
+            Map<String, Object> card = new LinkedHashMap<>();
+            card.put("room", room);
+            boolean isAvailable = available.contains(room.getId());
+            card.put("available", isAvailable);
+            BookingDetail occupied = overlapByRoom.get(room.getId());
+            card.put("bookingDetail", occupied);
+            if (room.getRoomType() != null) {
+                PromotionPricingService.PriceQuote quote = promotionPricingService.quote(room.getRoomType(), checkin, checkout);
+                card.put("promoted", quote.promoted());
+                card.put("originalPrice", quote.originalNightlyPrice());
+                card.put("effectivePrice", quote.effectiveNightlyPrice());
+                card.put("discountPercent", quote.discountPercent());
+                card.put("promotionName", quote.promotionName());
+                card.put("promotionEndAt", quote.promotionEndAt());
+            } else {
+                card.put("promoted", false);
+                card.put("originalPrice", 0D);
+                card.put("effectivePrice", 0D);
+            }
+            if (isAvailable) {
+                card.put("label", "CÒN TRỐNG");
+                card.put("availableAgain", null);
+            } else if (occupied != null) {
+                String status = occupied.getStatus() == null ? "" : occupied.getStatus().toUpperCase();
+                card.put("label", "CHECKED_IN".equals(status) ? "ĐANG CÓ KHÁCH" : "ĐÃ ĐƯỢC ĐẶT");
+                card.put("availableAgain", occupied.getBooking().getCheckoutDate());
+            } else {
+                card.put("label", "KHÔNG KHẢ DỤNG");
+                card.put("availableAgain", null);
+            }
+            cards.add(card);
+        }
+        return cards;
     }
 }

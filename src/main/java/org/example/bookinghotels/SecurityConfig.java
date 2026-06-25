@@ -40,13 +40,24 @@ public class SecurityConfig {
                                 "/login", "/error", "/favicon.ico",
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
                                 "/favorites.html", "/room-detail.html", "/promo-demo.html", "/offers", "/offers.html",
+                                "/booking/**", "/invoice/qr",
                                 "/api/auth/**", "/api/public/**",
                                 "/api/webhook/**" // Mở đường cho SePay bắn tín hiệu
                         ).permitAll()
 
-                        .requestMatchers("/admin/**", "/staff/**").hasAnyAuthority(
-                                "ROLE_USER", "ROLE_PROMOTION", "ROLE_BOOKING",
-                                "ROLE_FWB", "ROLE_HOTEL", "ROLE_IMG", "ROLE_ROOM"
+                        // Hỗ trợ cả role có tiền tố ROLE_ và role cũ không có tiền tố.
+                        // Tránh lỗi 403 khi dữ liệu role trong DB không đồng nhất giữa các nhánh.
+                        .requestMatchers("/admin/**", "/staff/**", "/api/admin/**").hasAnyAuthority(
+                                "ROLE_ADMIN", "ADMIN",
+                                "ROLE_MANAGER", "MANAGER",
+                                "ROLE_STAFF", "STAFF",
+                                "ROLE_USER", "USER",
+                                "ROLE_PROMOTION", "PROMOTION",
+                                "ROLE_BOOKING", "BOOKING",
+                                "ROLE_FWB", "FWB",
+                                "ROLE_HOTEL", "HOTEL",
+                                "ROLE_IMG", "IMG",
+                                "ROLE_ROOM", "ROOM"
                         )
 
                         .anyRequest().authenticated()
