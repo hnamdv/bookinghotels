@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
-import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity; // Import này
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,7 +14,7 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Kích hoạt @PreAuthorize trên Controller
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Bean
@@ -32,37 +32,37 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập các file tĩnh và API xác thực
+                        // Cho phép truy cập các file tĩnh và API public
                         .requestMatchers(
-                                "/", "/home", "/layout", "/layout.html", "/client-home.html",
+                                "/", "/home", "/client-home.html", "/home/**",
                                 "/login", "/error", "/favicon.ico",
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
-                                "/favorites.html", "/room-detail.html", "/promo-demo.html", "/offers", "/offers.html",
-                                "/api/auth/**", "/api/public/**"
+                                "/favorites.html", "/room-detail.html", "/offers", "/offers.html",
+                                "/api/auth/**", "/api/public/**",
+                                "/pos/**", "/pos", "/api/fwb/**"
                         ).permitAll()
 
-                        // Mọi request còn lại chỉ cần ĐĂNG NHẬP là vào được.
-                        // Việc phân quyền chi tiết cho từng chức năng sẽ do @PreAuthorize lo.
-                        .requestMatchers("/admin/**", "/staff/**").hasAnyAuthority(
-                                "ROLE_USER", "ROLE_PROMOTION", "ROLE_BOOKING",
-                                "ROLE_FWB", "ROLE_HOTEL", "ROLE_IMG", "ROLE_ROOM"
-                        )
+                        // Các trang admin/staff yêu cầu đăng nhập
+                        .requestMatchers("/admin/**", "/staff/**").authenticated()
 
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/home")
+                        .permitAll()
+                )
                 .logout(logout -> logout
-                        .logoutUrl("/api/auth/logout")      // URL gọi để thực hiện logout
-                        .logoutSuccessUrl("/login")         // Trang đích sau khi logout thành công
-                        .invalidateHttpSession(true)        // Xóa sạch Session
-                        .clearAuthentication(true)          // Xóa thông tin xác thực
-                        .deleteCookies("JSESSIONID")        // Xóa cookie JSESSIONID
+                        .logoutUrl("/api/auth/logout")
+                        .logoutSuccessUrl("/login")
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID")
                 );
-
 
         return http.build();
     }
-
 }

@@ -32,6 +32,10 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             @Param("checkinDate") LocalDate checkinDate,
             @Param("checkoutDate") LocalDate checkoutDate);
 
+    // ===== TÌM THEO BOOKING ID (THÊM VÀO ĐÂY) =====
+    @Query("SELECT bd FROM BookingDetail bd WHERE bd.booking.id = :bookingId")
+    List<BookingDetail> findByBookingId(@Param("bookingId") Integer bookingId);
+
     // ===== LOAD TẤT CẢ =====
     @Query("SELECT DISTINCT bd FROM BookingDetail bd " +
             "JOIN FETCH bd.booking b " +
@@ -71,10 +75,11 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
     @Transactional
     @Query("UPDATE BookingDetail bd SET bd.status = :status WHERE bd.id = :bookingDetailId")
     int updateBookingDetailStatus(@Param("bookingDetailId") Integer bookingDetailId, @Param("status") String status);
+
     @Query("""
-SELECT COUNT(DISTINCT b.room.id)
-FROM BookingDetail b
-""")
+    SELECT COUNT(DISTINCT b.room.id)
+    FROM BookingDetail b
+    """)
     long countDistinctBookedRooms();
 
     @Query("""
