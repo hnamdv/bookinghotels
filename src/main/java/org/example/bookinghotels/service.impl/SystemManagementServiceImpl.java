@@ -1,15 +1,15 @@
 package org.example.bookinghotels.service.impl;
 
-import org.example.bookinghotels.constant.LogModule;
-import org.springframework.security.core.Authentication;
 import org.example.bookinghotels.dto.OccupancyDTO;
 import org.example.bookinghotels.dto.PromotionCheckResponse;
-import org.example.bookinghotels.entity.*;
+import org.example.bookinghotels.entity.ActivityLog;
+import org.example.bookinghotels.entity.Promotion;
+import org.example.bookinghotels.entity.PromotionRoomType;
+import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.SystemManagementService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.example.bookinghotels.dto.RevenueDTO;
@@ -21,9 +21,6 @@ import java.util.stream.Collectors;
 import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SystemManagementServiceImpl implements SystemManagementService {
-
-    @Autowired
-    private UserRepository userRepository;
 
     @Autowired
     private PromotionRepository promotionRepository;
@@ -47,22 +44,8 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     private BookingDetailRepository bookingDetailRepository;
     @Override
     public Promotion savePromotion(Promotion promotion) {
-
         validatePromotion(promotion);
-
-        Promotion saved =
-                promotionRepository.save(promotion);
-
-        User currentUser = getCurrentUser();
-
-        logActivity(
-                currentUser,
-                "INSERT",
-                LogModule.PROMOTION,
-                "Tạo khuyến mãi: " + saved.getPromotionName()
-        );
-
-        return saved;
+        return promotionRepository.save(promotion);
     }
 
     @Override
@@ -80,66 +63,26 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     }
 
     @Override
-    public Promotion updatePromotion(
-            Integer id,
-            Promotion promotion) {
-
+    public Promotion updatePromotion(Integer id, Promotion promotion) {
         validatePromotion(promotion);
 
-        Promotion oldPromotion =
-                getPromotionById(id);
+        Promotion oldPromotion = getPromotionById(id);
 
-        oldPromotion.setPromotionName(
-                promotion.getPromotionName());
+        oldPromotion.setPromotionName(promotion.getPromotionName());
+        oldPromotion.setDescription(promotion.getDescription());
+        oldPromotion.setDiscountPercent(promotion.getDiscountPercent());
+        oldPromotion.setStartDate(promotion.getStartDate());
+        oldPromotion.setEndDate(promotion.getEndDate());
+        oldPromotion.setStartTime(promotion.getStartTime());
+        oldPromotion.setEndTime(promotion.getEndTime());
 
-        oldPromotion.setDescription(
-                promotion.getDescription());
-
-        oldPromotion.setDiscountPercent(
-                promotion.getDiscountPercent());
-
-        oldPromotion.setStartDate(
-                promotion.getStartDate());
-
-        oldPromotion.setEndDate(
-                promotion.getEndDate());
-
-        Promotion updated =
-                promotionRepository.save(oldPromotion);
-
-        User currentUser = getCurrentUser();
-
-        logActivity(
-                currentUser,
-                "UPDATE",
-                LogModule.PROMOTION,
-                "Cập nhật khuyến mãi ID = "
-                        + id
-        );
-
-        return updated;
+        return promotionRepository.save(oldPromotion);
     }
 
     @Override
     public void deletePromotion(Integer id) {
-
-        Promotion promotion =
-                getPromotionById(id);
-
-        String promotionName =
-                promotion.getPromotionName();
-
+        Promotion promotion = getPromotionById(id);
         promotionRepository.delete(promotion);
-
-        User currentUser = getCurrentUser();
-
-        logActivity(
-                currentUser,
-                "DELETE",
-                LogModule.PROMOTION,
-                "Xóa khuyến mãi: "
-                        + promotionName
-        );
     }
 
     @Override
@@ -346,35 +289,5 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     @Override
     public List<RoomType> getAllRoomTypes() {
         return roomTypeRepository.findAll();
-    }
-    @Override
-    public void logActivity(User user,
-                            String action,
-                            String tableName,
-                            String description) {
-
-        ActivityLog log = new ActivityLog();
-
-        log.setUser(user);
-        log.setAction(action);
-        log.setTableName(tableName);
-        log.setDescription(description);
-        log.setCreatedAt(LocalDateTime.now());
-
-        activityLogRepository.save(log);
-    }
-    private User getCurrentUser() {
-
-        Authentication authentication =
-                SecurityContextHolder
-                        .getContext()
-                        .getAuthentication();
-
-        String username =
-                authentication.getName();
-
-        return userRepository
-                .findByUsername(username)
-                .orElse(null);
     }
 }

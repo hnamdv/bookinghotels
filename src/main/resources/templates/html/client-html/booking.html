@@ -189,8 +189,6 @@
             border-color: var(--fh-gold);
             color: var(--fh-dark);
         }
-        .room-card.unavailable{opacity:.82;background:#f8f8f8}.room-card.unavailable:hover{transform:none;box-shadow:none}.status-pill{display:inline-flex;padding:5px 10px;border-radius:99px;font-size:.72rem;font-weight:700;margin-bottom:10px}.status-pill.ok{background:#e8f7ee;color:#177343}.status-pill.busy{background:#fff0e7;color:#b45309}.btn-detail:disabled{background:#aaa;border-color:#aaa;cursor:not-allowed}.available-again{margin-top:10px;font-size:.82rem;color:#9a5a2d}
-        .price-old{font-size:.92rem;color:#999;text-decoration:line-through;margin-bottom:2px}.price-new{color:#b35f23}.booking-promo{font-size:.75rem;color:#9a6519;margin:6px 0 12px}.booking-promo strong{color:#0b8f52}.booking-countdown{display:block;margin-top:4px;color:#a96500}.booking-countdown.expired{color:#9b1c1c}
         .no-rooms-alert {
             text-align: center;
             padding: 40px;
@@ -209,40 +207,41 @@
 
     <div class="tabs">
         <button class="tab active" data-tab="booking">Phòng còn trống</button>
-        <button class="tab" data-tab="history">Lịch sử của bạn</button>
     </div>
 
     <div id="bookingSection" class="booking-section-content">
         <div class="rooms-grid">
 
-            <div th:each="card : ${roomCards}" class="room-card" th:classappend="${card.available} ? '' : ' unavailable'">
+            <div th:each="room : ${availableRooms}" class="room-card">
                 <div class="room-info">
-                    <span class="status-pill" th:classappend="${card.available} ? ' ok' : ' busy'" th:text="${card.label}">CÒN TRỐNG</span>
-                    <h3 th:text="${card.room.roomType != null ? card.room.roomType.nameType : 'PHÒNG NGHỈ TIÊU CHUẨN'}">DELUXE ROOM</h3>
-                    <div class="room-dates"><span class="date-badge"><i class="bi bi-calendar3"></i><span th:text="${checkin}"></span><i class="bi bi-arrow-right text-xs px-1"></i><span th:text="${checkout}"></span></span></div>
-                    <div class="room-meta">
-                        <span><i class="bi bi-door-open"></i> Phòng số: <span th:text="${card.room.roomNumber}">101</span></span>
-                        <span><i class="bi bi-people"></i> Tối đa: <span th:text="${card.room.roomType != null ? card.room.roomType.capacity : 2}">2</span> khách</span>
+                    <h3 th:text="${room.roomType != null ? room.roomType.nameType : 'PHÒNG NGHỈ TIÊU CHUẨN'}">
+                        DELUXE ROOM
+                    </h3>
+                    <div class="room-dates">
+                        <span class="date-badge">
+                            <i class="bi bi-calendar3"></i>
+                            <span th:text="${checkin}">2026-06-25</span>
+                            <i class="bi bi-arrow-right text-xs px-1"></i>
+                            <span th:text="${checkout}">2026-06-28</span>
+                        </span>
                     </div>
-                    <div class="available-again" th:if="${!card.available and card.availableAgain != null}" th:text="'Dự kiến trống lại sau ngày ' + ${#temporals.format(card.availableAgain,'dd/MM/yyyy')}"></div>
+                    <div class="room-meta">
+                        <span><i class="bi bi-people"></i> Tối đa: <span th:text="${room.roomType != null ? room.roomType.capacity : 2}">2</span> khách</span>
+                    </div>
                 </div>
                 <div class="room-price">
-                    <div class="price-old" th:if="${card.promoted}"
-                         th:text="${#numbers.formatDecimal(card.originalPrice, 0, 'COMMA', 0, 'POINT') + ' VND'}"></div>
-                    <div class="price price-new"
-                         th:text="${#numbers.formatDecimal(card.effectivePrice, 0, 'COMMA', 0, 'POINT') + ' VND'}"></div>
-                    <div class="booking-promo" th:if="${card.promoted}">
-                        <strong th:text="|-${#numbers.formatDecimal(card.discountPercent,0,0)}%|">-10%</strong>
-                        <span th:text="${card.promotionName}">Ưu đãi</span>
-                        <span class="booking-countdown" th:attr="data-end=${card.promotionEndAt}">Đang tính thời gian...</span>
-                    </div>
-                    <button class="btn-detail" th:disabled="${!card.available}" th:data-room-id="${card.room.id}" th:data-checkin="${checkin}" th:data-checkout="${checkout}" onclick="goToBookingDetail(this)">
-                        <span th:text="${card.available ? 'ĐẶT NGAY' : 'ĐÃ CÓ KHÁCH'}"></span> <i class="bi bi-chevron-right text-xs"></i>
+                    <div class="price" th:text="${room.roomType != null ? #numbers.formatDecimal(room.roomType.price * 0.9, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">1.350.000 VND</div>
+                    <button class="btn-detail"
+                            th:data-room-id="${room.id}"
+                            th:data-checkin="${checkin}"
+                            th:data-checkout="${checkout}"
+                            onclick="goToBookingDetail(this)">
+                        ĐẶT NGAY <i class="bi bi-chevron-right text-xs"></i>
                     </button>
                 </div>
             </div>
 
-            <div th:if="${#lists.isEmpty(roomCards)}" class="no-rooms-alert">
+            <div th:if="${#lists.isEmpty(availableRooms)}" class="no-rooms-alert">
                 <i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--fh-gold);"></i>
                 <p style="margin-top: 10px;">Hiện tại không có phòng nào trống phù hợp.</p>
                 <a href="/booking/check" style="color: var(--fh-dark); font-weight: 500; text-decoration: underline;">Xem tất cả phòng còn trống</a>
@@ -253,33 +252,10 @@
 </div>
 
 <script th:inline="javascript">
-    function updateBookingCountdowns() {
-        document.querySelectorAll('.booking-countdown[data-end]').forEach(el => {
-            const diff = new Date(el.dataset.end).getTime() - Date.now();
-            if (diff <= 0) {
-                el.textContent = 'Ưu đãi đã kết thúc';
-                el.classList.add('expired');
-                return;
-            }
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const sec = Math.floor((diff % 60000) / 1000);
-            el.textContent = `Còn ${d} ngày ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-        });
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-        updateBookingCountdowns();
-        setInterval(updateBookingCountdowns, 1000);
-    });
-
     function goToBookingDetail(button) {
-        // Trích xuất chính xác tham số truyền từ URL động
         const roomId = button.getAttribute('data-room-id');
         const checkin = button.getAttribute('data-checkin');
         const checkout = button.getAttribute('data-checkout');
-
-        // CHUYỂN TUYẾN CHUẨN: Chuyển hướng trực tiếp đến API Controller xử lý trang hóa đơn
         window.location.href = `/booking/payment?roomId=${roomId}&checkin=${checkin}&checkout=${checkout}`;
     }
 </script>
