@@ -6,6 +6,7 @@ import org.example.bookinghotels.dto.RevenueDTO;
 import org.example.bookinghotels.entity.ActivityLog;
 import org.example.bookinghotels.entity.Promotion;
 import org.example.bookinghotels.entity.RoomType;
+import org.example.bookinghotels.entity.User;
 
 import java.util.List;
 
@@ -39,4 +40,8 @@ public interface SystemManagementService {
     OccupancyDTO getOccupancy();
 
     List<RoomType> getAllRoomTypes();
+    void logActivity(User user,
+                     String action,
+                     String tableName,
+                     String description);
 }
