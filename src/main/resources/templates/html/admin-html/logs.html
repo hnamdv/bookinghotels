@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{homeadmin}">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Activity Logs Dashboard</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body>
+
+<!-- 🔥 QUAN TRỌNG: PHẢI BỌC TRONG FRAGMENT -->
+<section layout:fragment="content">
+
+    <div class="max-w-6xl mx-auto">
+
+        <!-- HEADER -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+            <div>
+                <h2 class="text-2xl font-bold">Activity Logs</h2>
+                <p class="text-slate-500 text-sm mt-1">Lịch sử hoạt động hệ thống</p>
+            </div>
+
+            <!-- SEARCH -->
+            <div class="relative">
+                <input type="text"
+                       id="searchInput"
+                       class="pl-10 pr-4 py-2 w-full md:w-64 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                       placeholder="Tìm kiếm log..." />
+
+                <svg class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </div>
+        </div>
+
+        <!-- TABLE -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+
+                    <thead class="bg-slate-50 border-b text-slate-500 uppercase text-[10px] font-bold">
+                    <tr>
+                        <th class="px-6 py-3">Thời gian</th>
+                        <th class="px-6 py-3">User</th>
+                        <th class="px-6 py-3">Hành động</th>
+                        <th class="px-6 py-3">Module</th>
+                        <th class="px-6 py-3">Mô tả</th>
+                    </tr>
+                    </thead>
+
+                    <tbody id="logTableBody" class="divide-y divide-slate-100">
+
+                    <tr th:each="log : ${logs}" class="hover:bg-slate-50">
+
+                        <td class="px-6 py-3 text-slate-600 whitespace-nowrap"
+                            th:text="${#temporals.format(log.createdAt, 'dd/MM HH:mm:ss')}"></td>
+
+                        <td class="px-6 py-3">
+                            <div th:if="${log.user != null}" class="flex items-center gap-2">
+
+                                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">
+                                    [[${#strings.substring(log.user.username, 0, 1)}]]
+                                </div>
+
+                                <span class="font-medium"
+                                      th:text="${log.user.username}"></span>
+                            </div>
+
+                            <span th:if="${log.user == null}"
+                                  class="text-xs px-2 py-1 bg-slate-100 text-slate-500 rounded">
+                            SYSTEM
+                        </span>
+                        </td>
+
+                        <td class="px-6 py-3">
+                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase inline-block"
+                              th:classappend="${
+                                log.action == 'CHECK_IN' ? 'bg-emerald-100 text-emerald-700' :
+                                log.action == 'CHECK_OUT' ? 'bg-rose-100 text-rose-700' :
+                                log.action == 'STATUS_UPDATE' ? 'bg-amber-100 text-amber-700' :
+                                log.action == 'REMINDER' ? 'bg-slate-100 text-slate-600' :
+                                log.action == 'AUTO_CHECK_OUT' ? 'bg-violet-100 text-violet-700' :
+                                'bg-gray-100 text-gray-700'
+                              }"
+                              th:text="${log.action}">
+                        </span>
+                        </td>
+
+                        <td class="px-6 py-3">
+                        <span class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600"
+                              th:text="${log.tableName}">
+                        </span>
+                        </td>
+
+                        <td class="px-6 py-3 text-slate-700 text-xs max-w-md break-words"
+                            th:text="${log.description}">
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+                </table>
+            </div>
+
+            <div th:if="${#lists.isEmpty(logs)}"
+                 class="p-8 text-center text-slate-400 text-sm">
+                Không có dữ liệu log
+            </div>
+
+        </div>
+    </div>
+
+</section>
+
+</body>
+</html>

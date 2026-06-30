@@ -8,17 +8,17 @@ import org.example.bookinghotels.entity.PromotionRoomType;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.SystemManagementService;
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.example.bookinghotels.dto.RevenueDTO;
-
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-
+import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 @Service
 public class SystemManagementServiceImpl implements SystemManagementService {
 
@@ -86,7 +86,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     }
 
     @Override
-    public PromotionCheckResponse checkPromotionCode(String code, Integer roomTypeId) {
+    public PromotionCheckResponse checkPromotionCode(String code) {
         if (code == null || code.trim().isEmpty()) {
             return new PromotionCheckResponse(
                     false,
@@ -289,15 +289,5 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     @Override
     public List<RoomType> getAllRoomTypes() {
         return roomTypeRepository.findAll();
-    }
-
-    @Override
-    public void updatePromotionRoomTypes(Integer id, List<Integer> roomTypeIds) {
-
-    }
-
-    @Override
-    public @Nullable Object getRoomTypeIdsByPromotion(Integer id) {
-        return null;
     }
 }
