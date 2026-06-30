@@ -4,6 +4,7 @@ import org.example.bookinghotels.entity.*;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.DatabaseSequenceService;
 import org.example.bookinghotels.service.RoomTypeImageService;
+import org.example.bookinghotels.service.RoomInventoryService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class AdminRoomTypeController {
     private final RoomImgRepository roomImgRepository;
     private final DatabaseSequenceService sequenceService;
     private final RoomTypeImageService roomTypeImageService;
+    private final RoomInventoryService roomInventoryService;
 
     public AdminRoomTypeController(RoomTypeRepository roomTypeRepository,
                                    HotelsRepository hotelsRepository,
@@ -30,7 +32,8 @@ public class AdminRoomTypeController {
                                    MediaRepository mediaRepository,
                                    RoomImgRepository roomImgRepository,
                                    DatabaseSequenceService sequenceService,
-                                   RoomTypeImageService roomTypeImageService) {
+                                   RoomTypeImageService roomTypeImageService,
+                                   RoomInventoryService roomInventoryService) {
         this.roomTypeRepository = roomTypeRepository;
         this.hotelsRepository = hotelsRepository;
         this.promotionRepository = promotionRepository;
@@ -39,6 +42,7 @@ public class AdminRoomTypeController {
         this.roomImgRepository = roomImgRepository;
         this.sequenceService = sequenceService;
         this.roomTypeImageService = roomTypeImageService;
+        this.roomInventoryService = roomInventoryService;
     }
 
     @GetMapping
@@ -110,6 +114,9 @@ public class AdminRoomTypeController {
 
             // Đồng bộ tuyệt đối ảnh theo checkbox: bỏ tick là gỡ ngay, không giữ bản ghi cũ và không nhân bản.
             roomTypeImageService.replaceImages(rt, mediaIds);
+
+            int actualRoomCount = roomInventoryService.ensurePhysicalRooms(rt);
+            rt.setTotalRooms(actualRoomCount);
 
             promotionRoomTypeRepository.deleteByRoomTypeId(rt.getId());
             if (promotionId != null) {
