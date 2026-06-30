@@ -1,4 +1,4 @@
-Dưới đây là file README.md chuyên nghiệp bằng tiếng Anh, tối ưu để bạn gắn vào repo Git của dự án:
+
 
 🏨 Hotel Booking & Management System (Multi-Hotel Platform)
 A centralized hotel management platform designed with a Multi-Tenant architecture, allowing a single codebase to manage operations for multiple hotel branches efficiently.
