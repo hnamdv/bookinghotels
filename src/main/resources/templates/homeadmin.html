@@ -1,5 +1,5 @@
-    <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
+<!DOCTYPE html>
+            <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
@@ -224,13 +224,17 @@
                     <a th:href="@{/admin/room-types}"><i class="fa-solid fa-layer-group"></i>Quản lý loại phòng</a>
                 </li>
                 <li>
-                        <a th:href="@{/hotels}"><i class="fa-solid fa-user-gear"></i>Quản lý hotels</a>
+                    <a th:href="@{/hotels}"><i class="fa-solid fa-user-gear"></i>Quản lý hotels</a>
                 </li>
                 <li>
                     <a th:href="@{/admin/users}"><i class="fa-solid fa-user-gear"></i>Quản lý nhân sự</a>
                 </li>
                 <li>
                     <a th:href="@{/staff/promotions}"><i class="fa-solid fa-tags"></i>Quản lý khuyến mãi</a>
+                </li>
+                <!-- ===== THÊM MỤC QUẢN LÝ MENU F&B ===== -->
+                <li>
+                    <a th:href="@{/staff/fwb/management}"><i class="fa-solid fa-utensils"></i>Quản lý Menu F&B</a>
                 </li>
                 <li>
                     <a th:href="@{/admin/media}"><i class="fa-solid fa-images"></i>Upload photo</a>

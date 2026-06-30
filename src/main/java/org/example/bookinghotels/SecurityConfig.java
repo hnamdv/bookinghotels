@@ -30,29 +30,30 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 1. TẮT HOÀN TOÀN CSRF: Sửa dòng này để fix lỗi chặn đăng nhập Forbidden
                 .csrf(csrf -> csrf.disable())
-
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập các file tĩnh, API xác thực và WEBHOOK ngân hàng
+                        // Cho phép truy cập các file tĩnh và API public
                         .requestMatchers(
-                                "/", "/home", "/layout", "/layout.html", "/client-home.html",
+                                "/", "/home", "/client-home.html", "/home/**",
                                 "/login", "/error", "/favicon.ico",
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
-                                "/favorites.html", "/room-detail.html", "/promo-demo.html", "/offers", "/offers.html",
+                                "/favorites.html", "/room-detail.html", "/offers", "/offers.html",
                                 "/api/auth/**", "/api/public/**",
-                                "/api/webhook/**" // Mở đường cho SePay bắn tín hiệu
+                                "/pos/**", "/pos", "/api/fwb/**"
                         ).permitAll()
 
-                        .requestMatchers("/admin/**", "/staff/**").hasAnyAuthority(
-                                "ROLE_USER", "ROLE_PROMOTION", "ROLE_BOOKING",
-                                "ROLE_FWB", "ROLE_HOTEL", "ROLE_IMG", "ROLE_ROOM"
-                        )
+                        // Các trang admin/staff yêu cầu đăng nhập
+                        .requestMatchers("/admin/**", "/staff/**").authenticated()
 
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .defaultSuccessUrl("/home")
+                        .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")

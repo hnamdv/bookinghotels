@@ -78,7 +78,7 @@
                     <form th:action="@{/admin/media/branding}" method="post">
                         <div class="row g-4">
                             <div class="col-lg-4"><label class="form-label fw-semibold">Tên thương hiệu</label><input class="form-control" name="siteName" th:value="${siteName}"></div>
-                            
+
                             <div class="col-12">
                                 <div class="picker-title">Dòng chữ chào mừng trên slideshow</div>
                                 <div class="row g-3 align-items-end">
@@ -131,7 +131,7 @@
                             <label class="image-option" th:each="m:${mediaList}"><img th:src="${m.fileUrl}" alt="Slide"><input type="checkbox" name="hotelSlideMediaIds" th:value="${m.id}" th:checked="${#lists.contains(hotelSlides[h.id],m.fileUrl)}"></label>
                         </div>
                         <div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="clearHotelSlides" value="true" th:id="|clearHotelSlides-${h.id}|"><label class="form-check-label" th:for="|clearHotelSlides-${h.id}|">Xóa slideshow riêng, dùng slideshow mặc định</label></div>
-                        
+
                         <div class="picker-title mt-4">3. Dòng chữ chào mừng của khách sạn</div>
                         <div class="row g-3 align-items-end mb-3">
                             <div class="col-lg-6"><label class="form-label fw-semibold">Nội dung</label><input class="form-control" name="hotelWelcomeText" maxlength="100" th:value="${hotelWelcomeTexts[h.id]}" th:placeholder="|Chào mừng đến ${h.name}|"></div>

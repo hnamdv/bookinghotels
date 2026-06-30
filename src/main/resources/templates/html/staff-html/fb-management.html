@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{homeadmin}">
+
+<head>
+    <title>Quản lý Menu F&B</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f9fafb;
+            color: #1c2a38;
+        }
+        :root {
+            --brand-brown: #a7522e;
+            --brand-brown-hover: #914424;
+        }
+        .stat-card-luxury {
+            background: #ffffff;
+            border: 1px solid #f1f3f5;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s ease;
+        }
+        .stat-card-luxury:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(167, 82, 46, 0.05);
+            border-color: rgba(167, 82, 46, 0.2);
+        }
+        .btn-brown {
+            background: var(--brand-brown);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .btn-brown:hover {
+            background: var(--brand-brown-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(167, 82, 46, 0.25);
+        }
+        .badge-active {
+            background: #d1fae5;
+            color: #065f46;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .badge-hidden {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .menu-img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            margin: 0 2px;
+        }
+        .action-btn:hover {
+            transform: translateY(-1px);
+        }
+        .btn-edit {
+            background: #e0f2fe;
+            color: #0369a1;
+        }
+        .btn-edit:hover {
+            background: #bae6fd;
+        }
+        .btn-toggle {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .btn-toggle:hover {
+            background: #fde68a;
+        }
+        .btn-delete {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .btn-delete:hover {
+            background: #fecaca;
+        }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 16px;
+            max-width: 560px;
+            width: 95%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 0;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: modalFade 0.3s ease;
+        }
+        @keyframes modalFade {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #f1f3f5;
+        }
+        .modal-header h2 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1c2a38;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: all 0.2s ease;
+        }
+        .modal-close:hover {
+            color: #1c2a38;
+            transform: rotate(90deg);
+        }
+        .modal-body {
+            padding: 24px;
+        }
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 24px 24px;
+            border-top: 1px solid #f1f3f5;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: #4b5563;
+            margin-bottom: 6px;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            background: #fafbfc;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--brand-brown);
+            box-shadow: 0 0 0 3px rgba(167, 82, 46, 0.1);
+            background: #fff;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .image-preview {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .btn-cancel {
+            background: #f3f4f6;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-cancel:hover {
+            background: #e5e7eb;
+        }
+        .btn-save {
+            background: var(--brand-brown);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-save:hover {
+            background: var(--brand-brown-hover);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #9ca3af;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        thead {
+            background: #f9fafb;
+            border-bottom: 2px solid #f1f3f5;
+        }
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 700;
+            color: #4b5563;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f1f3f5;
+            vertical-align: middle;
+        }
+        tr:hover {
+            background: #fafbfc;
+        }
+        .price-text {
+            font-weight: 700;
+            color: var(--brand-brown);
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #dadada;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #c0c0c0;
+        }
+    </style>
+</head>
+
+<body>
+
+<div layout:fragment="content">
+
+    <div class="max-w-[1600px] mx-auto p-6 md:p-8 space-y-6">
+
+        <!-- Header -->
+        <div class="pb-4 border-b border-gray-100 flex justify-between items-center flex-wrap gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-[#1c2a38] tracking-tight">🍽️ Quản lý Menu F&B</h1>
+                <p class="text-sm text-gray-500 mt-1">Thêm, sửa, ẩn/hiện món ăn &amp; dịch vụ</p>
+            </div>
+            <button onclick="openAddModal()" class="btn-brown">
+                <i class="fa-solid fa-plus mr-2"></i>Thêm món
+            </button>
+        </div>
+
+        <!-- Bảng danh sách -->
+        <div class="stat-card-luxury">
+            <div class="table-container">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tên món</th>
+                        <th>Giá</th>
+                        <th>Đơn vị</th>
+                        <th>Ảnh</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                    </thead>
+                    <tbody id="menuTable">
+                    <tr>
+                        <td colspan="7" class="empty-state">
+                            <i class="fa-solid fa-spinner fa-spin text-2xl text-gray-300 mb-3 block"></i>
+                            Đang tải...
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ===== MODAL ===== -->
+    <div id="modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Thêm món</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <form id="menuForm" enctype="multipart/form-data">
+                <input type="hidden" id="editId">
+                <input type="hidden" id="imageUrl">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="name">Tên món *</label>
+                        <input type="text" id="name" placeholder="Nhập tên món" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="price">Giá *</label>
+                            <input type="number" id="price" placeholder="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="unit">Đơn vị *</label>
+                            <input type="text" id="unit" placeholder="suất, ly, phần...">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="imageFile">Ảnh món</label>
+                        <input type="file" id="imageFile" accept="image/*">
+                    </div>
+                    <div id="currentImagePreview" class="hidden">
+                        <img id="previewImg" class="image-preview">
+                        <p class="text-xs text-gray-400 mt-1">Ảnh hiện tại</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="extraDescription">Mô tả</label>
+                        <textarea id="extraDescription" rows="3" placeholder="Mô tả chi tiết món ăn..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Hủy</button>
+                    <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk mr-2"></i>Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="script">
+
+    <script>
+        const API = "/staff/fwb";
+        const UPLOAD_API = "/staff/fwb/upload";
+
+        // ===== LOAD DỮ LIỆU =====
+        async function load() {
+            try {
+                const res = await fetch(API);
+                if (!res.ok) throw new Error("Load failed");
+                const data = await res.json();
+                render(data);
+            } catch (e) {
+                console.error(e);
+                const table = document.getElementById("menuTable");
+                if (table) {
+                    table.innerHTML =
+                        `
+                        <tr><td colspan="7" class="empty-state">
+                            <i class="fa-solid fa-triangle-exclamation text-2xl text-red-300 mb-3 block"></i>
+                            Lỗi kết nối đến server
+                        </td></tr>
+                    `;
+                }
+            }
+        }
+
+        // ===== RENDER BẢNG =====
+        function render(items) {
+            const tbody = document.getElementById("menuTable");
+            if (!tbody) return;
+            if (!items || items.length === 0) {
+                tbody.innerHTML =
+                    `
+                    <tr><td colspan="7" class="empty-state">
+                        <i class="fa-solid fa-utensils text-4xl text-gray-200 mb-3 block"></i>
+                        Chưa có món nào trong danh sách
+                    </td></tr>
+                `;
+                return;
+            }
+            tbody.innerHTML = "";
+            items.forEach(item => {
+                const row = tbody.insertRow();
+                row.insertCell(0).innerHTML = `<span class="font-mono text-sm">${item.id}</span>`;
+                row.insertCell(1).innerHTML =
+                    `<strong class="text-[#1c2a38]">${escapeHtml(item.name) || "Chưa có tên"}</strong>`;
+                row.insertCell(2).innerHTML =
+                    `<span class="price-text">${(item.price || 0).toLocaleString("vi-VN")}đ</span>`;
+                row.insertCell(3).innerHTML =
+                `<span class="text-gray-600">${escapeHtml(item.unit) || "—"}</span>`;
+                row.insertCell(4).innerHTML = item.image ?
+                    `<img src="${item.image}" class="menu-img" onerror="this.style.display='none'">` :
+                    `<span class="text-gray-300 text-xl">📷</span>`;
+                row.insertCell(5).innerHTML = item.status === "hidden" ?
+                    `<span class="badge-hidden"><i class="fa-solid fa-eye-slash mr-1"></i>Ẩn</span>` :
+                    `<span class="badge-active"><i class="fa-solid fa-eye mr-1"></i>Hiện</span>`;
+                row.insertCell(6).innerHTML =
+                    `
+                    <div class="flex flex-wrap gap-1 justify-center">
+                        <button class="action-btn btn-edit" onclick='edit(${JSON.stringify(item)})'>
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button class="action-btn btn-toggle" onclick='toggle(${item.id})'>
+                            <i class="fa-solid fa-eye${item.status === "hidden" ? "" : "-slash"}"></i>
+                        </button>
+                        <button class="action-btn btn-delete" onclick='del(${item.id})'>
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        // ===== ESCAPE HTML =====
+        function escapeHtml(str) {
+            if (!str) return "";
+            return str.replace(/[&<>]/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[m]));
+        }
+
+        // ===== MỞ MODAL THÊM MỚI =====
+        function openAddModal() {
+            const editId = document.getElementById("editId");
+            const form = document.getElementById("menuForm");
+            const imagePreview = document.getElementById("currentImagePreview");
+            const modalTitle = document.getElementById("modalTitle");
+            const modal = document.getElementById("modal");
+            const imageUrl = document.getElementById("imageUrl");
+            const imageFile = document.getElementById("imageFile");
+
+            if (editId) editId.value = "";
+            if (form) form.reset();
+            if (imagePreview) imagePreview.classList.add("hidden");
+            if (imageUrl) imageUrl.value = "";
+            if (imageFile) imageFile.value = "";
+            if (modalTitle) modalTitle.innerText = "Thêm món";
+            if (modal) modal.classList.add("active");
+        }
+
+        // ===== SỬA MÓN =====
+        window.edit = (item) => {
+            const editId = document.getElementById("editId");
+            const name = document.getElementById("name");
+            const price = document.getElementById("price");
+            const unit = document.getElementById("unit");
+            const imageUrl = document.getElementById("imageUrl");
+            const extraDescription = document.getElementById("extraDescription");
+            const modalTitle = document.getElementById("modalTitle");
+            const modal = document.getElementById("modal");
+            const previewImg = document.getElementById("previewImg");
+            const imagePreview = document.getElementById("currentImagePreview");
+
+            if (editId) editId.value = item.id || "";
+            if (name) name.value = item.name || "";
+            if (price) price.value = item.price || "";
+            if (unit) unit.value = item.unit || "";
+            if (imageUrl) imageUrl.value = item.image || "";
+            if (extraDescription) extraDescription.value = item.description || "";
+            if (modalTitle) modalTitle.innerText = "Sửa món";
+
+            if (item.image && previewImg && imagePreview) {
+                previewImg.src = item.image;
+                imagePreview.classList.remove("hidden");
+            } else if (imagePreview) {
+                imagePreview.classList.add("hidden");
+            }
+
+            if (modal) modal.classList.add("active");
+        };
+
+        // ===== ĐÓNG MODAL =====
+        window.closeModal = function() {
+            const modal = document.getElementById("modal");
+            if (modal) modal.classList.remove("active");
+        };
+
+        // ===== ẨN/HIỆN =====
+        window.toggle = async (id) => {
+            try {
+                await fetch(`${API}/${id}/toggle-status`, { method: "PATCH" });
+                load();
+            } catch (e) {
+                console.error(e);
+                alert("Lỗi khi đổi trạng thái");
+            }
+        };
+
+        // ===== XÓA MÓN =====
+        window.del = async (id) => {
+            if (!confirm("Bạn có chắc muốn xóa món này?")) return;
+            try {
+                await fetch(`${API}/${id}`, { method: "DELETE" });
+                load();
+            } catch (e) {
+                console.error(e);
+                alert("Lỗi khi xóa món");
+            }
+        };
+
+        // ===== KHỞI TẠO KHI TRANG LOAD =====
+        document.addEventListener("DOMContentLoaded", function() {
+
+            const form = document.getElementById("menuForm");
+
+            if (form) {
+                form.onsubmit = async function(e) {
+                    e.preventDefault();
+
+                    const id = document.getElementById("editId").value;
+
+                    // Upload ảnh
+                    let imageUrl = document.getElementById("imageUrl").value;
+                    const imageFile = document.getElementById("imageFile");
+
+                    if (imageFile && imageFile.files.length > 0) {
+                        const fd = new FormData();
+                        fd.append("file", imageFile.files[0]);
+
+                        try {
+                            const uploadRes = await fetch(UPLOAD_API, {
+                                method: "POST",
+                                body: fd
+                            });
+
+                            if (!uploadRes.ok) throw new Error("Upload failed");
+
+                            const uploadData = await uploadRes.json();
+                            imageUrl = uploadData.url;
+
+                        } catch (uploadErr) {
+                            console.error(uploadErr);
+                            alert("Lỗi khi tải ảnh lên");
+                            return;
+                        }
+                    }
+
+                    // Tạo data
+                    const data = {
+                        name: document.getElementById("name").value.trim(),
+                        price: parseFloat(document.getElementById("price").value) || 0,
+                        unit: document.getElementById("unit").value.trim(),
+                        image: imageUrl,
+                        description: document.getElementById("extraDescription").value.trim()
+                    };
+
+                    const url = id ? `${API}/${id}` : API;
+                    const method = id ? "PUT" : "POST";
+
+                    try {
+                        const res = await fetch(url, {
+                            method: method,
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(data)
+                        });
+
+                        if (!res.ok) throw new Error();
+
+                        closeModal();
+                        load();
+                        form.reset();
+
+                    } catch (err) {
+                        console.error(err);
+                        alert("Lỗi khi lưu món");
+                    }
+                };
+            }
+
+            // Đóng modal khi click ra ngoài
+            const modal = document.getElementById("modal");
+            if (modal) {
+                modal.addEventListener("click", function(e) {
+                    if (e.target === this) {
+                        closeModal();
+                    }
+                });
+            }
+
+            load();
+        });
+    </script>
+
+</th:block>
+
+</body>
+
+</html>
