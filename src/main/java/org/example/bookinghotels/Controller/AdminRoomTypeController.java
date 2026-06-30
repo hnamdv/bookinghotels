@@ -5,6 +5,7 @@ import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.DatabaseSequenceService;
 import org.example.bookinghotels.service.RoomTypeImageService;
 import org.example.bookinghotels.service.RoomInventoryService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.*;
 
 @Controller
 @RequestMapping("/admin/room-types")
+@PreAuthorize("hasAuthority('ROLE_ROOM')")
 public class AdminRoomTypeController {
     private final RoomTypeRepository roomTypeRepository;
     private final HotelsRepository hotelsRepository;

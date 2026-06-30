@@ -95,4 +95,9 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             @Param("roomTypeId") Integer roomTypeId,
             @Param("checkinDate") LocalDate checkinDate,
             @Param("checkoutDate") LocalDate checkoutDate);
+    @Query("SELECT bd FROM BookingDetail bd WHERE bd.status IN ('CHECKED_IN', 'BOOKED')")
+    List<BookingDetail> findOperationalBookings();
+
+    @Query("SELECT bd FROM BookingDetail bd JOIN FETCH bd.booking b WHERE bd.room.id = :roomId")
+    List<BookingDetail> findByRoomIdWithBooking(@Param("roomId") Integer roomId);
 }
