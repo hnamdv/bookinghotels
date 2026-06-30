@@ -1,9 +1,12 @@
 package org.example.bookinghotels.Controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.bookinghotels.entity.Booking;
 import org.example.bookinghotels.entity.BookingDetail;
+import org.example.bookinghotels.entity.BookingFB;
 import org.example.bookinghotels.entity.Invoices;
 import org.example.bookinghotels.entity.Room;
+import org.example.bookinghotels.entity.FwB;
 import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.service.OrderBookingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,9 +32,6 @@ public class BookingController {
     @Autowired
     private RoomRepository roomRepository;
 
-    // =====================================================
-    // TRANG KIỂM TRA PHÒNG TRỐNG (GET) - ĐỒNG BỘ ĐẾM KHO PHÒNG TRỐNG
-    // =====================================================
     @GetMapping("/check")
     public String showCheckForm(
             @RequestParam(required = false) Integer roomTypeId,
@@ -45,7 +45,6 @@ public class BookingController {
         List<Room> allRooms = roomRepository.findAll();
         List<Integer> roomIds = allRooms.stream().map(Room::getId).collect(Collectors.toList());
 
-        // Lấy danh sách ID phòng thực sự trống (không dính PENDING, CONFIRMED,...)
         List<Integer> availableRoomIds = bookingService.getAvailableRooms(roomIds, checkin, checkout);
         List<Room> availableRooms = roomRepository.findAllById(availableRoomIds);
 
@@ -55,7 +54,6 @@ public class BookingController {
                     .collect(Collectors.toList());
         }
 
-        // Nhóm và đồng bộ chính xác hiển thị theo Loại Phòng
         Map<Integer, Room> uniqueRoomTypeMap = new LinkedHashMap<>();
         for (Room room : availableRooms) {
             if (room.getRoomType() != null) {
@@ -72,9 +70,6 @@ public class BookingController {
         return "html/client-html/booking";
     }
 
-    // =====================================================
-    // XỬ LÝ CHECK PHÒNG (POST) - TỐI ƯU HOÁ ĐIỀU KIỆN LỌC
-    // =====================================================
     @PostMapping("/check")
     public String checkAvailability(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkin,
@@ -128,9 +123,6 @@ public class BookingController {
         }
     }
 
-    // =====================================================
-    // TRANG PAYMENT - KIỂM TRA PHÒNG TRƯỚC KHI CHO VÀO ĐIỀN THÔNG TIN
-    // =====================================================
     @GetMapping("/payment")
     public String showPaymentPage(
             @RequestParam Integer roomId,
@@ -149,7 +141,6 @@ public class BookingController {
         LocalDate start = LocalDate.parse(checkin);
         LocalDate end = LocalDate.parse(checkout);
 
-        // THẮT CHẶT: Kiểm tra lại phòng xem thực sự còn trống tại thời điểm này không, tránh xung đột bất đồng bộ
         boolean isStillAvailable = bookingService.isRoomAvailable(roomId, start, end);
         if (!isStillAvailable) {
             redirectAttributes.addFlashAttribute("error", "Phòng này vừa có người đặt hoặc đang giữ giao dịch. Vui lòng chọn phòng khác!");
@@ -173,14 +164,14 @@ public class BookingController {
         bookingData.put("roomPrice", discountedPrice);
         bookingData.put("totalAmount", totalAmount);
 
+        List<FwB> foodMenu = bookingService.getAllAvailableFoods();
+
         model.addAttribute("booking", bookingData);
+        model.addAttribute("foodMenu", foodMenu);
 
         return "html/client-html/payment";
     }
 
-    // =====================================================
-    // XÁC NHẬN THANH TOÁN -> NHẢY TRANG QR
-    // =====================================================
     @PostMapping("/confirm-payment")
     public String confirmPayment(
             @RequestParam Integer roomId,
@@ -192,6 +183,7 @@ public class BookingController {
             @RequestParam String checkinDate,
             @RequestParam String checkoutDate,
             @RequestParam String paymentMethod,
+            @RequestParam(required = false) String selectedServicesJson,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
@@ -199,7 +191,6 @@ public class BookingController {
             LocalDate start = LocalDate.parse(checkinDate);
             LocalDate end = LocalDate.parse(checkoutDate);
 
-            // Kiểm tra bảo vệ một lần nữa trước khi ghi đè PENDING vào database
             boolean isStillAvailable = bookingService.isRoomAvailable(roomId, start, end);
             if (!isStillAvailable) {
                 redirectAttributes.addFlashAttribute("error", "Rất tiếc, phòng đã bị giữ chỗ trong vài phút trước. Vui lòng chọn phòng khác.");
@@ -224,10 +215,30 @@ public class BookingController {
             detail.setRoomQuantity(1);
             detail.setStatus("PENDING");
 
+            List<BookingFB> orderedFoods = new ArrayList<>();
+            if (selectedServicesJson != null && !selectedServicesJson.isEmpty()) {
+                ObjectMapper mapper = new ObjectMapper();
+                List<Map<String, Object>> serviceList = mapper.readValue(selectedServicesJson, List.class);
+
+                for (Map<String, Object> sItem : serviceList) {
+                    Integer fwbId = (Integer) sItem.get("fwbId");
+                    Integer qty = (Integer) sItem.get("quantity");
+
+                    if (fwbId != null && qty != null && qty > 0) {
+                        BookingFB itemFB = new BookingFB();
+                        FwB fwbRef = new FwB();
+                        fwbRef.setId(fwbId);
+                        itemFB.setFwb(fwbRef);
+                        itemFB.setQuantity(qty);
+                        orderedFoods.add(itemFB);
+                    }
+                }
+            }
+
             Booking savedBooking = bookingService.processBooking(
                     booking,
                     detail,
-                    new ArrayList<>(),
+                    orderedFoods,
                     paymentMethod
             );
 
@@ -248,7 +259,7 @@ public class BookingController {
     }
 
     // =====================================================
-    // API KIỂM TRA TRẠNG THÁI HÓA ĐƠN
+    // ĐÃ SỬA DỨT ĐIỂM: API TRẢ VỀ ĐỒNG THỜI CẢ STATUS VÀ PAYMENTSTATUS ĐỂ PHỤC VỤ JAVASCRIPT POLLING
     // =====================================================
     @GetMapping("/api/invoice-status/{bookingId}")
     @ResponseBody
@@ -257,21 +268,19 @@ public class BookingController {
         try {
             Invoices invoice = bookingService.findInvoiceByBookingId(bookingId);
             response.put("status", invoice.getPaymentStatus());
+            response.put("paymentStatus", invoice.getPaymentStatus());
         } catch (Exception e) {
             response.put("status", "UNKNOWN");
+            response.put("paymentStatus", "UNKNOWN");
         }
         return response;
     }
 
-    // =====================================================
-    // API HỦY GIỮ PHÒNG KHI KHÁCH BẤM NÚT HỦY (ĐỒNG BỘ TRẢ VỀ JSON CHUẨN)
-    // =====================================================
     @PostMapping("/api/cancel-booking/{bookingId}")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> cancelBooking(@PathVariable Long bookingId) {
         Map<String, Object> response = new HashMap<>();
         try {
-            // Chuyển toàn bộ status của Booking và BookingDetail sang CANCELLED để giải phóng kho phòng lập tức
             bookingService.updateBookingStatus(bookingId, "CANCELLED");
             response.put("success", true);
             response.put("message", "Đã hủy giữ phòng thành công.");
@@ -283,9 +292,6 @@ public class BookingController {
         }
     }
 
-    // =====================================================
-    // AJAX CHECK ROOM
-    // =====================================================
     @GetMapping("/api/check-room")
     @ResponseBody
     public Map<String, Object> checkRoomAjax(

@@ -39,7 +39,8 @@ public class SecurityConfig {
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
                                 "/favorites.html", "/room-detail.html", "/offers", "/offers.html",
                                 "/api/auth/**", "/api/public/**",
-                                "/pos/**", "/pos", "/api/fwb/**"
+                                "/pos/**", "/pos", "/api/fwb/**",
+                                "/api/webhook/**" // ĐÃ THÊM: Mở khóa hoàn toàn cho đường dẫn Webhook của SePay
                         ).permitAll()
 
                         // Các trang admin/staff yêu cầu đăng nhập

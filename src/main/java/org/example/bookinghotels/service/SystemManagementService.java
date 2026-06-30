@@ -6,6 +6,7 @@ import org.example.bookinghotels.dto.RevenueDTO;
 import org.example.bookinghotels.entity.ActivityLog;
 import org.example.bookinghotels.entity.Promotion;
 import org.example.bookinghotels.entity.RoomType;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -19,7 +20,7 @@ public interface SystemManagementService {
 
     Promotion updatePromotion(Integer id, Promotion promotion);
 
-    PromotionCheckResponse checkPromotionCode(String code);
+    PromotionCheckResponse checkPromotionCode(String code, Integer roomTypeId);
 
     void deletePromotion(Integer id);
 
@@ -39,4 +40,8 @@ public interface SystemManagementService {
     OccupancyDTO getOccupancy();
 
     List<RoomType> getAllRoomTypes();
+
+    void updatePromotionRoomTypes(Integer id, List<Integer> roomTypeIds);
+
+    @Nullable Object getRoomTypeIdsByPromotion(Integer id);
 }

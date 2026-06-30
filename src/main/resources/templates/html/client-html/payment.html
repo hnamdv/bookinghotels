@@ -32,7 +32,6 @@
             letter-spacing: 0.03em;
         }
 
-        /* Thanh Header trang trí giả lập cao cấp */
         .fh-mini-header {
             background-color: var(--fh-dark);
             border-bottom: 2px solid var(--fh-gold);
@@ -48,11 +47,10 @@
             color: var(--fh-gold);
         }
 
-        /* Thẻ khối container thiết kế phẳng thanh lịch */
         .payment-card {
             background: var(--fh-card-bg);
             border: 1px solid var(--fh-border);
-            border-radius: 0px; /* Bỏ viền bo góc tròn để tăng cảm giác Luxury cao cấp */
+            border-radius: 0px;
             padding: 35px;
         }
 
@@ -65,7 +63,6 @@
             position: relative;
         }
 
-        /* Đường kẻ phụ nhỏ màu vàng tinh tế dưới tiêu đề */
         .card-title-line::after {
             content: '';
             position: absolute;
@@ -76,7 +73,6 @@
             background-color: var(--fh-gold);
         }
 
-        /* Custom lại toàn bộ Input Form */
         .form-label {
             font-size: 0.85rem;
             text-transform: uppercase;
@@ -102,10 +98,9 @@
             box-shadow: none;
         }
 
-        /* Sidebar chi tiết hóa đơn */
         .invoice-sidebar {
             background: var(--fh-card-bg);
-            border: 1px solid var(--fh-dark); /* Đường viền đen mỏng tạo điểm nhấn */
+            border: 1px solid var(--fh-dark);
             border-radius: 0px;
             padding: 35px 30px;
             position: sticky;
@@ -129,7 +124,6 @@
             text-align: center;
         }
 
-        /* Nút bấm đặt phòng kiểu Premium */
         .btn-fh-primary {
             background: var(--fh-dark);
             color: #fff;
@@ -153,6 +147,45 @@
         .text-fh-gold {
             color: var(--fh-gold) !important;
         }
+
+        /* Khung dịch vụ cao cấp */
+        .service-item-box {
+            border: 1px solid var(--fh-border);
+            background-color: #ffffff;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .service-item-box:hover {
+            border-color: var(--fh-gold);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(197, 168, 128, 0.15);
+        }
+        .service-img-wrapper {
+            width: 100%;
+            height: 140px;
+            overflow: hidden;
+            background-color: #f0ede6;
+        }
+        .service-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+        .service-item-box:hover .service-img-wrapper img {
+            transform: scale(1.08);
+        }
+        .service-content {
+            padding: 15px;
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +199,11 @@
 <div class="container pb-5">
     <form th:action="@{/booking/confirm-payment}" method="post">
         <input type="hidden" name="roomId" th:value="${booking.roomId}">
+        <input type="hidden" id="selectedServicesJson" name="selectedServicesJson" value="[]">
 
         <div class="row g-5">
             <div class="col-lg-8">
-                <div class="payment-card shadow-sm">
+                <div class="payment-card shadow-sm mb-4">
                     <h2 class="card-title-line fh-title-serif">Thông tin đặt phòng</h2>
 
                     <div class="row g-4">
@@ -182,7 +216,7 @@
                             <input type="date" id="checkoutDate" name="checkoutDate" class="form-control" th:value="${booking.checkoutDate}" required>
                         </div>
 
-                        <div class="col-md-12 my-4">
+                        <div class="col-md-12 my-2">
                             <hr style="border-color: var(--fh-border)">
                         </div>
 
@@ -211,6 +245,39 @@
                             <select name="paymentMethod" class="form-select">
                                 <option value="CHUYỂN KHOẢN">Chuyển khoản trực tuyến qua mã QR nhanh</option>
                             </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="payment-card shadow-sm">
+                    <h2 class="card-title-line fh-title-serif">Dịch vụ & Tiện ích đi kèm</h2>
+                    <div class="row g-4">
+                        <div class="col-md-4 col-sm-6" th:each="food : ${foodMenu}">
+                            <div class="service-item-box">
+                                <div class="service-img-wrapper">
+                                    <img th:src="${food.name == 'CƠM' || food.name == 'Cơm'} ? 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80' :
+                                               (${food.name == 'GYM' || food.name == 'Gym'} ? 'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=400&auto=format&fit=crop&q=80' :
+                                               (${food.name == 'ĂN SÁNG TẠI GIƯỜNG' || food.name == 'Ăn sáng tại giường'} ? 'https://images.unsplash.com/photo-1525351484163-7529414344d8?w=400&auto=format&fit=crop&q=80' :
+                                               'https://images.unsplash.com/photo-1608885898957-a599fb18de37?w=400&auto=format&fit=crop&q=80'))"
+                                         alt="Service Image">
+                                </div>
+
+                                <div class="service-content">
+                                    <div>
+                                        <strong class="d-block text-dark small text-uppercase mb-1" th:text="${food.getName()}">Tên dịch vụ</strong>
+                                        <span class="text-fh-gold fw-semibold d-block mb-3 small"
+                                              th:text="${#numbers.formatDecimal(food.getPrice(), 0, 'COMMA', 0, 'POINT')} + ' ₫'">0 ₫</span>
+                                    </div>
+
+                                    <div class="d-flex align-items-center justify-content-center gap-2 mt-auto">
+                                        <button type="button" class="btn btn-sm btn-outline-dark rounded-0 px-2 btn-qty-minus"
+                                                th:data-id="${food.id}" th:data-price="${food.getPrice()}">-</button>
+                                        <span class="fw-bold px-2" style="min-width: 20px;" th:id="'qty-' + ${food.id}">0</span>
+                                        <button type="button" class="btn btn-sm btn-outline-dark rounded-0 px-2 btn-qty-plus"
+                                                th:data-id="${food.id}" th:data-price="${food.getPrice()}">+</button>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -244,6 +311,11 @@
                               th:text="${#numbers.formatDecimal(booking.roomPrice, 0, 'COMMA', 0, 'POINT')} + ' VND'"></span>
                     </div>
 
+                    <div class="info-group-line">
+                        <span class="small text-secondary">Chi phí dịch vụ thêm:</span>
+                        <span class="text-dark fw-medium" id="serviceTotalVal">0 VND</span>
+                    </div>
+
                     <div class="total-box">
                         <label class="text-uppercase small fw-bold d-block mb-2 text-secondary" style="letter-spacing: 0.08em">Tổng cộng chi phí</label>
                         <strong class="fs-3 text-fh-gold fh-title-serif" id="totalAmountVal"
@@ -269,28 +341,66 @@
     const lblDays = document.getElementById('lblDays');
     const roomPriceVal = document.getElementById('roomPriceVal');
     const totalAmountVal = document.getElementById('totalAmountVal');
+    const serviceTotalVal = document.getElementById('serviceTotalVal');
 
     const roomPrice = parseFloat(roomPriceVal.getAttribute('data-price'));
+    let cartServices = {};
 
     function recalculateInvoice() {
         const date1 = new Date(txtCheckin.value);
         const date2 = new Date(txtCheckout.value);
 
+        let days = 1;
         if (!isNaN(date1) && !isNaN(date2)) {
             lblCheckin.innerText = txtCheckin.value;
             lblCheckout.innerText = txtCheckout.value;
 
             const timeDiff = date2.getTime() - date1.getTime();
-            let days = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
+            days = Math.ceil(timeDiff / (1000 * 3600 * 24));
             if (days <= 0) days = 1;
-
             lblDays.innerText = days;
-
-            const total = roomPrice * days;
-            totalAmountVal.innerText = total.toLocaleString('en-US') + ' VND';
         }
+
+        let serviceTotal = 0;
+        let serviceList = [];
+        for (let key in cartServices) {
+            serviceTotal += cartServices[key].quantity * cartServices[key].price;
+            serviceList.push({ fwbId: cartServices[key].fwbId, quantity: cartServices[key].quantity });
+        }
+
+        serviceTotalVal.innerText = serviceTotal.toLocaleString('en-US') + ' VND';
+        document.getElementById('selectedServicesJson').value = JSON.stringify(serviceList);
+
+        const totalFinal = (roomPrice * days) + serviceTotal;
+        totalAmountVal.innerText = totalFinal.toLocaleString('en-US') + ' VND';
     }
+
+    document.querySelectorAll('.btn-qty-plus').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const price = parseFloat(this.getAttribute('data-price'));
+            if (!cartServices[id]) {
+                cartServices[id] = { fwbId: parseInt(id), quantity: 0, price: price };
+            }
+            cartServices[id].quantity += 1;
+            document.getElementById('qty-' + id).innerText = cartServices[id].quantity;
+            recalculateInvoice();
+        });
+    });
+
+    document.querySelectorAll('.btn-qty-minus').forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            if (cartServices[id] && cartServices[id].quantity > 0) {
+                cartServices[id].quantity -= 1;
+                document.getElementById('qty-' + id).innerText = cartServices[id].quantity;
+                if (cartServices[id].quantity === 0) {
+                    delete cartServices[id];
+                }
+                recalculateInvoice();
+            }
+        });
+    });
 
     txtCheckin.addEventListener('change', recalculateInvoice);
     txtCheckout.addEventListener('change', recalculateInvoice);
