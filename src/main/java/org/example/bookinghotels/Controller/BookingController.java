@@ -8,6 +8,7 @@ import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.service.OrderBookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,137 +30,106 @@ public class BookingController {
     private RoomRepository roomRepository;
 
     // =====================================================
-    // TRANG KIỂM TRA PHÒNG TRỐNG (GET)
+    // TRANG KIỂM TRA PHÒNG TRỐNG (GET) - ĐỒNG BỘ ĐẾM KHO PHÒNG TRỐNG
     // =====================================================
     @GetMapping("/check")
     public String showCheckForm(
             @RequestParam(required = false) Integer roomTypeId,
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate checkin,
-
-            @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate checkout,
-
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkin,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkout,
             Model model) {
 
         if (checkin == null) checkin = LocalDate.now();
         if (checkout == null) checkout = LocalDate.now().plusDays(1);
 
         List<Room> allRooms = roomRepository.findAll();
+        List<Integer> roomIds = allRooms.stream().map(Room::getId).collect(Collectors.toList());
 
-        List<Integer> roomIds = allRooms.stream()
-                .map(Room::getId)
-                .collect(Collectors.toList());
-
-        List<Integer> availableRoomIds =
-                bookingService.getAvailableRooms(roomIds, checkin, checkout);
-
-        List<Room> availableRooms =
-                roomRepository.findAllById(availableRoomIds);
+        // Lấy danh sách ID phòng thực sự trống (không dính PENDING, CONFIRMED,...)
+        List<Integer> availableRoomIds = bookingService.getAvailableRooms(roomIds, checkin, checkout);
+        List<Room> availableRooms = roomRepository.findAllById(availableRoomIds);
 
         if (roomTypeId != null) {
             availableRooms = availableRooms.stream()
-                    .filter(r -> r.getRoomType() != null
-                            && r.getRoomType().getId().equals(roomTypeId))
+                    .filter(r -> r.getRoomType() != null && r.getRoomType().getId().equals(roomTypeId))
                     .collect(Collectors.toList());
         }
 
+        // Nhóm và đồng bộ chính xác hiển thị theo Loại Phòng
+        Map<Integer, Room> uniqueRoomTypeMap = new LinkedHashMap<>();
+        for (Room room : availableRooms) {
+            if (room.getRoomType() != null) {
+                uniqueRoomTypeMap.putIfAbsent(room.getRoomType().getId(), room);
+            }
+        }
+        List<Room> uniqueAvailableRooms = new ArrayList<>(uniqueRoomTypeMap.values());
+
         model.addAttribute("checkin", checkin);
         model.addAttribute("checkout", checkout);
-        model.addAttribute("availableRooms", availableRooms);
+        model.addAttribute("availableRooms", uniqueAvailableRooms);
         model.addAttribute("today", LocalDate.now().toString());
 
         return "html/client-html/booking";
     }
 
     // =====================================================
-    // XỬ LÝ CHECK PHÒNG
+    // XỬ LÝ CHECK PHÒNG (POST) - TỐI ƯU HOÁ ĐIỀU KIỆN LỌC
     // =====================================================
     @PostMapping("/check")
     public String checkAvailability(
-            @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate checkin,
-
-            @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate checkout,
-
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkin,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkout,
             @RequestParam(required = false) List<Integer> roomIds,
             Model model,
             RedirectAttributes redirectAttributes) {
 
         try {
-
             if (roomIds == null || roomIds.isEmpty()) {
-                roomIds = roomRepository.findAll()
-                        .stream()
-                        .map(Room::getId)
-                        .collect(Collectors.toList());
+                roomIds = roomRepository.findAll().stream().map(Room::getId).collect(Collectors.toList());
             }
 
             if (checkin == null || checkout == null) {
-                redirectAttributes.addFlashAttribute(
-                        "error",
-                        "Vui lòng chọn ngày check-in và check-out"
-                );
+                redirectAttributes.addFlashAttribute("error", "Vui lòng chọn ngày check-in và check-out");
                 return "redirect:/booking/check";
             }
 
             if (!checkin.isBefore(checkout)) {
-                redirectAttributes.addFlashAttribute(
-                        "error",
-                        "Ngày check-in phải trước ngày check-out"
-                );
+                redirectAttributes.addFlashAttribute("error", "Ngày check-in phải trước ngày check-out");
                 return "redirect:/booking/check";
             }
 
             if (checkin.isBefore(LocalDate.now())) {
-                redirectAttributes.addFlashAttribute(
-                        "error",
-                        "Không thể đặt phòng trong quá khứ"
-                );
+                redirectAttributes.addFlashAttribute("error", "Không thể đặt phòng trong quá khứ");
                 return "redirect:/booking/check";
             }
 
-            List<Integer> availableRoomIds =
-                    bookingService.getAvailableRooms(
-                            roomIds,
-                            checkin,
-                            checkout
-                    );
+            List<Integer> availableRoomIds = bookingService.getAvailableRooms(roomIds, checkin, checkout);
+            List<Room> availableRooms = roomRepository.findAllById(availableRoomIds);
 
-            List<Room> availableRooms =
-                    roomRepository.findAllById(availableRoomIds);
-
-            List<Integer> bookedRoomIds = new ArrayList<>(roomIds);
-            bookedRoomIds.removeAll(availableRoomIds);
-
-            List<Room> bookedRooms =
-                    roomRepository.findAllById(bookedRoomIds);
+            Map<Integer, Room> uniqueRoomTypeMap = new LinkedHashMap<>();
+            for (Room room : availableRooms) {
+                if (room.getRoomType() != null) {
+                    uniqueRoomTypeMap.putIfAbsent(room.getRoomType().getId(), room);
+                }
+            }
+            List<Room> uniqueAvailableRooms = new ArrayList<>(uniqueRoomTypeMap.values());
 
             model.addAttribute("checkin", checkin);
             model.addAttribute("checkout", checkout);
-            model.addAttribute("availableRooms", availableRooms);
-            model.addAttribute("bookedRooms", bookedRooms);
-            model.addAttribute("totalAvailable", availableRooms.size());
-            model.addAttribute("totalBooked", bookedRooms.size());
+            model.addAttribute("availableRooms", uniqueAvailableRooms);
+            model.addAttribute("totalAvailable", uniqueAvailableRooms.size());
+            model.addAttribute("totalBooked", roomIds.size() - availableRooms.size());
 
             return "html/client-html/booking";
 
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute(
-                    "error",
-                    "Lỗi: " + e.getMessage()
-            );
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
             return "redirect:/booking/check";
         }
     }
 
     // =====================================================
-    // TRANG PAYMENT
+    // TRANG PAYMENT - KIỂM TRA PHÒNG TRƯỚC KHI CHO VÀO ĐIỀN THÔNG TIN
     // =====================================================
     @GetMapping("/payment")
     public String showPaymentPage(
@@ -170,37 +140,37 @@ public class BookingController {
             RedirectAttributes redirectAttributes) {
 
         Optional<Room> roomOpt = roomRepository.findById(roomId);
-
         if (roomOpt.isEmpty()) {
-            redirectAttributes.addFlashAttribute(
-                    "error",
-                    "Không tìm thấy phòng yêu cầu."
-            );
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy phòng yêu cầu.");
             return "redirect:/booking/check";
         }
 
         Room room = roomOpt.get();
-
         LocalDate start = LocalDate.parse(checkin);
         LocalDate end = LocalDate.parse(checkout);
+
+        // THẮT CHẶT: Kiểm tra lại phòng xem thực sự còn trống tại thời điểm này không, tránh xung đột bất đồng bộ
+        boolean isStillAvailable = bookingService.isRoomAvailable(roomId, start, end);
+        if (!isStillAvailable) {
+            redirectAttributes.addFlashAttribute("error", "Phòng này vừa có người đặt hoặc đang giữ giao dịch. Vui lòng chọn phòng khác!");
+            return "redirect:/booking/check?checkin=" + checkin + "&checkout=" + checkout;
+        }
 
         long days = ChronoUnit.DAYS.between(start, end);
         if (days <= 0) days = 1;
 
-        double roomPrice = room.getRoomType().getPrice();
-        double totalAmount = roomPrice * days;
+        double originalPrice = room.getRoomType().getPrice();
+        double discountPercent = 10.0;
+        double discountedPrice = originalPrice * (1 - (discountPercent / 100));
+        double totalAmount = discountedPrice * days;
 
         Map<String, Object> bookingData = new HashMap<>();
         bookingData.put("roomId", roomId);
         bookingData.put("checkinDate", checkin);
         bookingData.put("checkoutDate", checkout);
         bookingData.put("days", days);
-        bookingData.put(
-                "roomName",
-                room.getRoomType().getNameType()
-                        + " (#" + room.getRoomNumber() + ")"
-        );
-        bookingData.put("roomPrice", roomPrice);
+        bookingData.put("roomName", room.getRoomType().getNameType());
+        bookingData.put("roomPrice", discountedPrice);
         bookingData.put("totalAmount", totalAmount);
 
         model.addAttribute("booking", bookingData);
@@ -226,17 +196,25 @@ public class BookingController {
             RedirectAttributes redirectAttributes
     ) {
         try {
+            LocalDate start = LocalDate.parse(checkinDate);
+            LocalDate end = LocalDate.parse(checkoutDate);
+
+            // Kiểm tra bảo vệ một lần nữa trước khi ghi đè PENDING vào database
+            boolean isStillAvailable = bookingService.isRoomAvailable(roomId, start, end);
+            if (!isStillAvailable) {
+                redirectAttributes.addFlashAttribute("error", "Rất tiếc, phòng đã bị giữ chỗ trong vài phút trước. Vui lòng chọn phòng khác.");
+                return "redirect:/booking/check?checkin=" + checkinDate + "&checkout=" + checkoutDate;
+            }
 
             Booking booking = new Booking();
             booking.setName(customerName);
             booking.setPhone(customerPhone);
             booking.setEmail(customerEmail);
-            booking.setCheckinDate(LocalDate.parse(checkinDate));
-            booking.setCheckoutDate(LocalDate.parse(checkoutDate));
+            booking.setCheckinDate(start);
+            booking.setCheckoutDate(end);
 
             Room room = roomRepository.findById(roomId)
-                    .orElseThrow(() ->
-                            new RuntimeException("Không tìm thấy phòng"));
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy phòng"));
 
             BookingDetail detail = new BookingDetail();
             detail.setRoom(room);
@@ -253,9 +231,7 @@ public class BookingController {
                     paymentMethod
             );
 
-            Invoices invoice = bookingService.findInvoiceByBookingId(
-                    Long.valueOf(savedBooking.getId())
-            );
+            Invoices invoice = bookingService.findInvoiceByBookingId(Long.valueOf(savedBooking.getId()));
 
             model.addAttribute("booking", savedBooking);
             model.addAttribute("invoice", invoice);
@@ -264,15 +240,46 @@ public class BookingController {
 
         } catch (Exception e) {
             e.printStackTrace();
-
-            redirectAttributes.addFlashAttribute(
-                    "error",
-                    "Lỗi: " + e.getMessage()
-            );
-
+            redirectAttributes.addFlashAttribute("error", "Lỗi: " + e.getMessage());
             return "redirect:/booking/payment?roomId=" + roomId
                     + "&checkin=" + checkinDate
                     + "&checkout=" + checkoutDate;
+        }
+    }
+
+    // =====================================================
+    // API KIỂM TRA TRẠNG THÁI HÓA ĐƠN
+    // =====================================================
+    @GetMapping("/api/invoice-status/{bookingId}")
+    @ResponseBody
+    public Map<String, String> checkInvoiceStatus(@PathVariable Long bookingId) {
+        Map<String, String> response = new HashMap<>();
+        try {
+            Invoices invoice = bookingService.findInvoiceByBookingId(bookingId);
+            response.put("status", invoice.getPaymentStatus());
+        } catch (Exception e) {
+            response.put("status", "UNKNOWN");
+        }
+        return response;
+    }
+
+    // =====================================================
+    // API HỦY GIỮ PHÒNG KHI KHÁCH BẤM NÚT HỦY (ĐỒNG BỘ TRẢ VỀ JSON CHUẨN)
+    // =====================================================
+    @PostMapping("/api/cancel-booking/{bookingId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> cancelBooking(@PathVariable Long bookingId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            // Chuyển toàn bộ status của Booking và BookingDetail sang CANCELLED để giải phóng kho phòng lập tức
+            bookingService.updateBookingStatus(bookingId, "CANCELLED");
+            response.put("success", true);
+            response.put("message", "Đã hủy giữ phòng thành công.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Lỗi khi hủy: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
         }
     }
 
@@ -283,28 +290,15 @@ public class BookingController {
     @ResponseBody
     public Map<String, Object> checkRoomAjax(
             @RequestParam Integer roomId,
-            @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate checkin,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkin,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkout) {
 
-            @RequestParam
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-            LocalDate checkout) {
-
-        boolean available =
-                bookingService.isRoomAvailable(
-                        roomId,
-                        checkin,
-                        checkout
-                );
+        boolean available = bookingService.isRoomAvailable(roomId, checkin, checkout);
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("roomId", roomId);
         result.put("available", available);
-        result.put(
-                "message",
-                available ? "✅ Phòng trống" : "❌ Phòng đã được đặt"
-        );
+        result.put("message", available ? "✅ Phòng trống" : "❌ Phòng đã được đặt");
 
         return result;
     }

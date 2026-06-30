@@ -207,7 +207,6 @@
 
     <div class="tabs">
         <button class="tab active" data-tab="booking">Phòng còn trống</button>
-        <button class="tab" data-tab="history">Lịch sử của bạn</button>
     </div>
 
     <div id="bookingSection" class="booking-section-content">
@@ -227,12 +226,11 @@
                         </span>
                     </div>
                     <div class="room-meta">
-                        <span><i class="bi bi-door-open"></i> Phòng số: <span th:text="${room.roomNumber}">101</span></span>
                         <span><i class="bi bi-people"></i> Tối đa: <span th:text="${room.roomType != null ? room.roomType.capacity : 2}">2</span> khách</span>
                     </div>
                 </div>
                 <div class="room-price">
-                    <div class="price" th:text="${room.roomType != null ? #numbers.formatDecimal(room.roomType.price, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">1.350.000 VND</div>
+                    <div class="price" th:text="${room.roomType != null ? #numbers.formatDecimal(room.roomType.price * 0.9, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">1.350.000 VND</div>
                     <button class="btn-detail"
                             th:data-room-id="${room.id}"
                             th:data-checkin="${checkin}"
@@ -255,12 +253,9 @@
 
 <script th:inline="javascript">
     function goToBookingDetail(button) {
-        // Trích xuất chính xác tham số truyền từ URL động
         const roomId = button.getAttribute('data-room-id');
         const checkin = button.getAttribute('data-checkin');
         const checkout = button.getAttribute('data-checkout');
-
-        // CHUYỂN TUYẾN CHUẨN: Chuyển hướng trực tiếp đến API Controller xử lý trang hóa đơn
         window.location.href = `/booking/payment?roomId=${roomId}&checkin=${checkin}&checkout=${checkout}`;
     }
 </script>

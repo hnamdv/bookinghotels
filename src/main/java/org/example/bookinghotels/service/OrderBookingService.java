@@ -14,8 +14,13 @@ public interface OrderBookingService {
     List<Integer> getAvailableRooms(List<Integer> allRoomIds, LocalDate checkinDate, LocalDate checkoutDate);
     void validateBooking(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate);
 
-    // --- THÊM 2 HÀM NÀY ĐỂ FIX LỖI Ở BANKWEBHOOKCONTROLLER ---
+    // --- THÊM HÀM ĐỂ FIX LỖI Ở BANKWEBHOOKCONTROLLER ---
     void updateStatusToPaid(String bookingIdStr);
     Booking getBookingById(String bookingIdStr);
     Invoices findInvoiceByBookingId(Long bookingId);
+
+    // =====================================================
+    // 🌟 THÊM HÀM NÀY ĐỂ XỬ LÝ HỦY GIỮ PHÒNG KHI BẤM HỦY QR
+    // =====================================================
+    void updateBookingStatus(Long bookingId, String status);
 }

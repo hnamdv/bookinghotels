@@ -3,6 +3,7 @@ package org.example.bookinghotels.service.impl;
 import org.example.bookinghotels.entity.*;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.OrderBookingService;
+import org.example.bookinghotels.service.EmailService; // Đã thêm import EmailService
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,6 +36,9 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     @Autowired
     private RoomTypeRepository roomTypeRepository;
 
+    @Autowired
+    private EmailService emailService; // Đã bổ sung tiêm EmailService vào đây
+
     @Override
     @Transactional
     public Booking processBooking(
@@ -42,58 +47,60 @@ public class OrderBookingServiceImpl implements OrderBookingService {
             List<BookingFB> orderedFoods,
             String paymentMethod
     ) {
+        // 1. Kiểm tra trùng lặp an toàn
+        if (booking.getId() != null) {
+            Optional<Invoices> existingInvoice = invoicesRepository.findFirstByBookingIdOrderByIdDesc(Long.valueOf(booking.getId()));
+            if (existingInvoice.isPresent()) {
+                return booking;
+            }
+        }
 
-        // 1. Lưu booking trước + flush ngay xuống DB để sinh ra ID (Ví dụ: ID = 50)
+        // 2. Lưu Booking và đồng bộ thẳng xuống DB để chắc chắn ID đã tồn tại thực tế
         Booking savedBooking = bookingRepository.saveAndFlush(booking);
 
-        // 2. Lấy trực tiếp RoomType từ Room đã được tìm thấy ở Controller để tránh lỗi đồng bộ JPA
+        // 3. Lấy RoomType kiểm tra tính hợp lệ
         if (detail.getRoom() == null || detail.getRoom().getRoomType() == null) {
             throw new RuntimeException("Thông tin phòng hoặc loại phòng không hợp lệ");
         }
         RoomType roomType = detail.getRoom().getRoomType();
-
-        // Gán ngược lại thực thể roomType chuẩn vào detail
         detail.setRoomType(roomType);
 
-        // 3. Tính số đêm đặt phòng
+        // 4. Tính số đêm đặt phòng
         long days = ChronoUnit.DAYS.between(
                 savedBooking.getCheckinDate(),
                 savedBooking.getCheckoutDate()
         );
-
         if (days <= 0) {
             days = 1;
         }
 
-        // 4. Save booking detail liên kết với Booking vừa tạo
+        // 5. [QUAN TRỌNG] Phải gán thực thể gán "savedBooking" (đã có ID) cho detail
         detail.setBooking(savedBooking);
-        detail.setPrice(roomType.getPrice() * days);
-        BookingDetail savedDetail = bookingDetailRepository.save(detail);
 
-        // 5. Tính tổng tiền phòng (đã gồm thuế phí và giảm giá)
-        double discount = detail.getDiscountAmount() == null
-                ? 0
-                : detail.getDiscountAmount();
+        // --- ĐỒNG BỘ TÍNH TOÁN GIÁ PHÒNG THEO MỨC GIẢM GIÁ 10% NHƯ TRANG PAYMENT ---
+        double originalPrice = roomType.getPrice();
+        double discountPercent = 10.0; // Mức giảm giá giống trang hiển thị
+        double discountedPrice = originalPrice * (1 - (discountPercent / 100));
 
-        double totalAmount =
-                (roomType.getPrice() * days)
-                        + roomType.getTaxAndFee()
-                        - discount;
+        detail.setPrice(discountedPrice * days);
 
-        // 6. Nếu có dịch vụ đồ ăn / thức uống kèm theo
+        // Tiến hành lưu Detail sau khi liên kết chắc chắn đã có ID cha
+        BookingDetail savedDetail = bookingDetailRepository.saveAndFlush(detail);
+
+        // 6. Tính tổng tiền phòng (Bỏ phần tự động cộng roomType.getTaxAndFee() gây lệch tiền)
+        double discount = detail.getDiscountAmount() == null ? 0 : detail.getDiscountAmount();
+        double totalAmount = (discountedPrice * days) - discount;
+
+        // 7. Thêm món ăn dịch vụ nếu có
         if (orderedFoods != null && !orderedFoods.isEmpty()) {
             for (BookingFB foodOrder : orderedFoods) {
                 foodOrder.setBookingDetail(savedDetail);
                 bookingFBRepository.save(foodOrder);
-
-                totalAmount += (
-                        foodOrder.getPriceAtOrder()
-                                * foodOrder.getQuantity()
-                );
+                totalAmount += (foodOrder.getPriceAtOrder() * foodOrder.getQuantity());
             }
         }
 
-        // 7. Tạo mới và Lưu hóa đơn (Invoice) đảm bảo khóa ngoại booking_id đã tồn tại
+        // 8. Tạo mới và Lưu hóa đơn
         Invoices invoice = new Invoices();
         invoice.setBooking(savedBooking);
         invoice.setTotalAmount(totalAmount);
@@ -135,7 +142,6 @@ public class OrderBookingServiceImpl implements OrderBookingService {
             LocalDate checkinDate,
             LocalDate checkoutDate
     ) {
-
         List<BookingDetail> overlappingBookings =
                 bookingDetailRepository.findOverlappingBookings(
                         allRoomIds,
@@ -159,7 +165,6 @@ public class OrderBookingServiceImpl implements OrderBookingService {
             LocalDate checkinDate,
             LocalDate checkoutDate
     ) {
-
         if (checkinDate == null || checkoutDate == null) {
             throw new IllegalArgumentException(
                     "Ngày check-in và check-out không được để trống"
@@ -188,7 +193,6 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     @Override
     @Transactional
     public void updateStatusToPaid(String content) {
-
         if (content == null || content.isEmpty()) {
             throw new IllegalArgumentException(
                     "Nội dung chuyển khoản trống."
@@ -206,7 +210,7 @@ public class OrderBookingServiceImpl implements OrderBookingService {
 
         Long bookingId = Long.parseLong(matcher.group(1));
 
-        Invoices invoice = invoicesRepository.findByBookingId(bookingId)
+        Invoices invoice = invoicesRepository.findFirstByBookingIdOrderByIdDesc(bookingId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "Không tìm thấy hóa đơn"
@@ -215,11 +219,32 @@ public class OrderBookingServiceImpl implements OrderBookingService {
 
         invoice.setPaymentStatus("PAID");
         invoicesRepository.save(invoice);
+
+        try {
+            Booking booking = invoice.getBooking();
+            if (booking != null) {
+                String customerEmail = booking.getEmail();
+                String customerName = booking.getName();
+
+                String roomName = "Phòng nghỉ FeelHome";
+                if (booking.getBookingDetails() != null && !booking.getBookingDetails().isEmpty()) {
+                    BookingDetail bd = booking.getBookingDetails().get(0);
+                    if (bd.getRoomType() != null) {
+                        roomName = bd.getRoomType().getNameType();
+                    }
+                }
+
+                double amount = invoice.getTotalAmount();
+
+                emailService.sendBookingConfirmation(customerEmail, customerName, roomName, amount);
+            }
+        } catch (Exception e) {
+            System.err.println("⚠️ Lỗi kích hoạt gửi email ngầm: " + e.getMessage());
+        }
     }
 
     @Override
     public Booking getBookingById(String content) {
-
         if (content == null || content.isEmpty()) {
             return null;
         }
@@ -235,10 +260,32 @@ public class OrderBookingServiceImpl implements OrderBookingService {
         return null;
     }
 
-    // --- FIX LỖI TRẢ VỀ NULL TẠI ĐÂY ---
     @Override
     public Invoices findInvoiceByBookingId(Long bookingId) {
-        return invoicesRepository.findByBookingId(bookingId)
+        return invoicesRepository.findFirstByBookingIdOrderByIdDesc(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn cho mã đặt phòng: " + bookingId));
+    }
+
+    // =====================================================
+    // IMPLEMENTATION HÀM HỦY GIỮ PHÒNG KHI KHÁCH BẤM NÚT HỦY QR
+    // =====================================================
+    @Override
+    @Transactional
+    public void updateBookingStatus(Long bookingId, String status) {
+        // 1. Tìm và cập nhật trạng thái thanh toán của Hóa đơn (Invoices) thành CANCELLED
+        invoicesRepository.findFirstByBookingIdOrderByIdDesc(bookingId).ifPresent(invoice -> {
+            invoice.setPaymentStatus(status);
+            invoicesRepository.save(invoice);
+        });
+
+        // 2. Tìm Booking và cập nhật trạng thái của tất cả BookingDetail liên quan thành CANCELLED
+        bookingRepository.findById(Math.toIntExact(bookingId)).ifPresent(booking -> {
+            if (booking.getBookingDetails() != null && !booking.getBookingDetails().isEmpty()) {
+                for (BookingDetail detail : booking.getBookingDetails()) {
+                    detail.setStatus(status); // Chuyển trạng thái PENDING -> CANCELLED
+                    bookingDetailRepository.save(detail);
+                }
+            }
+        });
     }
 }
