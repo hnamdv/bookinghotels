@@ -7,13 +7,13 @@ import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -29,6 +29,7 @@ public class AdminDashboardController {
     private RoomTypeRepository roomTypeRepository;
 
     @GetMapping("/bookings")
+    @Transactional(readOnly = true)
     public String bookingManagement(Model model,
                                     @RequestParam(required = false) Integer roomTypeId,
                                     @RequestParam(required = false) String status,
@@ -89,7 +90,7 @@ public class AdminDashboardController {
         model.addAttribute("arrivalsToday", arrivalsToday);
         model.addAttribute("departuresToday", departuresToday);
         model.addAttribute("occupancy", occupancy);
-        model.addAttribute("avgDailyRate", String.format("%.0f", avgDailyRate));
+        model.addAttribute("avgDailyRate", avgDailyRate);  // SỬA: bỏ String.format
         model.addAttribute("recentLogs", recentLogs);
         model.addAttribute("forecastDays", forecastDays);
         model.addAttribute("forecastData", forecastData);
