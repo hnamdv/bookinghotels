@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dịch vụ| FeelHome Hotel</title>
+    <title>Dịch vụ | FeelHome Hotel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -13,7 +13,7 @@
         .pos-layout{display:flex;gap:24px;flex-wrap:wrap}
         .pos-left{flex:1;min-width:300px}
         .pos-right{width:380px}
-        @media(max-width:768px){.pos-layout{flex-direction:column}.pos-right{width:100%}}
+        @media(<m></m>ax-width:768px){.pos-layout{flex-direction:column}.pos-right{width:100%}}
 
         body{background:#f8f6f1}
 
@@ -23,8 +23,8 @@
 
         .pos-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:24px;border:1px solid rgba(201,169,97,.15);box-shadow:0 10px 30px rgba(15,23,42,.06)}
         .pos-card label{font-weight:600;color:var(--navy);display:block;margin-bottom:8px}
-        .pos-card select,.pos-card input{width:100%;padding:12px 16px;border:1px solid #e0e0e0;border-radius:12px;font-family:var(--font-sans);font-size:14px;margin-bottom:12px}
-        .pos-card select:focus,.pos-card input:focus{outline:none;border-color:var(--gold)}
+        .pos-card input{width:100%;padding:12px 16px;border:1px solid #e0e0e0;border-radius:12px;font-family:var(--font-sans);font-size:14px;margin-bottom:12px}
+        .pos-card input:focus{outline:none;border-color:var(--gold)}
 
         .flex-row{display:flex;gap:12px}
         .flex-row input{flex:1;margin-bottom:0}
@@ -101,6 +101,11 @@
         .fh-footer a,.fh-footer p{display:block;margin:8px 0;color:rgba(255,255,255,.62);text-decoration:none}
         .fh-footer a:hover{color:var(--gold)}
         @media(max-width:768px){.fh-footer__inner{grid-template-columns:1fr}}
+        .flex-row{ display:flex; align-items:center; gap:12px; }
+        .flex-row #manualBookingId{ flex:1; margin-bottom:0; -webkit-appearance:none; -moz-appearance:textfield; appearance:textfield; }
+        .flex-row #manualBookingId::-webkit-inner-spin-button,
+        .flex-row #manualBookingId::-webkit-outer-spin-button{ -webkit-appearance:none; margin:0; }
+        .btn-secondary{ flex-shrink:0; white-space:nowrap; }
     </style>
 </head>
 <body>
@@ -159,15 +164,11 @@
             <div class="pos-left">
                 <div class="pos-header">
                     <h1>Dịch vụ</h1>
-                    <p>Chọn phòng → Chọn dịch vụ → Xác nhận</p>
+                    <p>Nhập Booking ID → Chọn dịch vụ → Xác nhận</p>
                 </div>
                 <div class="pos-card">
-                    <label>🏠 Chọn phòng / Booking</label>
-                    <select id="roomSelect">
-                        <option value="">-- Chọn phòng --</option>
-                    </select>
                     <div class="flex-row">
-                        <input type="number" id="manualBookingId" placeholder="Hoặc nhập Booking ID">
+                        <input type="number" id="manualBookingId" placeholder="Nhập Booking ID">
                         <button onclick="selectManualRoom()" class="btn-secondary">Chọn</button>
                     </div>
                     <div id="roomInfo" class="mt-2"></div>
@@ -183,7 +184,7 @@
                     <div id="cart" class="cart-items"><div class="empty">Chưa chọn dịch vụ</div></div>
                     <div class="cart-footer">
                         <div class="total"><span>Tổng cộng:</span><span id="totalCart">0đ</span></div>
-                        <button onclick="submitOrder()" class="btn-submit">✅ Xác nhận </button>
+                        <button onclick="submitOrder()" class="btn-submit">✅ Xác nhận</button>
                     </div>
                 </div>
             </div>
@@ -216,6 +217,18 @@
 <script>
     let menuData = [], cart = [], currentBookingId = null;
 
+    // ===== KIỂM TRA BOOKING ID =====
+    async function checkBookingId(bookingId) {
+        try {
+            const res = await fetch(`/pos/check-booking/${bookingId}`);
+            const data = await res.json();
+            return data;
+        } catch(e) {
+            return { exists: false, message: 'Lỗi kết nối server' };
+        }
+    }
+
+    // ===== LOAD MENU =====
     async function loadMenu() {
         try {
             const res = await fetch('/pos/menu');
@@ -251,44 +264,32 @@
         });
     }
 
-    async function loadBookings() {
-        try {
-            const res = await fetch('/pos/bookings');
-            if (!res.ok) throw new Error('Lỗi tải danh sách phòng');
-            const data = await res.json();
-            const select = document.getElementById('roomSelect');
-            select.innerHTML = '<option value="">-- Chọn phòng --</option>';
-            if (data && data.length > 0) {
-                data.forEach(b => {
-                    const opt = document.createElement('option');
-                    opt.value = b.id;
-                    opt.textContent = `Phòng #${b.id} - ${b.name || 'Khách'} (${b.checkinDate || '?'} → ${b.checkoutDate || '?'})`;
-                    select.appendChild(opt);
-                });
-            } else {
-                select.innerHTML += '<option disabled>Chưa có booking</option>';
-            }
-        } catch(e) {
-            console.error(e);
-        }
-    }
-
-    function selectManualRoom() {
+    // ===== CHỌN PHÒNG =====
+    async function selectManualRoom() {
         const bid = document.getElementById('manualBookingId').value;
         if(!bid) { alert('Nhập Booking ID'); return; }
-        currentBookingId = parseInt(bid);
-        document.getElementById('roomInfo').innerHTML = `<div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">✅ Đã chọn: Phòng #${currentBookingId}</div>`;
-        document.getElementById('roomSelect').value = '';
+
+        const result = await checkBookingId(parseInt(bid));
+
+        if(result.exists) {
+            currentBookingId = parseInt(bid);
+            document.getElementById('roomInfo').innerHTML = `
+                <div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">
+                    ✅ Đã chọn: Phòng #${currentBookingId} - ${result.customerName || 'Khách hàng'}
+                </div>
+            `;
+        } else {
+            alert('❌ ' + result.message);
+            document.getElementById('roomInfo').innerHTML = `
+                <div style="background:#fee2e2;color:#991b1b;padding:8px;border-radius:8px;">
+                    ❌ Booking ID không tồn tại
+                </div>
+            `;
+            currentBookingId = null;
+        }
     }
 
-    document.getElementById('roomSelect')?.addEventListener('change', function() {
-        if(this.value) {
-            currentBookingId = parseInt(this.value);
-            document.getElementById('roomInfo').innerHTML = `<div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">✅ Đã chọn: Phòng #${currentBookingId}</div>`;
-            document.getElementById('manualBookingId').value = '';
-        }
-    });
-
+    // ===== GIỎ HÀNG =====
     function addToCart(id, name, price) {
         if(!currentBookingId) { alert('Chọn phòng trước!'); return; }
         const ex = cart.find(c => c.id === id);
@@ -335,9 +336,19 @@
         document.getElementById('totalCart').innerText = total.toLocaleString('vi-VN') + 'đ';
     }
 
+    // ===== XÁC NHẬN ORDER =====
     async function submitOrder() {
         if(!currentBookingId) { alert('Chọn phòng!'); return; }
         if(!cart.length) { alert('Chưa có món nào!'); return; }
+
+        // Kiểm tra lại ID trước khi tạo order
+        const checkResult = await checkBookingId(currentBookingId);
+        if(!checkResult.exists) {
+            alert('❌ Booking ID không hợp lệ. Vui lòng chọn lại!');
+            currentBookingId = null;
+            document.getElementById('roomInfo').innerHTML = '';
+            return;
+        }
 
         const payload = {
             bookingId: currentBookingId,
@@ -372,7 +383,6 @@
         const nav = document.getElementById('fh-nav');
         ham?.addEventListener('click', () => nav?.classList.toggle('open'));
         loadMenu();
-        loadBookings();
     });
 </script>
 </body>
