@@ -122,18 +122,24 @@ public class AdminRoomController {
     }
 
     @PostMapping("/booking/{detailId}/check-in")
-    public String checkIn(@PathVariable Integer detailId, RedirectAttributes ra) {
-        return runOperation(() -> roomOperationService.checkIn(detailId), "Đã check-in", ra);
+    public String checkIn(@PathVariable Integer detailId,
+                          @RequestParam(required = false) Integer roomTypeId,
+                          RedirectAttributes ra) {
+        return runOperation(() -> roomOperationService.checkIn(detailId), "Đã check-in", ra, roomTypeId);
     }
 
     @PostMapping("/booking/{detailId}/check-out")
-    public String checkOut(@PathVariable Integer detailId, RedirectAttributes ra) {
-        return runOperation(() -> roomOperationService.checkOut(detailId, false), "Đã checkout", ra);
+    public String checkOut(@PathVariable Integer detailId,
+                           @RequestParam(required = false) Integer roomTypeId,
+                           RedirectAttributes ra) {
+        return runOperation(() -> roomOperationService.checkOut(detailId, false), "Đã checkout", ra, roomTypeId);
     }
 
     @PostMapping("/booking/{detailId}/no-show")
-    public String noShow(@PathVariable Integer detailId, RedirectAttributes ra) {
-        return runOperation(() -> roomOperationService.markNoShow(detailId), "Đã đánh dấu khách không đến", ra);
+    public String noShow(@PathVariable Integer detailId,
+                         @RequestParam(required = false) Integer roomTypeId,
+                         RedirectAttributes ra) {
+        return runOperation(() -> roomOperationService.markNoShow(detailId), "Đã đánh dấu khách không đến", ra, roomTypeId);
     }
 
     @PostMapping("/booking/{detailId}/status")
@@ -150,13 +156,13 @@ public class AdminRoomController {
         return roomTypeId == null ? "redirect:/admin/rooms" : "redirect:/admin/rooms?roomTypeId=" + roomTypeId;
     }
 
-    private String runOperation(Runnable operation, String success, RedirectAttributes ra) {
+    private String runOperation(Runnable operation, String success, RedirectAttributes ra, Integer roomTypeId) {
         try {
             operation.run();
             ra.addFlashAttribute("success", success);
         } catch (Exception e) {
             ra.addFlashAttribute("error", e.getMessage());
         }
-        return "redirect:/admin/rooms";
+        return roomTypeId == null ? "redirect:/admin/rooms" : "redirect:/admin/rooms?roomTypeId=" + roomTypeId;
     }
 }

@@ -14,7 +14,7 @@ async function loadFavorites(){
       const ids=savedIds(); rooms=(Array.isArray(all)?all:[]).filter(room=>ids.has(Number(room.id)));
     }
     if(!rooms.length){ grid.innerHTML = '<div class="empty">Chưa có phòng yêu thích.</div>'; return; }
-    grid.innerHTML = rooms.map(room => `<article class="room-card"><div class="room-img"><img src="${img(room)}"></div><div class="room-body"><h3 class="room-title">${room.nameType}</h3><div class="room-price">${money(room.price)}</div><p class="room-desc">${room.description || ''}</p><div class="room-actions"><a href="/room-detail.html?id=${room.id}">Chi tiết</a><button onclick="openRemoveFavorite(${room.id})">Hủy lưu</button></div></div></article>`).join('');
+    grid.innerHTML = rooms.map(room => `<article class="room-card"><div class="room-img"><img src="${img(room)}"></div><div class="room-body"><h3 class="room-title">${room.nameType}</h3><div class="room-price">${money(room.price)}</div><p class="room-desc">${room.description || ''}</p><div class="room-actions"><a href="/roomdetail/${room.id}">Chi tiết</a><button onclick="openRemoveFavorite(${room.id})">Hủy lưu</button></div></div></article>`).join('');
   }catch(e){ grid.innerHTML = '<div class="empty">Không thể tải danh sách yêu thích.</div>'; }
 }
 let pendingRemoveId=null;

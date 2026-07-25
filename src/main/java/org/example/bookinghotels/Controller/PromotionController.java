@@ -27,21 +27,11 @@ public class PromotionController {
     public ResponseEntity<Promotion> getPromotionById(@PathVariable Integer id) {
         return ResponseEntity.ok(systemManagementService.getPromotionById(id));
     }
-    @PostMapping("/{promotionId}/room-types/{roomTypeId}")
-    public ResponseEntity<String> applyPromotionToRoom(
-            @PathVariable Integer promotionId,
-            @PathVariable Integer roomTypeId
-    ) {
-        systemManagementService.applyPromotionToRoom(promotionId, roomTypeId);
-        return ResponseEntity.ok("Áp dụng khuyến mãi cho loại phòng thành công");
-    }
+
 
     @GetMapping("/check")
-    public ResponseEntity<PromotionCheckResponse> checkPromotionCode(
-            @RequestParam String code,
-            @RequestParam Integer roomTypeId
-    ) {
-        return ResponseEntity.ok(systemManagementService.checkPromotionCode(code, roomTypeId));
+    public ResponseEntity<PromotionCheckResponse> checkPromotionCode(@RequestParam String code) {
+        return ResponseEntity.ok(systemManagementService.checkPromotionCode(code));
     }
     
     @PostMapping

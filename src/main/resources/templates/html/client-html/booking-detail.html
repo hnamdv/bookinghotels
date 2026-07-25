@@ -69,7 +69,7 @@
 <script>
     // Đọc tham số đính kèm trên URL trình duyệt
     const urlParams = new URLSearchParams(window.location.search);
-    const roomId = urlParams.get('roomId') || '1';
+    const roomTypeId = urlParams.get('roomTypeId') || urlParams.get('roomId') || '1';
     const checkin = urlParams.get('checkin') || new Date().toISOString().split('T')[0];
     const checkout = urlParams.get('checkout') || new Date(Date.now() + 86400000).toISOString().split('T')[0];
 
@@ -79,7 +79,7 @@
 
     function proceedToPayment() {
         // Chuyển hướng sang endpoint thanh toán GET /booking/payment của Spring Boot
-        window.location.href = `/booking/payment?roomId=${roomId}&checkin=${checkin}&checkout=${checkout}`;
+        window.location.href = `/booking/payment?roomTypeId=${roomTypeId}&checkin=${checkin}&checkout=${checkout}`;
     }
 </script>
 </body>
