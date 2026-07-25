@@ -14,21 +14,35 @@ public class InvoiceService {
     @Autowired
     private InvoiceRepository invoiceRepository;
 
+    // Lấy tất cả hóa đơn
     public List<Invoices> getAllInvoices() {
         return invoiceRepository.findAll();
     }
 
+    // Tìm kiếm hóa đơn
     public List<Invoices> searchInvoices(String keyword, String status) {
-        // Tự động tạo chứa dấu % để tìm kiếm theo kiểu LIKE
-        String keywordWithWildcard = (keyword != null && !keyword.trim().isEmpty()) ? "%" + keyword + "%" : null;
+        String keywordWithWildcard =
+                (keyword != null && !keyword.trim().isEmpty())
+                        ? "%" + keyword + "%"
+                        : null;
 
-        // Truyền đủ 3 tham số xuống Repository: keyword, keyword_1 (đã thêm %), status
-        return invoiceRepository.searchInvoices(keyword, keywordWithWildcard, status);
+        return invoiceRepository.searchInvoices(
+                keyword,
+                keywordWithWildcard,
+                status
+        );
     }
 
-    // Đổi hẳn sang Integer để đồng bộ với thuộc tính id trong entity Invoices
+    // Tìm theo ID hóa đơn
     public Invoices findById(Integer id) {
         Optional<Invoices> invoice = invoiceRepository.findById(id);
         return invoice.orElse(null);
     }
+
+    // Tìm hóa đơn theo Booking ID
+    public Invoices findByBookingId(Integer bookingId) {
+        Optional<Invoices> invoice = invoiceRepository.findByBookingId(bookingId);
+        return invoice.orElse(null);
+    }
 }
+

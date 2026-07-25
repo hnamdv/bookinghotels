@@ -24,6 +24,7 @@ public class BookingFB {
 
     private Integer quantity = 1;
 
+    // Chuyển sang kiểu nguyên thủy double để đảm bảo an toàn, không bao giờ bị null
     @Column(name = "price_at_order", nullable = false)
-    private Double priceAtOrder;
+    private double priceAtOrder;
 }

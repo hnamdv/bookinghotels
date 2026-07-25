@@ -5,6 +5,7 @@ import org.example.bookinghotels.dto.RoomTypeSummaryDto;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.BookingDetailRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
+import org.example.bookinghotels.repository.RoomRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,11 +20,14 @@ public class PublicRoomController {
 
     private final RoomTypeRepository roomTypeRepository;
     private final BookingDetailRepository bookingDetailRepository;
+    private final RoomRepository roomRepository;
 
     public PublicRoomController(RoomTypeRepository roomTypeRepository,
-                                BookingDetailRepository bookingDetailRepository) {
+                                BookingDetailRepository bookingDetailRepository,
+                                RoomRepository roomRepository) {
         this.roomTypeRepository = roomTypeRepository;
         this.bookingDetailRepository = bookingDetailRepository;
+        this.roomRepository = roomRepository;
     }
 
     @GetMapping
@@ -106,11 +110,9 @@ public class PublicRoomController {
     }
 
     private RoomAvailabilityDto toAvailability(RoomType roomType, LocalDate checkin, LocalDate checkout) {
-        int total = roomType.getTotalRooms() == null ? 0 : Math.max(0, roomType.getTotalRooms());
-        long booked = Optional.ofNullable(bookingDetailRepository
-                        .sumReservedQuantityByRoomTypeAndDateRange(roomType.getId(), checkin, checkout))
-                .orElse(0L);
-        int available = Math.max(0, total - Math.toIntExact(Math.min(booked, Integer.MAX_VALUE)));
+        int total = roomRepository.findByRoomTypeId(roomType.getId()).size();
+        int available = roomRepository.findAvailableRooms(roomType.getId(), checkin, checkout).size();
+        long booked = Math.max(0, total - available);
         return new RoomAvailabilityDto(roomType.getId(), total, booked, available, checkin, checkout);
     }
 

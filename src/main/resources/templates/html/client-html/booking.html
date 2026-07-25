@@ -207,7 +207,6 @@
 
     <div class="tabs">
         <button class="tab active" data-tab="booking">Phòng còn trống</button>
-        <button class="tab" data-tab="history">Lịch sử của bạn</button>
     </div>
 
     <div id="bookingSection" class="booking-section-content">
@@ -221,17 +220,22 @@
                     <div class="room-dates">
                         <span class="date-badge">
                             <i class="bi bi-calendar3"></i>
-                            <span th:text="${checkin}">2026-06-25</span> <i class="bi bi-arrow-right text-xs px-1"></i> <span th:text="${checkout}">2026-06-28</span>
+                            <span th:text="${checkin}">2026-06-25</span>
+                            <i class="bi bi-arrow-right text-xs px-1"></i>
+                            <span th:text="${checkout}">2026-06-28</span>
                         </span>
                     </div>
                     <div class="room-meta">
-                        <span><i class="bi bi-door-open"></i> Phòng số: <span th:text="${room.roomNumber}">101</span></span>
                         <span><i class="bi bi-people"></i> Tối đa: <span th:text="${room.roomType != null ? room.roomType.capacity : 2}">2</span> khách</span>
                     </div>
                 </div>
                 <div class="room-price">
-                    <div class="price" th:text="${room.roomType != null ? #numbers.formatDecimal(room.roomType.price, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">1.350.000 VND</div>
-                    <button class="btn-detail" th:data-room-id="${room.id}" th:data-checkin="${checkin}" th:data-checkout="${checkout}" onclick="goToBookingDetail(this)">
+                    <div class="price" th:text="${room.roomType != null ? #numbers.formatDecimal(room.roomType.price * 0.9, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}">1.350.000 VND</div>
+                    <button class="btn-detail"
+                            th:data-room-id="${room.id}"
+                            th:data-checkin="${checkin}"
+                            th:data-checkout="${checkout}"
+                            onclick="goToBookingDetail(this)">
                         ĐẶT NGAY <i class="bi bi-chevron-right text-xs"></i>
                     </button>
                 </div>
@@ -252,8 +256,6 @@
         const roomId = button.getAttribute('data-room-id');
         const checkin = button.getAttribute('data-checkin');
         const checkout = button.getAttribute('data-checkout');
-
-        // SỬA LỖI TẠI ĐÂY: Điều hướng chuẩn qua API của BookingController chứ không gọi trực tiếp file .html nữa
         window.location.href = `/booking/payment?roomId=${roomId}&checkin=${checkin}&checkout=${checkout}`;
     }
 </script>

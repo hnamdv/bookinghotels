@@ -7,6 +7,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.List;
+
 @Controller
 @PreAuthorize("hasAuthority('ROLE_PROMOTION')")  // BỎ COMMENT
 @RequestMapping("/staff/promotions")
@@ -22,16 +25,27 @@ public class PromotionPageController {
     public String promotionPage(Model model) {
         model.addAttribute("promotion", new Promotion());
         model.addAttribute("promotions", systemManagementService.getAllPromotions());
+        model.addAttribute("roomTypes", systemManagementService.getAllRoomTypes());
+        model.addAttribute("selectedRoomTypeIds", Collections.emptyList());
+
         return "html/staff-html/promotions";
     }
 
     @PostMapping("/save")
-    public String savePromotion(@ModelAttribute Promotion promotion) {
+    public String savePromotion(
+            @ModelAttribute Promotion promotion,
+            @RequestParam(required = false) List<Integer> roomTypeIds
+    ) {
+        Promotion savedPromotion;
+
         if (promotion.getId() == null) {
-            systemManagementService.savePromotion(promotion);
+            savedPromotion = systemManagementService.savePromotion(promotion);
         } else {
-            systemManagementService.updatePromotion(promotion.getId(), promotion);
+            savedPromotion = systemManagementService.updatePromotion(promotion.getId(), promotion);
         }
+
+        systemManagementService.updatePromotionRoomTypes(savedPromotion.getId(), roomTypeIds);
+
         return "redirect:/staff/promotions";
     }
 
@@ -39,6 +53,9 @@ public class PromotionPageController {
     public String editPromotion(@PathVariable Integer id, Model model) {
         model.addAttribute("promotion", systemManagementService.getPromotionById(id));
         model.addAttribute("promotions", systemManagementService.getAllPromotions());
+        model.addAttribute("roomTypes", systemManagementService.getAllRoomTypes());
+        model.addAttribute("selectedRoomTypeIds", systemManagementService.getRoomTypeIdsByPromotion(id));
+
         return "html/staff-html/promotions";
     }
 
