@@ -28,7 +28,7 @@ function offerCard(item){
         <p class="offer-description">${item.description || 'Tận hưởng kỳ nghỉ tiện nghi với mức giá ưu đãi dành riêng cho bạn.'}</p>
         <div class="offer-price"><del>${offerMoney(item.originalPrice)}</del><strong>${offerMoney(item.discountedPrice)}<small>/đêm</small></strong></div>
         <div class="offer-valid"><i class="bi bi-calendar3"></i> ${offerDate(item.startDate)} - ${offerDate(item.endDate)}</div>
-        <a class="offer-link" href="/room-detail.html?id=${item.roomTypeId}">Xem phòng <i class="bi bi-arrow-right"></i></a>
+        <a class="offer-link" href="/roomdetail/${item.roomTypeId}">Xem phòng <i class="bi bi-arrow-right"></i></a>
       </div>
     </article>`;
 }

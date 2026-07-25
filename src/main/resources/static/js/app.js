@@ -68,16 +68,26 @@ function availabilityBadge(room){
 
 async function loadAvailability(){
   if(!state.checkIn || !state.checkOut){ availabilityByRoom = new Map(); return; }
+  const inDate = new Date(state.checkIn + 'T00:00:00');
+  const outDate = new Date(state.checkOut + 'T00:00:00');
+  if(!state.checkOut || outDate <= inDate){
+    const fixed = new Date(inDate); fixed.setDate(inDate.getDate() + 1);
+    state.checkOut = fixed.toISOString().slice(0,10);
+  }
   const params = new URLSearchParams({checkin: state.checkIn, checkout: state.checkOut});
   if(state.hotelId) params.set('hotelId', state.hotelId);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 7000);
   try{
-    const response = await fetch('/api/public/rooms/availability?' + params, {cache:'no-store'});
+    const response = await fetch('/api/public/rooms/availability?' + params, {cache:'no-store', signal: controller.signal});
     if(!response.ok) throw new Error('HTTP ' + response.status);
     const data = await response.json();
     availabilityByRoom = new Map((Array.isArray(data) ? data : []).map(item => [Number(item.roomTypeId), item]));
   }catch(error){
     console.warn('Không kiểm tra được phòng trống', error);
     availabilityByRoom = new Map();
+  }finally{
+    clearTimeout(timer);
   }
 }
 
@@ -212,7 +222,7 @@ function roomCard(room){
           ${priceBlock(room)}
           <p>${description}</p>
           <div class="flip-actions">
-            <a class="flip-detail-link" href="/room-detail.html?id=${room.id}${bookingDateQuery() ? '&' + bookingDateQuery() : ''}" data-room-id="${room.id}">Xem chi tiết <i class="bi bi-arrow-up-right"></i></a>
+            <a class="flip-detail-link" href="/roomdetail/${room.id}${bookingDateQuery() ? '?' + bookingDateQuery() : ''}" data-room-id="${room.id}">Xem chi tiết <i class="bi bi-arrow-up-right"></i></a>
             <a class="flip-booking-button ${availabilityByRoom.get(Number(room.id))?.available === false ? 'is-disabled' : ''}" href="${availabilityByRoom.get(Number(room.id))?.available === false ? '#' : '/booking/check?roomTypeId=' + room.id + (bookingDateQuery() ? '&' + bookingDateQuery() : '')}">Đặt phòng</a>
             <button class="favorite-sweep-button flip-favorite-button" type="button" data-room-id="${room.id}" aria-label="Lưu phòng yêu thích"><span class="favorite-sweep-button__text">Lưu</span><span class="favorite-sweep-button__icon"><i class="bi bi-heart"></i></span></button>
           </div>
@@ -279,7 +289,10 @@ function renderRooms(){
   const grid = document.getElementById('roomGrid');
   const count = document.getElementById('roomResultCount');
   if(!grid) return;
-  const rooms = allRooms.filter(matchesRoomFilters);
+  let rooms = allRooms.filter(matchesRoomFilters);
+  if(state.checkIn && state.checkOut && availabilityByRoom.size){
+    rooms = rooms.filter(room => availabilityByRoom.get(Number(room.id))?.available !== false);
+  }
   if(count) count.textContent = `${rooms.length} loại phòng phù hợp`;
   if(!rooms.length){ grid.innerHTML = '<div class="empty">Không tìm thấy phòng phù hợp.</div>'; return; }
   grid.replaceChildren();

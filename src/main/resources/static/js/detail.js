@@ -110,7 +110,12 @@ function bookingUrl(roomId){
 
 async function loadDetail(){
   const page=document.getElementById('detailPage');
-  const id=new URLSearchParams(location.search).get('id');
+  const params = new URLSearchParams(location.search);
+  let id = params.get('id');
+  if(!id){
+    const parts = location.pathname.split('/').filter(Boolean);
+    if(parts[0] === 'roomdetail' && parts[1]) id = parts[1];
+  }
   if(!id){page.innerHTML='<div class="empty">Thiếu mã loại phòng.</div>';return;}
   try{
     const room=await fetchRoomDetail(id);

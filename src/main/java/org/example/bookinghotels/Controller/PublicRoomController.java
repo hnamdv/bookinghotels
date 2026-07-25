@@ -4,8 +4,8 @@ import org.example.bookinghotels.dto.RoomAvailabilityDto;
 import org.example.bookinghotels.dto.RoomTypeSummaryDto;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.BookingDetailRepository;
-import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.example.bookinghotels.repository.RoomRepository;
+import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -82,11 +82,15 @@ public class PublicRoomController {
     public ResponseEntity<?> getAvailability(@PathVariable Integer id,
                                              @RequestParam LocalDate checkin,
                                              @RequestParam LocalDate checkout) {
-        if (!checkout.isAfter(checkin)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Ngày đi phải sau ngày đến."));
+        LocalDate searchCheckin = checkin == null ? LocalDate.now() : checkin;
+        LocalDate searchCheckout = checkout == null ? searchCheckin.plusDays(1) : checkout;
+        if (!searchCheckout.isAfter(searchCheckin)) {
+            searchCheckout = searchCheckin.plusDays(1);
         }
+        final LocalDate finalCheckin = searchCheckin;
+        final LocalDate finalCheckout = searchCheckout;
         return roomTypeRepository.findById(id)
-                .<ResponseEntity<?>>map(roomType -> ResponseEntity.ok(toAvailability(roomType, checkin, checkout)))
+                .<ResponseEntity<?>>map(roomType -> ResponseEntity.ok(toAvailability(roomType, finalCheckin, finalCheckout)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
@@ -94,9 +98,24 @@ public class PublicRoomController {
     public ResponseEntity<?> getAllAvailability(@RequestParam LocalDate checkin,
                                                 @RequestParam LocalDate checkout,
                                                 @RequestParam(required = false) Integer hotelId) {
-        if (!checkout.isAfter(checkin)) {
-            return ResponseEntity.badRequest().body(Map.of("message", "Ngày đi phải sau ngày đến."));
+        LocalDate searchCheckin = checkin == null ? LocalDate.now() : checkin;
+        LocalDate searchCheckout = checkout == null ? searchCheckin.plusDays(1) : checkout;
+        if (!searchCheckout.isAfter(searchCheckin)) {
+            searchCheckout = searchCheckin.plusDays(1);
         }
+        final LocalDate finalCheckin = searchCheckin;
+        final LocalDate finalCheckout = searchCheckout;
+
+        Map<Integer, Integer> totalByType = new HashMap<>();
+        for (Object[] row : roomRepository.countRoomsGroupByRoomType()) {
+            if (row[0] != null) totalByType.put(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
+        }
+
+        Map<Integer, Integer> occupiedByType = new HashMap<>();
+        for (Object[] row : bookingDetailRepository.countOccupiedRoomsByRoomType(finalCheckin, finalCheckout)) {
+            if (row[0] != null) occupiedByType.put(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
+        }
+
         Map<Integer, RoomType> unique = new LinkedHashMap<>();
         for (RoomType roomType : roomTypeRepository.findAllWithImages()) {
             if (roomType != null && roomType.getId() != null
@@ -104,9 +123,16 @@ public class PublicRoomController {
                 unique.putIfAbsent(roomType.getId(), roomType);
             }
         }
-        return ResponseEntity.ok(unique.values().stream()
-                .map(roomType -> toAvailability(roomType, checkin, checkout))
-                .toList());
+
+        List<RoomAvailabilityDto> result = unique.values().stream()
+                .map(roomType -> {
+                    int total = totalByType.getOrDefault(roomType.getId(), 0);
+                    int occupied = occupiedByType.getOrDefault(roomType.getId(), 0);
+                    int available = Math.max(0, total - occupied);
+                    return new RoomAvailabilityDto(roomType.getId(), total, (long) occupied, available, finalCheckin, finalCheckout);
+                })
+                .toList();
+        return ResponseEntity.ok(result);
     }
 
     private RoomAvailabilityDto toAvailability(RoomType roomType, LocalDate checkin, LocalDate checkout) {

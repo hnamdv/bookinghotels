@@ -9,7 +9,6 @@
       <a href="/home" class="fh-nav__link${active('/home')}" data-text="Trang Chủ"><span data-text="Trang Chủ">Trang Chủ</span></a>
       <a href="/home#rooms-section" class="fh-nav__link" data-text="Phòng Nghỉ"><span data-text="Phòng Nghỉ">Phòng Nghỉ</span></a>
       <a href="/offers" class="fh-nav__link${active('/offers')}" data-text="Ưu Đãi"><span data-text="Ưu Đãi">Ưu Đãi</span></a>
-      <a href="/pos" class="fh-nav__link${active('/pos')}" data-text="Dịch Vụ"><span data-text="Dịch Vụ">Dịch Vụ</span></a>
       <a href="/home#story" class="fh-nav__link" data-text="Câu Chuyện"><span data-text="Câu Chuyện">Câu Chuyện</span></a>
       <a href="/favorites.html" class="fh-nav__link${active('/favorites.html')}" data-text="Yêu Thích"><span data-text="Yêu Thích">Yêu Thích</span></a>
     </nav>

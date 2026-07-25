@@ -37,10 +37,20 @@ public class RoomOperationService {
 
     public List<RoomView> buildRoomViews(Integer roomTypeId) {
         LocalDate today = LocalDate.now();
+        List<Room> rooms = roomTypeId == null ? roomRepository.findAll() : roomRepository.findByRoomTypeId(roomTypeId);
+        rooms.sort(Comparator.comparing(Room::getRoomNumber, Comparator.nullsLast(String::compareToIgnoreCase)));
+        List<Integer> roomIds = rooms.stream().map(Room::getId).filter(Objects::nonNull).toList();
+        Map<Integer, List<BookingDetail>> bookingsByRoom = new HashMap<>();
+        if (!roomIds.isEmpty()) {
+            for (BookingDetail detail : bookingDetailRepository.findActiveBookingsByRoomIds(roomIds)) {
+                if (detail.getRoom() != null && detail.getRoom().getId() != null) {
+                    bookingsByRoom.computeIfAbsent(detail.getRoom().getId(), key -> new ArrayList<>()).add(detail);
+                }
+            }
+        }
         List<RoomView> result = new ArrayList<>();
-        for (Room room : roomRepository.findAll()) {
-            if (roomTypeId != null && (room.getRoomType() == null || !roomTypeId.equals(room.getRoomType().getId()))) continue;
-            List<BookingDetail> bookings = bookingDetailRepository.findByRoomIdWithBooking(room.getId());
+        for (Room room : rooms) {
+            List<BookingDetail> bookings = bookingsByRoom.getOrDefault(room.getId(), List.of());
             BookingDetail current = bookings.stream()
                     .filter(this::isActiveForRoom)
                     .filter(b -> !b.getBooking().getCheckinDate().isAfter(today)
@@ -57,7 +67,6 @@ public class RoomOperationService {
             LocalDateTime checkoutAt = current == null ? null : latestCheckoutTime(current.getId());
             result.add(new RoomView(room, current, next, state, checkinAt, checkoutAt));
         }
-        result.sort(Comparator.comparing(v -> v.room().getRoomNumber(), Comparator.nullsLast(String::compareToIgnoreCase)));
         return result;
     }
 
