@@ -76,4 +76,3 @@ public class BookingDetail {
         return room != null ? room.getRoomNumber() : "Null";
     }
 }
-

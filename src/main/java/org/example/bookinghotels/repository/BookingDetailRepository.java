@@ -32,9 +32,11 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             @Param("checkinDate") LocalDate checkinDate,
             @Param("checkoutDate") LocalDate checkoutDate);
 
+    // ===== TÌM THEO BOOKING ID (THÊM VÀO ĐÂY) =====
     @Query("SELECT bd FROM BookingDetail bd WHERE bd.booking.id = :bookingId")
     List<BookingDetail> findByBookingId(@Param("bookingId") Integer bookingId);
 
+    // ===== LOAD TẤT CẢ =====
     @Query("SELECT DISTINCT bd FROM BookingDetail bd " +
             "JOIN FETCH bd.booking b " +
             "LEFT JOIN FETCH bd.room r " +
@@ -44,6 +46,7 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             "ORDER BY b.bookingDate DESC")
     List<BookingDetail> findAllWithDetails();
 
+    // ===== FILTER - Native query =====
     @Query(value = "SELECT bd.* FROM booking_detail bd " +
             "JOIN booking b ON b.id = bd.booking_id " +
             "LEFT JOIN room r ON r.id = bd.room_id " +
@@ -73,20 +76,25 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
     @Query("UPDATE BookingDetail bd SET bd.status = :status WHERE bd.id = :bookingDetailId")
     int updateBookingDetailStatus(@Param("bookingDetailId") Integer bookingDetailId, @Param("status") String status);
 
-    @Query("SELECT COUNT(DISTINCT b.room.id) FROM BookingDetail b")
+    @Query("""
+    SELECT COUNT(DISTINCT b.room.id)
+    FROM BookingDetail b
+    """)
     long countDistinctBookedRooms();
 
-    @Query("SELECT COALESCE(SUM(bd.roomQuantity), 0) FROM BookingDetail bd " +
-            "JOIN bd.booking b " +
-            "WHERE bd.roomType.id = :roomTypeId " +
-            "AND b.checkinDate < :checkoutDate " +
-            "AND b.checkoutDate > :checkinDate " +
-            "AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING', 'APPROVED', 'CONFIRMED', 'CHECKED_IN')")
+    @Query("""
+            SELECT COALESCE(SUM(bd.roomQuantity), 0)
+            FROM BookingDetail bd
+            JOIN bd.booking b
+            WHERE bd.roomType.id = :roomTypeId
+              AND b.checkinDate < :checkoutDate
+              AND b.checkoutDate > :checkinDate
+              AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING', 'APPROVED', 'CONFIRMED', 'CHECKED_IN')
+            """)
     Long sumReservedQuantityByRoomTypeAndDateRange(
             @Param("roomTypeId") Integer roomTypeId,
             @Param("checkinDate") LocalDate checkinDate,
             @Param("checkoutDate") LocalDate checkoutDate);
-
     @Query("SELECT bd FROM BookingDetail bd WHERE bd.status IN ('CHECKED_IN', 'BOOKED')")
     List<BookingDetail> findOperationalBookings();
 
