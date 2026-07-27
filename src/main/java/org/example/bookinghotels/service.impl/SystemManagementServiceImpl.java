@@ -43,6 +43,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
     @Autowired
     private BookingDetailRepository bookingDetailRepository;
+
     @Override
     public Promotion savePromotion(Promotion promotion) {
         validatePromotion(promotion);
@@ -189,7 +190,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
     @Override
     public List<ActivityLog> getAllLogs() {
-        return activityLogRepository.findAll();
+        return activityLogRepository.findAllByOrderByCreatedAtDesc();
     }
 
     private void validatePromotion(Promotion promotion) {
@@ -232,6 +233,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
             }
         }
     }
+
     @Override
     public List<RevenueDTO> getRevenueByDay() {
 
@@ -287,6 +289,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                 Math.round(occupancyRate * 100.0) / 100.0
         );
     }
+
     @Override
     public List<RoomType> getAllRoomTypes() {
         return roomTypeRepository.findAll();
@@ -301,6 +304,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     public @Nullable Object getRoomTypeIdsByPromotion(Integer id) {
         return null;
     }
+
     @Override
     public List<RevenueDTO> getRevenueByDay(LocalDate fromDate, LocalDate toDate) {
         return invoicesRepository.getRevenueByDayFiltered(fromDate, toDate)

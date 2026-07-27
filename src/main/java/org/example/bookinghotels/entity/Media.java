@@ -5,9 +5,11 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;           // Bổ sung import Getter chuẩn của Lombok
 import lombok.NoArgsConstructor;
 import lombok.Setter;           // Bổ sung import Setter chuẩn của Lombok
+import org.example.bookinghotels.listener.ActivityLogListener;
 
 @Entity
 @Table(name = "media")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

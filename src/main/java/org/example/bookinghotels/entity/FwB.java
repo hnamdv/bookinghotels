@@ -3,10 +3,13 @@ package org.example.bookinghotels.entity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.bookinghotels.listener.ActivityLogListener;
+
 import java.util.Map;
 
 @Entity
 @Table(name = "fwb")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
