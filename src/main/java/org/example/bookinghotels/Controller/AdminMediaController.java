@@ -11,6 +11,7 @@ import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.example.bookinghotels.service.DatabaseSequenceService;
 import org.example.bookinghotels.service.MediaService;
 import org.example.bookinghotels.service.SiteBrandingService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.nio.file.Paths;
 
 @Controller
 @RequestMapping("/admin/media")
+@PreAuthorize("hasAuthority('ROLE_IMG')")
 public class AdminMediaController {
     private final MediaService mediaService;
     private final MediaRepository mediaRepository;
