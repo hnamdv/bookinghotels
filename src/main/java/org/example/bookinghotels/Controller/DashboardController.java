@@ -7,6 +7,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.time.LocalDate;
 
 @Controller
 @RequiredArgsConstructor
@@ -17,31 +20,42 @@ public class DashboardController {
     private final InvoicesRepository invoicesRepository;
 
     @GetMapping("/thongke")
-    public String dashboard(Model model) {
+    public String dashboard(
+            @RequestParam(required = false) String fromDate,
+            @RequestParam(required = false) String toDate,
+            @RequestParam(required = false) Integer month,
+            @RequestParam(required = false) Integer year,
+            Model model) {
 
-        model.addAttribute(
-                "occupancy",
-                systemManagementService.getOccupancy()
-        );
+        LocalDate from = (fromDate != null && !fromDate.isBlank()) ? LocalDate.parse(fromDate) : null;
+        LocalDate to = (toDate != null && !toDate.isBlank()) ? LocalDate.parse(toDate) : null;
+
+        boolean hasDayFilter = from != null || to != null;
+        boolean hasMonthFilter = month != null || year != null;
+
+        model.addAttribute("occupancy", systemManagementService.getOccupancy());
 
         model.addAttribute(
                 "revenueDay",
-                systemManagementService.getRevenueByDay()
+                hasDayFilter
+                        ? systemManagementService.getRevenueByDay(from, to)
+                        : systemManagementService.getRevenueByDay()
         );
 
         model.addAttribute(
                 "revenueMonth",
-                systemManagementService.getRevenueByMonth()
+                hasMonthFilter
+                        ? systemManagementService.getRevenueByMonth(month, year)
+                        : systemManagementService.getRevenueByMonth()
         );
 
-        model.addAttribute(
-                "revenueYear",
-                systemManagementService.getRevenueByYear()
-        );
+        model.addAttribute("revenueYear", systemManagementService.getRevenueByYear());
 
         model.addAttribute(
                 "invoiceCount",
-                invoicesRepository.count()
+                hasDayFilter
+                        ? systemManagementService.getInvoiceCount(from, to)
+                        : invoicesRepository.count()
         );
 
         return "html/staff-html/thongke";

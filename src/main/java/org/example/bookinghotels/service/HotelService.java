@@ -4,16 +4,13 @@ import org.example.bookinghotels.entity.Hotels;
 
 import java.util.List;
 
-public interface HotelRoomService {
+public interface HotelService {
 
     List<Hotels> getAllHotels();
-
-    Hotels getHotelById(Integer id);
 
     Hotels createHotel(Hotels hotel);
 
     Hotels updateHotel(Integer id, Hotels hotel);
 
     void deleteHotel(Integer id);
-
 }

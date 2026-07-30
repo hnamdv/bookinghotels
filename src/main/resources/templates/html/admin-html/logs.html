@@ -87,6 +87,9 @@
                                 log.action == 'STATUS_UPDATE' ? 'bg-amber-100 text-amber-700' :
                                 log.action == 'REMINDER' ? 'bg-slate-100 text-slate-600' :
                                 log.action == 'AUTO_CHECK_OUT' ? 'bg-violet-100 text-violet-700' :
+                                log.action == 'CREATE' ? 'bg-emerald-100 text-emerald-700' :
+                                log.action == 'UPDATE' ? 'bg-amber-100 text-amber-700' :
+                                log.action == 'DELETE' ? 'bg-rose-100 text-rose-700' :
                                 'bg-gray-100 text-gray-700'
                               }"
                               th:text="${log.action}">
@@ -115,9 +118,38 @@
             </div>
 
         </div>
+
+        <p id="noResultMsg" class="hidden p-6 text-center text-slate-400 text-sm">
+            Không tìm thấy log phù hợp
+        </p>
     </div>
 
 </section>
+
+<script th:inline="none">
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('searchInput');
+        const tableBody = document.getElementById('logTableBody');
+        const noResultMsg = document.getElementById('noResultMsg');
+
+        if (!searchInput || !tableBody) return;
+
+        searchInput.addEventListener('input', function () {
+            const keyword = this.value.trim().toLowerCase();
+            const rows = tableBody.querySelectorAll('tr');
+            let visibleCount = 0;
+
+            rows.forEach(function (row) {
+                const text = row.innerText.toLowerCase();
+                const match = text.includes(keyword);
+                row.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
+
+            noResultMsg.classList.toggle('hidden', visibleCount !== 0 || rows.length === 0);
+        });
+    });
+</script>
 
 </body>
 </html>
