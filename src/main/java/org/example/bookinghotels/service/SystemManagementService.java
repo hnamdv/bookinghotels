@@ -8,6 +8,7 @@ import org.example.bookinghotels.entity.Promotion;
 import org.example.bookinghotels.entity.RoomType;
 import org.jspecify.annotations.Nullable;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface SystemManagementService {
@@ -30,14 +31,23 @@ public interface SystemManagementService {
 
     List<ActivityLog> getAllLogs();
 
-    // Dashboard
+    // ==== Dashboard ====
+
     List<RevenueDTO> getRevenueByDay();
 
+    List<RevenueDTO> getRevenueByDay(LocalDate fromDate, LocalDate toDate);
+
     List<RevenueDTO> getRevenueByMonth();
+
+    List<RevenueDTO> getRevenueByMonth(Integer month, Integer year);
 
     List<RevenueDTO> getRevenueByYear();
 
     OccupancyDTO getOccupancy();
+
+    long getInvoiceCount(LocalDate fromDate, LocalDate toDate);
+
+    // ====================
 
     List<RoomType> getAllRoomTypes();
 

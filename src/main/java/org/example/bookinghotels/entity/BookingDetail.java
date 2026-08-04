@@ -2,12 +2,14 @@ package org.example.bookinghotels.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.bookinghotels.listener.ActivityLogListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "booking_detail")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

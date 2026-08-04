@@ -2,10 +2,13 @@ package org.example.bookinghotels.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.bookinghotels.listener.ActivityLogListener;
+
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "invoices")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

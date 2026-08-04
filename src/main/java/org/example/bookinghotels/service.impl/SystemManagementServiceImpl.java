@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import org.example.bookinghotels.dto.RevenueDTO;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -42,6 +43,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
     @Autowired
     private BookingDetailRepository bookingDetailRepository;
+
     @Override
     public Promotion savePromotion(Promotion promotion) {
         validatePromotion(promotion);
@@ -188,7 +190,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
     @Override
     public List<ActivityLog> getAllLogs() {
-        return activityLogRepository.findAll();
+        return activityLogRepository.findAllByOrderByCreatedAtDesc();
     }
 
     private void validatePromotion(Promotion promotion) {
@@ -231,6 +233,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
             }
         }
     }
+
     @Override
     public List<RevenueDTO> getRevenueByDay() {
 
@@ -286,6 +289,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                 Math.round(occupancyRate * 100.0) / 100.0
         );
     }
+
     @Override
     public List<RoomType> getAllRoomTypes() {
         return roomTypeRepository.findAll();
@@ -299,5 +303,32 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     @Override
     public @Nullable Object getRoomTypeIdsByPromotion(Integer id) {
         return null;
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenueByDay(LocalDate fromDate, LocalDate toDate) {
+        return invoicesRepository.getRevenueByDayFiltered(fromDate, toDate)
+                .stream()
+                .map(item -> new RevenueDTO(
+                        item[0].toString(),
+                        ((Number) item[1]).doubleValue()
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenueByMonth(Integer month, Integer year) {
+        return invoicesRepository.getRevenueByMonthFiltered(month, year)
+                .stream()
+                .map(item -> new RevenueDTO(
+                        item[0].toString(),
+                        ((Number) item[1]).doubleValue()
+                ))
+                .toList();
+    }
+
+    @Override
+    public long getInvoiceCount(LocalDate fromDate, LocalDate toDate) {
+        return invoicesRepository.countFiltered(fromDate, toDate);
     }
 }
