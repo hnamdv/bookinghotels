@@ -30,15 +30,18 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập các file tĩnh và API public
+                        // 1. Chặn trang /login nếu đã đăng nhập (chỉ cho phép khách chưa login xem trang login)
+                        .requestMatchers("/login").anonymous()
+
+                        // Các trang public khác vẫn permitAll bình thường
                         .requestMatchers(
                                 "/", "/home", "/client-home.html", "/home/**",
-                                "/login", "/error", "/favicon.ico",
+                                "/error", "/favicon.ico",
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
                                 "/favorites.html", "/room-detail.html", "/offers", "/offers.html",
                                 "/api/auth/**", "/api/public/**",
                                 "/pos/**", "/pos", "/api/fwb/**",
-                                "/api/webhook/**" // ĐÃ THÊM: Mở khóa hoàn toàn cho đường dẫn Webhook của SePay
+                                "/api/webhook/**"
                         ).permitAll()
 
                         // Các trang admin/staff yêu cầu đăng nhập
@@ -51,7 +54,7 @@ public class SecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/home")
+                        .defaultSuccessUrl("/home", true) // Thêm true để luôn ép chuyển hướng về /home sau khi login thành công
                         .permitAll()
                 )
                 .logout(logout -> logout
@@ -60,6 +63,7 @@ public class SecurityConfig {
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
                         .deleteCookies("JSESSIONID")
+                        .permitAll()
                 );
         return http.build();
     }
