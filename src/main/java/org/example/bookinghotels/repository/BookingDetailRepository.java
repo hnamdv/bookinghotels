@@ -95,4 +95,62 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             @Param("roomTypeId") Integer roomTypeId,
             @Param("checkinDate") LocalDate checkinDate,
             @Param("checkoutDate") LocalDate checkoutDate);
+
+    @Query("""
+            SELECT DISTINCT bd FROM BookingDetail bd
+            JOIN FETCH bd.booking b
+            LEFT JOIN FETCH bd.room r
+            LEFT JOIN FETCH bd.roomType rt
+            WHERE bd.room.id IN :roomIds
+              AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED','CHECKED_IN')
+            """)
+    List<BookingDetail> findActiveBookingsByRoomIds(@Param("roomIds") List<Integer> roomIds);
+
+    @Query("""
+            SELECT DISTINCT bd FROM BookingDetail bd
+            JOIN FETCH bd.booking b
+            LEFT JOIN FETCH bd.room r
+            LEFT JOIN FETCH bd.roomType rt
+            WHERE bd.room.id = :roomId
+              AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED','CHECKED_IN')
+            """)
+    List<BookingDetail> findByRoomIdWithBooking(@Param("roomId") Integer roomId);
+
+    @Query("""
+            SELECT DISTINCT bd FROM BookingDetail bd
+            JOIN FETCH bd.booking b
+            LEFT JOIN FETCH bd.room r
+            LEFT JOIN FETCH bd.roomType rt
+            WHERE UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED','CHECKED_IN')
+            """)
+    List<BookingDetail> findOperationalBookings();
+
+    @Query("""
+            SELECT bd.roomType.id, COUNT(DISTINCT bd.room.id)
+            FROM BookingDetail bd
+            JOIN bd.booking b
+            WHERE bd.roomType IS NOT NULL
+              AND bd.room IS NOT NULL
+              AND b.checkinDate < :checkoutDate
+              AND b.checkoutDate > :checkinDate
+              AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED','CHECKED_IN')
+            GROUP BY bd.roomType.id
+            """)
+    List<Object[]> countOccupiedRoomsByRoomType(@Param("checkinDate") LocalDate checkinDate,
+                                                @Param("checkoutDate") LocalDate checkoutDate);
+
+    @Query("""
+            SELECT DISTINCT bd FROM BookingDetail bd
+            JOIN FETCH bd.booking b
+            LEFT JOIN FETCH bd.room r
+            LEFT JOIN FETCH bd.roomType rt
+            WHERE bd.roomType.id = :roomTypeId
+              AND b.checkinDate < :checkoutDate
+              AND b.checkoutDate > :checkinDate
+              AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED','CHECKED_IN')
+            """)
+    List<BookingDetail> findOverlappingBookingsByRoomType(@Param("roomTypeId") Integer roomTypeId,
+                                                          @Param("checkinDate") LocalDate checkinDate,
+                                                          @Param("checkoutDate") LocalDate checkoutDate);
+
 }

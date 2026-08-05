@@ -45,19 +45,31 @@ public class PosController {
         return fwBService.getAll();
     }
 
-    // ===== API LẤY DANH SÁCH BOOKING =====
+    // ===== API LẤY DANH SÁCH BOOKING CÓ THỂ GỌI DỊCH VỤ PHÒNG =====
     @GetMapping("/bookings")
     @ResponseBody
     public ResponseEntity<List<Map<String, Object>>> getAllBookings() {
-        List<Booking> bookings = bookingRepository.findAll();
+        List<BookingDetail> details = bookingDetailRepository.findAllWithDetails();
         List<Map<String, Object>> result = new ArrayList<>();
-        for (Booking b : bookings) {
+        Set<Integer> usedBookingIds = new LinkedHashSet<>();
+
+        for (BookingDetail detail : details) {
+            if (detail == null || detail.getBooking() == null || detail.getBooking().getId() == null) continue;
+            String status = detail.getStatus() == null ? "" : detail.getStatus().toUpperCase(Locale.ROOT);
+            if (Set.of("CHECKED_OUT", "CANCELLED", "REJECTED", "NO_SHOW").contains(status)) continue;
+            if (!usedBookingIds.add(detail.getBooking().getId())) continue;
+
+            Booking b = detail.getBooking();
             Map<String, Object> item = new HashMap<>();
             item.put("id", b.getId());
+            item.put("bookingDetailId", detail.getId());
             item.put("name", b.getName() != null ? b.getName() : "");
             item.put("phone", b.getPhone() != null ? b.getPhone() : "");
             item.put("checkinDate", b.getCheckinDate());
             item.put("checkoutDate", b.getCheckoutDate());
+            item.put("status", detail.getStatus());
+            item.put("roomNumber", detail.getRoom() != null ? detail.getRoom().getRoomNumber() : "Chưa xếp phòng");
+            item.put("roomType", detail.getRoomType() != null ? detail.getRoomType().getNameType() : "");
             result.add(item);
         }
         return ResponseEntity.ok(result);

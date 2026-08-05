@@ -1,13 +1,18 @@
 package org.example.bookinghotels.Controller;
 
 import org.example.bookinghotels.entity.Booking;
+import org.example.bookinghotels.entity.BookingFB;
+import org.example.bookinghotels.entity.FwB;
 import org.example.bookinghotels.entity.BookingDetail;
 import org.example.bookinghotels.entity.Invoices;
 import org.example.bookinghotels.entity.Room;
 import org.example.bookinghotels.entity.RoomType;
+import org.example.bookinghotels.entity.ActivityLog;
 import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.example.bookinghotels.repository.BookingDetailRepository;
+import org.example.bookinghotels.repository.FwbRepository;
+import org.example.bookinghotels.repository.ActivityLogRepository;
 import org.example.bookinghotels.service.OrderBookingService;
 import org.example.bookinghotels.service.PromotionPricingService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +44,13 @@ public class BookingController {
     private BookingDetailRepository bookingDetailRepository;
 
     @Autowired
+    private FwbRepository fwbRepository;
+
+    @Autowired
     private PromotionPricingService promotionPricingService;
+
+    @Autowired
+    private ActivityLogRepository activityLogRepository;
 
     // =====================================================
     // TRANG KIỂM TRA PHÒNG TRỐNG (GET)
@@ -244,6 +255,17 @@ public class BookingController {
             bookingData.put("totalAmount", totalAmount);
 
             model.addAttribute("booking", bookingData);
+            model.addAttribute("roomServices", fwbRepository.findAll().stream()
+                    .filter(f -> f.getStatus() == null
+                            || f.getStatus().isBlank()
+                            || "ACTIVE".equalsIgnoreCase(f.getStatus())
+                            || "SHOW".equalsIgnoreCase(f.getStatus()))
+                    .filter(f -> f.getPrice() > 0D)
+                    .filter(f -> {
+                        String category = f.getCategory() == null ? "" : f.getCategory().toLowerCase(Locale.ROOT);
+                        return !(category.contains("tiện ích") || category.contains("tien ich") || category.contains("amenity"));
+                    })
+                    .toList());
             return "html/client-html/payment";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
@@ -265,17 +287,26 @@ public class BookingController {
             @RequestParam String checkinDate,
             @RequestParam String checkoutDate,
             @RequestParam String paymentMethod,
+            @RequestParam(required = false) String bookingNote,
+            @RequestParam(required = false) List<Integer> serviceIds,
+            @RequestParam Map<String, String> allParams,
             Model model,
             RedirectAttributes redirectAttributes
     ) {
         try {
 
+            LocalDate start = LocalDate.parse(checkinDate);
+            LocalDate end = LocalDate.parse(checkoutDate);
+            if (!end.isAfter(start)) {
+                end = start.plusDays(1);
+            }
+
             Booking booking = new Booking();
             booking.setName(customerName);
             booking.setPhone(customerPhone);
             booking.setEmail(customerEmail);
-            booking.setCheckinDate(LocalDate.parse(checkinDate));
-            booking.setCheckoutDate(LocalDate.parse(checkoutDate));
+            booking.setCheckinDate(start);
+            booking.setCheckoutDate(end);
 
             BookingDetail detail = new BookingDetail();
             detail.setAdultCount(adultCount);
@@ -283,13 +314,17 @@ public class BookingController {
             detail.setRoomQuantity(1);
             detail.setStatus("PENDING");
 
+            List<BookingFB> orderedServices = buildSelectedRoomServices(serviceIds, allParams, start, end);
+
             Booking savedBooking = bookingService.processBookingAutoAssign(
                     booking,
                     detail,
                     roomTypeId,
-                    new ArrayList<>(),
+                    orderedServices,
                     paymentMethod
             );
+
+            saveBookingNoteIfAny(savedBooking, bookingNote);
 
             Invoices invoice = bookingService.findInvoiceByBookingId(
                     Long.valueOf(savedBooking.getId())
@@ -312,6 +347,64 @@ public class BookingController {
                     + "&checkin=" + checkinDate
                     + "&checkout=" + checkoutDate;
         }
+    }
+
+    private void saveBookingNoteIfAny(Booking booking, String bookingNote) {
+        if (booking == null || booking.getId() == null || bookingNote == null || bookingNote.trim().isBlank()) {
+            return;
+        }
+        ActivityLog log = new ActivityLog();
+        log.setAction("BOOKING_NOTE");
+        log.setTableName("booking");
+        log.setDescription("BOOKING#" + booking.getId() + " | Ghi chú khách hàng: " + bookingNote.trim());
+        activityLogRepository.save(log);
+    }
+
+    private List<BookingFB> buildSelectedRoomServices(List<Integer> serviceIds,
+                                                         Map<String, String> allParams,
+                                                         LocalDate checkinDate,
+                                                         LocalDate checkoutDate) {
+        List<BookingFB> result = new ArrayList<>();
+        if (serviceIds == null || serviceIds.isEmpty()) {
+            return result;
+        }
+
+        long nights = ChronoUnit.DAYS.between(checkinDate, checkoutDate);
+        if (nights <= 0) {
+            nights = 1;
+        }
+
+        for (Integer serviceId : new LinkedHashSet<>(serviceIds)) {
+            if (serviceId == null) continue;
+            FwB service = fwbRepository.findById(serviceId).orElse(null);
+            if (service == null) continue;
+
+            String unit = service.getUnit() == null ? "" : service.getUnit().trim().toLowerCase(Locale.ROOT);
+            int quantity;
+
+            // Dịch vụ tính theo đêm như nôi trẻ em/giường phụ phải nhân theo số đêm lưu trú.
+            // Không lấy note để tính tiền, chỉ tính khi khách chọn dịch vụ có giá.
+            if (unit.contains("đêm") || unit.contains("dem") || unit.contains("night")) {
+                quantity = (int) nights;
+            } else {
+                quantity = 1;
+                String rawQty = allParams.get("serviceQty_" + serviceId);
+                if (rawQty != null) {
+                    try {
+                        quantity = Math.max(1, Integer.parseInt(rawQty));
+                    } catch (NumberFormatException ignored) {
+                        quantity = 1;
+                    }
+                }
+            }
+
+            BookingFB item = new BookingFB();
+            item.setFwb(service);
+            item.setQuantity(quantity);
+            item.setPriceAtOrder(service.getPrice());
+            result.add(item);
+        }
+        return result;
     }
 
     // =====================================================

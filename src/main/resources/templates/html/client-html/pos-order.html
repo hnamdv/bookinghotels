@@ -262,7 +262,7 @@
                 data.forEach(b => {
                     const opt = document.createElement('option');
                     opt.value = b.id;
-                    opt.textContent = `Phòng #${b.id} - ${b.name || 'Khách'} (${b.checkinDate || '?'} → ${b.checkoutDate || '?'})`;
+                    opt.textContent = `${b.roomNumber || 'Chưa xếp phòng'} - ${b.name || 'Khách'} - ${b.roomType || ''} (${b.checkinDate || '?'} → ${b.checkoutDate || '?'})`;
                     select.appendChild(opt);
                 });
             } else {
@@ -277,14 +277,14 @@
         const bid = document.getElementById('manualBookingId').value;
         if(!bid) { alert('Nhập Booking ID'); return; }
         currentBookingId = parseInt(bid);
-        document.getElementById('roomInfo').innerHTML = `<div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">✅ Đã chọn: Phòng #${currentBookingId}</div>`;
+        document.getElementById('roomInfo').innerHTML = `<div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">✅ Đã chọn booking #${currentBookingId}</div>`;
         document.getElementById('roomSelect').value = '';
     }
 
     document.getElementById('roomSelect')?.addEventListener('change', function() {
         if(this.value) {
             currentBookingId = parseInt(this.value);
-            document.getElementById('roomInfo').innerHTML = `<div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">✅ Đã chọn: Phòng #${currentBookingId}</div>`;
+            document.getElementById('roomInfo').innerHTML = `<div style="background:#e8f5e9;color:#2e7d32;padding:8px;border-radius:8px;">✅ Đã chọn booking #${currentBookingId}</div>`;
             document.getElementById('manualBookingId').value = '';
         }
     });

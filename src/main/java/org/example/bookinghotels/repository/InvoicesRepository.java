@@ -3,16 +3,36 @@ package org.example.bookinghotels.repository;
 import org.example.bookinghotels.entity.Invoices;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface InvoicesRepository extends JpaRepository<Invoices, Long> {
+public interface InvoicesRepository extends JpaRepository<Invoices, Integer> {
 
-    // --- SỬA TẠI ĐÂY: Thay thế findByBookingId cũ để lấy hóa đơn mới nhất, tránh lỗi trả về 2 kết quả ---
-    Optional<Invoices> findFirstByBookingIdOrderByIdDesc(Long bookingId);
+    @Query("SELECT i FROM Invoices i WHERE i.booking.id = :bookingId ORDER BY i.id DESC")
+    List<Invoices> findInvoicesByBookingIdDesc(@Param("bookingId") Integer bookingId);
+
+    default Optional<Invoices> findByBookingId(Integer bookingId) {
+        if (bookingId == null) return Optional.empty();
+        List<Invoices> invoices = findInvoicesByBookingIdDesc(bookingId);
+        return invoices.isEmpty() ? Optional.empty() : Optional.of(invoices.get(0));
+    }
+
+    default Optional<Invoices> findByBookingId(Long bookingId) {
+        if (bookingId == null) return Optional.empty();
+        return findByBookingId(bookingId.intValue());
+    }
+
+    default Optional<Invoices> findFirstByBookingIdOrderByIdDesc(Long bookingId) {
+        return findByBookingId(bookingId);
+    }
+
+    default Optional<Invoices> findFirstByBookingIdOrderByIdDesc(Integer bookingId) {
+        return findByBookingId(bookingId);
+    }
 
     @Query(value = """
             SELECT TO_CHAR(invoice_date,'YYYY-MM-DD'),

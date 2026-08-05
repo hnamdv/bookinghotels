@@ -4,9 +4,7 @@ import jakarta.persistence.PostPersist;
 import jakarta.persistence.PostRemove;
 import jakarta.persistence.PostUpdate;
 import org.example.bookinghotels.entity.ActivityLog;
-import org.example.bookinghotels.entity.User;
 import org.example.bookinghotels.repository.ActivityLogRepository;
-import org.example.bookinghotels.repository.UserRepository;
 import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -52,9 +50,6 @@ public class ActivityLogListener {
 
             ActivityLogRepository activityLogRepository =
                     applicationContext.getBean(ActivityLogRepository.class);
-            UserRepository userRepository =
-                    applicationContext.getBean(UserRepository.class);
-
             String tableName = entity.getClass().getSimpleName();
             String idPart = "";
             try {
@@ -67,9 +62,10 @@ public class ActivityLogListener {
             ActivityLog activityLog = new ActivityLog();
             activityLog.setAction(action);
             activityLog.setTableName(tableName);
-            activityLog.setDescription(action + " " + tableName + idPart);
+            String username = getCurrentUsername();
+            activityLog.setDescription(action + " " + tableName + idPart + (username == null ? "" : " | user=" + username));
             activityLog.setCreatedAt(LocalDateTime.now());
-            activityLog.setUser(getCurrentUser(userRepository));
+            activityLog.setUser(null);
 
             activityLogRepository.save(activityLog);
         } catch (Exception e) {
@@ -77,13 +73,13 @@ public class ActivityLogListener {
         }
     }
 
-    private User getCurrentUser(UserRepository userRepository) {
+    private String getCurrentUsername() {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
                 return null;
             }
-            return userRepository.findByUsername(auth.getName()).orElse(null);
+            return auth.getName();
         } catch (Exception e) {
             return null;
         }

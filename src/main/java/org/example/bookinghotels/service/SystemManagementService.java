@@ -22,6 +22,8 @@ public interface SystemManagementService {
 
     PromotionCheckResponse checkPromotionCode(String code);
 
+    PromotionCheckResponse checkPromotionCode(String code, Integer roomTypeId);
+
     void deletePromotion(Integer id);
 
     void applyPromotionToRoom(Integer promotionId, Integer roomTypeId);
@@ -49,4 +51,8 @@ public interface SystemManagementService {
     // ====================
 
     List<RoomType> getAllRoomTypes();
+
+    void updatePromotionRoomTypes(Integer id, List<Integer> roomTypeIds);
+
+    Object getRoomTypeIdsByPromotion(Integer id);
 }
