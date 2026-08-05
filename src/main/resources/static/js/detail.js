@@ -100,6 +100,34 @@ async function applyDetailBrand(room){
   }catch(error){console.warn('Không tải được nhận diện',error);}
 }
 
+
+function normalizeBedOptions(raw){
+  if(!raw) return [];
+  let value = String(raw).trim();
+  if(!value) return [];
+  try{
+    const parsed = JSON.parse(value);
+    const result = [];
+    if(Array.isArray(parsed)) return parsed.map(String).filter(Boolean);
+    if(Array.isArray(parsed.options)) result.push(...parsed.options.map(String).filter(Boolean));
+    if(parsed.text) result.push(...String(parsed.text).split(/[;,|\n]+/).map(item => item.trim()).filter(Boolean));
+    if(Array.isArray(parsed.amenities)) {
+      parsed.amenities.forEach(item => {
+        if(typeof item === 'string') result.push(item);
+        else if(item && item.name) result.push(String(item.name));
+      });
+    }
+    if(result.length) return [...new Set(result)];
+    if(typeof parsed === 'object') return Object.values(parsed).flat().map(String).filter(Boolean);
+  }catch(ignore){}
+  return value.split(/[;,|\n]+/).map(item => item.trim()).filter(Boolean);
+}
+function bedOptionChips(raw){
+  return normalizeBedOptions(raw)
+    .map(item => `<span><i class="bi bi-check2-circle"></i>${esc(item)}</span>`)
+    .join('');
+}
+
 function bookingUrl(roomId){
   const params=new URLSearchParams({roomTypeId:String(roomId)});
   const {checkin,checkout}=selectedDates();
@@ -144,7 +172,7 @@ async function loadDetail(){
           <div class="detail-facts"><span><i class="bi bi-people"></i>${room.capacity||1} khách</span><span><i class="bi bi-bed"></i>${esc(room.bed||'Tiêu chuẩn')}</span>${room.area?`<span><i class="bi bi-aspect-ratio"></i>${room.area} m²</span>`:''}</div>
           ${offer?`<div class="detail-offer"><i class="bi bi-gift"></i><div><b>${esc(offer.promotionName||'Ưu đãi hiện hành')}</b><small>Giảm ${Math.round(offer.discountPercent)}% từ ${money(offer.originalPrice)} còn ${money(offer.discountedPrice)}</small>${detailPromoCountdown(offer)}</div></div>`:''}
           <p class="detail-description">${esc(room.description||'Không gian nghỉ dưỡng tiện nghi, sang trọng và yên tĩnh.')}</p>
-          <div class="amenities">${room.hasWifi?'<span><i class="bi bi-wifi"></i>Wifi</span>':''}${room.hasBathtub?'<span><i class="bi bi-droplet"></i>Bồn tắm</span>':''}${room.hasBalcony?'<span><i class="bi bi-sun"></i>Ban công</span>':''}${room.hasTv?'<span><i class="bi bi-tv"></i>TV</span>':''}</div>
+          <div class="amenities">${room.hasWifi?'<span><i class="bi bi-wifi"></i>Wifi</span>':''}${room.hasBathtub?'<span><i class="bi bi-droplet"></i>Bồn tắm</span>':''}${room.hasBalcony?'<span><i class="bi bi-sun"></i>Ban công</span>':''}${room.hasTv?'<span><i class="bi bi-tv"></i>TV</span>':''}${bedOptionChips(room.bedOptions)}</div>
           <div class="hotel-card"><h3>Thông tin khách sạn</h3><p><b>${esc(room.hotelName||'FeelHome Hotel')}</b></p><p>${esc(room.hotelAddress||'Đang cập nhật địa chỉ')}</p>${room.hotelPhone?`<p><i class="bi bi-telephone"></i> ${esc(room.hotelPhone)}</p>`:''}${room.hotelEmail?`<p><i class="bi bi-envelope"></i> ${esc(room.hotelEmail)}</p>`:''}</div>
           ${availability?`<div class="detail-availability ${availability.available?'is-available':'is-unavailable'}"><b>${availability.available?`Còn ${availability.availableRooms}/${availability.totalRooms} phòng`:'Đã hết phòng'}</b><small>${checkin} đến ${checkout}</small></div>`:`<div class="detail-availability is-pending"><b>Chọn ngày để kiểm tra phòng trống</b></div>`}
           <div class="detail-actions"><a class="fh-btn-primary detail-book ${availability&&availability.available===false?'is-disabled':''}" href="${availability&&availability.available===false?'#':bookingUrl(room.id)}"><i class="bi bi-calendar-check"></i> ${availability&&availability.available===false?'Đã hết phòng':'Đặt phòng'}</a><button class="favorite-sweep-button detail-favorite" type="button" onclick="saveFavorite(${room.id})" aria-label="Lưu phòng yêu thích"><span class="favorite-sweep-button__text">Lưu yêu thích</span><span class="favorite-sweep-button__icon"><i class="bi bi-heart"></i></span></button></div>

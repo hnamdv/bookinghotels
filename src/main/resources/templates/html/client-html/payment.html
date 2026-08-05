@@ -97,6 +97,16 @@
         .price-new { color: #b35f23; font-size: 1.25rem; font-weight: 700; }
         .discount-row { color: #0b8f52; font-weight: 600; }
         .promo-expired { color: #9b1c1c; font-weight: 600; }
+
+        .service-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+        .service-option { border: 1px solid #eadfcd; border-radius: 12px; padding: 14px; background: #fffdf8; display: flex; gap: 12px; align-items: flex-start; cursor: pointer; transition: .2s ease; }
+        .service-option:hover { border-color: var(--fh-gold); box-shadow: 0 8px 22px rgba(197,168,128,.15); transform: translateY(-1px); }
+        .service-option input[type=checkbox] { margin-top: 5px; }
+        .service-name { font-weight: 700; color: #1f2937; }
+        .service-price { color: #a96500; font-weight: 700; }
+        .service-meta { color: #777; font-size: .88rem; }
+        .service-qty { width: 76px; padding: 6px 8px; margin-top: 8px; }
+        .service-total-row { color: #8a5b12; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -187,6 +197,40 @@
                                    class="form-control">
                         </div>
 
+                        <div class="col-12">
+                            <label>Ghi chú / yêu cầu thêm</label>
+                            <textarea class="form-control" name="bookingNote" rows="3"
+                                      placeholder="VD: Gia đình có con nhỏ, cần thêm 1 nôi trẻ em hoặc 1 giường phụ. Nếu có phụ thu, khách chọn thêm ở mục dịch vụ phòng bên dưới."></textarea>
+                            <small class="text-muted">Ghi chú này dùng cho lễ tân kiểm tra. Phụ thu được tính bằng dịch vụ phòng/F&amp;B nếu khách chọn.</small>
+                        </div>
+
+                    </div>
+                </div>
+
+
+                <!-- ROOM SERVICES -->
+                <div class="payment-card shadow-sm" th:if="${roomServices != null and !#lists.isEmpty(roomServices)}">
+                    <h2 class="card-title-line fh-title-serif">
+                        <i class="bi bi-bell me-2"></i>
+                        Chọn phụ thu / dịch vụ thêm
+                    </h2>
+
+                    <p class="text-muted mb-3">Nếu khách cần thêm nôi, giường phụ, ăn sáng, giặt ủi... hãy chọn ở đây. Nếu danh sách chưa có, admin tạo mới tại Quản lý phụ thu / dịch vụ.</p>
+
+                    <div class="service-grid">
+                        <label class="service-option" th:each="svc : ${roomServices}">
+                            <input class="room-service-check" type="checkbox" name="serviceIds"
+                                   th:value="${svc.id}"
+                                   th:attr="data-price=${svc.price},data-unit=${svc.unit}">
+                            <div class="flex-grow-1">
+                                <div class="service-name" th:text="${svc.name}">Dịch vụ phòng</div>
+                                <div class="service-price" th:text="${#numbers.formatDecimal(svc.price,0,'COMMA',0,'POINT')} + ' ₫ / ' + ${svc.unit}">0 ₫</div>
+                                <div class="service-meta">Số lượng <span th:text="'/ ' + ${svc.unit}"></span> <small class="text-muted d-block">Đơn vị “đêm” sẽ tự nhân theo số đêm lưu trú.</small></div>
+                                <input class="form-control service-qty" type="number" min="1" value="1"
+                                       th:name="${'serviceQty_' + svc.id}"
+                                       onchange="calculateTotal()" oninput="calculateTotal()">
+                            </div>
+                        </label>
                     </div>
                 </div>
 
@@ -275,6 +319,10 @@
                         <span class="text-muted">Thuế/phí:</span>
                         <span id="taxAndFee" th:text="${#numbers.formatDecimal(booking.taxAndFee,0,'COMMA',0,'POINT')} + ' ₫'">0 ₫</span>
                     </div>
+                    <div class="mb-2 d-flex justify-content-between service-total-row">
+                        <span>Dịch vụ phòng:</span>
+                        <span id="serviceSubtotal">0 ₫</span>
+                    </div>
 
                     <div class="total-box d-flex justify-content-between">
                         <span>Tổng thanh toán:</span>
@@ -329,13 +377,15 @@
         const roomSubtotal = nightly * days;
         const originalSubtotal = pricing.originalNightly * days;
         const discount = Math.max(0, originalSubtotal - roomSubtotal);
-        const total = roomSubtotal + pricing.taxAndFee;
+        const serviceSubtotal = calculateServiceSubtotal();
+        const total = roomSubtotal + pricing.taxAndFee + serviceSubtotal;
 
         document.getElementById('showCheckin').innerText = checkin;
         document.getElementById('showCheckout').innerText = checkout;
         document.getElementById('totalDays').innerText = days + ' đêm';
         document.getElementById('effectiveNightlyPrice').innerText = money(nightly);
         document.getElementById('roomSubtotal').innerText = money(roomSubtotal);
+        document.getElementById('serviceSubtotal').innerText = money(serviceSubtotal);
         document.getElementById('totalAmount').innerText = money(total);
 
         const discountRow = document.getElementById('discountRow');
@@ -352,6 +402,55 @@
             if (promotionBox) promotionBox.classList.add('promo-expired');
         }
     }
+
+    function getStayNights() {
+        const checkin = document.getElementById('checkinDate').value;
+        const checkout = document.getElementById('checkoutDate').value;
+        if (!checkin || !checkout) return 1;
+        const start = new Date(checkin + 'T00:00:00');
+        const end = new Date(checkout + 'T00:00:00');
+        const days = Math.round((end - start) / 86400000);
+        return Math.max(1, days);
+    }
+
+    function calculateServiceSubtotal() {
+        let subtotal = 0;
+        const nights = getStayNights();
+        document.querySelectorAll('.room-service-check:checked').forEach(check => {
+            const price = Number(check.dataset.price || 0);
+            const unit = (check.dataset.unit || '').toLowerCase();
+            const option = check.closest('.service-option');
+            const qtyInput = option ? option.querySelector('.service-qty') : null;
+
+            if (qtyInput && (unit.includes('đêm') || unit.includes('dem') || unit.includes('night'))) {
+                qtyInput.value = nights;
+                qtyInput.readOnly = true;
+                qtyInput.title = 'Dịch vụ này tính theo số đêm lưu trú';
+            } else if (qtyInput) {
+                qtyInput.readOnly = false;
+                qtyInput.title = '';
+            }
+
+            const qty = Math.max(1, Number(qtyInput ? qtyInput.value : 1));
+            subtotal += price * qty;
+        });
+        return subtotal;
+    }
+
+    document.addEventListener('change', event => {
+        if (event.target.classList && event.target.classList.contains('room-service-check')) {
+            const option = event.target.closest('.service-option');
+            const qtyInput = option ? option.querySelector('.service-qty') : null;
+            const unit = (event.target.dataset.unit || '').toLowerCase();
+            if (event.target.checked && qtyInput && (unit.includes('đêm') || unit.includes('dem') || unit.includes('night'))) {
+                qtyInput.value = getStayNights();
+                qtyInput.readOnly = true;
+            } else if (qtyInput) {
+                qtyInput.readOnly = false;
+            }
+            calculateTotal();
+        }
+    });
 
     function updateCountdown() {
         const el = document.getElementById('promoCountdown');

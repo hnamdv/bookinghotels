@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{homeadmin}">
+<head>
+    <title>Quản lý tiện ích / phụ thu</title>
+    <style>
+        .page-card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+        .form-control,.form-select{border-radius:10px}.brand-btn{background:#bd6c3c;color:#fff;border:0;border-radius:10px;padding:10px 20px}.brand-btn:hover{background:#9d5830;color:#fff}
+        .service-thumb{width:64px;height:48px;object-fit:cover;border-radius:8px;border:1px solid #eee;background:#f8f8f8}
+        table td,table th{vertical-align:middle}.media-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px}.media-item{position:relative;border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fafafa}.media-item img{width:100%;height:74px;object-fit:cover}.media-item input{position:absolute;top:6px;right:6px}
+        .mode-tabs a{border:1px solid #e3d5c3;border-radius:999px;padding:8px 14px;text-decoration:none;color:#554638}.mode-tabs a.active{background:#bd6c3c;color:#fff;border-color:#bd6c3c}
+    </style>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="mb-4">
+        <h2 class="fw-bold" th:text="${mode == 'amenities' ? 'Quản lý tiện ích phòng' : 'Quản lý phụ thu / dịch vụ'}">Quản lý</h2>
+        <p class="text-muted" th:if="${mode == 'amenities'}">
+            Tạo tiện ích miễn phí như Sofa, Phòng tắm, Máy lạnh, View biển. Các mục này sẽ hiện ở Quản lý loại phòng để tick vào từng loại phòng. Dữ liệu vẫn dùng bảng FwB có sẵn, không tạo bảng mới.
+        </p>
+        <p class="text-muted" th:if="${mode != 'amenities'}">
+            Tạo phụ thu/dịch vụ có tính phí như Nôi trẻ em, Giường phụ, Ăn sáng, Giặt ủi. Khách chọn khi đặt phòng hoặc lễ tân thêm tại POS, hệ thống lưu BookingFB và cộng vào hóa đơn.
+        </p>
+        <div class="mode-tabs d-flex gap-2 mt-2">
+            <a th:href="@{/staff/fwb/amenities}" th:classappend="${mode == 'amenities'} ? 'active' : ''">
+                <i class="fa-solid fa-check-double me-1"></i> Tiện ích phòng miễn phí
+            </a>
+            <a th:href="@{/staff/fwb/management}" th:classappend="${mode != 'amenities'} ? 'active' : ''">
+                <i class="fa-solid fa-money-bill-wave me-1"></i> Phụ thu / dịch vụ có giá
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <div class="page-card mb-4">
+        <h5 class="fw-bold mb-3" th:text="${editService == null ? (mode == 'amenities' ? 'Thêm tiện ích phòng' : 'Thêm phụ thu / dịch vụ') : 'Cập nhật mục đang chọn'}">Thêm</h5>
+        <form th:action="@{/staff/fwb/save}" method="post" class="row g-3">
+            <input type="hidden" name="id" th:value="${editService != null ? editService.id : ''}">
+            <input type="hidden" name="mode" th:value="${mode}">
+            <div class="col-md-3"><label class="form-label">Tên *</label><input class="form-control" name="name" required th:value="${editService != null ? editService.name : ''}" th:placeholder="${mode == 'amenities' ? 'VD: Sofa' : 'VD: Nôi trẻ em'}"></div>
+            <div class="col-md-2" th:if="${mode == 'amenities'}">
+                <label class="form-label">Giá</label>
+                <input class="form-control" type="number" name="price" value="0" readonly>
+                <small class="text-muted">Tiện ích phòng luôn miễn phí.</small>
+            </div>
+            <div class="col-md-2" th:if="${mode != 'amenities'}">
+                <label class="form-label">Giá phụ thu *</label>
+                <input class="form-control" type="number" min="1000" step="1000" name="price" required
+                       th:value="${editService != null ? editService.price : ''}"
+                       placeholder="VD: 100000">
+                <small class="text-muted">Admin nhập tay giá dịch vụ.</small>
+            </div>
+            <div class="col-md-2"><label class="form-label">Đơn vị</label><input class="form-control" name="unit" list="unitOptions" th:value="${editService != null ? editService.unit : (mode == 'amenities' ? 'mục' : 'đêm')}" placeholder="đêm / suất / lượt"><datalist id="unitOptions"><option value="đêm"></option><option value="lượt"></option><option value="suất"></option><option value="người"></option><option value="phần"></option><option value="mục"></option></datalist></div>
+            <div class="col-md-2"><label class="form-label">Nhóm</label><input class="form-control" name="category" th:value="${editService != null ? editService.category : (mode == 'amenities' ? 'Tiện ích phòng' : 'Phụ thu phòng')}" th:readonly="${mode == 'amenities'}"></div>
+            <div class="col-md-2"><label class="form-label">Trạng thái</label><select class="form-select" name="status"><option value="ACTIVE" th:selected="${editService == null or editService.status != 'hidden'}">Hiển thị</option><option value="hidden" th:selected="${editService != null and editService.status == 'hidden'}">Ẩn</option></select></div>
+            <div class="col-md-12"><label class="form-label">Ảnh URL</label><input class="form-control" name="image" th:value="${editService != null ? editService.image : ''}" placeholder="Hoặc chọn ảnh từ thư viện bên dưới"></div>
+            <div class="col-12" th:if="${mediaList != null and !#lists.isEmpty(mediaList)}">
+                <label class="form-label fw-semibold">Chọn ảnh từ Quản lý hình ảnh</label>
+                <div class="media-pick">
+                    <label class="media-item" th:each="m:${mediaList}"><img th:src="${m.fileUrl}" th:alt="${m.fileName}"><input type="radio" name="mediaId" th:value="${m.id}" th:checked="${editService != null and editService.image == m.fileUrl}"></label>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="alert alert-info py-2 mb-3" th:if="${mode == 'amenities'}">
+                    <b>Quy tắc:</b> tiện ích phòng luôn giá 0đ, dùng để tick vào loại phòng và hiển thị ở chi tiết phòng.
+                    Muốn nhập giá như Nôi trẻ em/Giường phụ/Ăn sáng thì bấm tab <b>Phụ thu / dịch vụ có giá</b> ở phía trên.
+                </div>
+                <div class="alert alert-info py-2 mb-3" th:if="${mode != 'amenities'}">
+                    <b>Quy tắc:</b> giá phụ thu nhập tại đây sẽ hiện ở trang thanh toán/POS.
+                    Đơn vị <b>đêm</b> tự nhân theo số đêm lưu trú.
+                </div>
+                <button class="brand-btn" type="submit"><i class="fa-solid fa-floppy-disk me-2"></i>Lưu</button>
+                <a class="btn btn-outline-secondary ms-2" th:if="${editService != null}" th:href="${mode == 'amenities' ? '/staff/fwb/amenities' : '/staff/fwb/management'}">Hủy sửa</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="page-card">
+        <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold m-0">Danh sách</h5><span class="badge bg-light text-dark border" th:text="|${#lists.size(services)} mục|">0 mục</span></div>
+        <div class="table-responsive">
+            <table class="table align-middle">
+                <thead><tr><th>Ảnh</th><th>Tên</th><th>Nhóm</th><th>Giá</th><th>Đơn vị</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead>
+                <tbody>
+                <tr th:each="svc:${services}">
+                    <td><img class="service-thumb" th:src="${svc.image != null and svc.image != '' ? svc.image : 'https://cdn-icons-png.flaticon.com/512/1046/1046784.png'}"></td>
+                    <td class="fw-semibold" th:text="${svc.name}">Tên</td>
+                    <td th:text="${svc.category}">Nhóm</td>
+                    <td class="fw-semibold" th:text="${#numbers.formatDecimal(svc.price,0,'COMMA',0,'POINT')} + ' đ'">0 đ</td>
+                    <td th:text="${svc.unit}">lượt</td>
+                    <td><span class="badge" th:classappend="${svc.status == 'hidden'} ? ' bg-secondary' : ' bg-success'" th:text="${svc.status == 'hidden' ? 'Ẩn' : 'Hiển thị'}">Hiển thị</span></td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" th:href="${mode == 'amenities' ? '/staff/fwb/amenities?editId=' + svc.id : '/staff/fwb/management?editId=' + svc.id}">Sửa</a>
+                        <form class="d-inline" th:action="@{'/staff/fwb/' + ${svc.id} + '/hide'}" method="post" onsubmit="return confirm('Ẩn mục này?')"><input type="hidden" name="mode" th:value="${mode}"><button class="btn btn-sm btn-outline-danger" type="submit">Ẩn</button></form>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(services)}"><td colspan="7" class="text-center text-muted py-4" th:text="${mode == 'amenities' ? 'Chưa có tiện ích phòng. Hãy tạo Sofa, Phòng tắm, Máy lạnh...' : 'Chưa có phụ thu/dịch vụ. Hãy tạo Nôi trẻ em, Giường phụ, Ăn sáng...'}">Chưa có</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>
