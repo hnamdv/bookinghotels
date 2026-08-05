@@ -9,10 +9,11 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface InvoiceRepository extends JpaRepository<Invoices, Integer> { // Đổi Long thành Integer cho khớp với Entity id nhé
+public interface InvoiceRepository extends JpaRepository<Invoices, Integer> {
 
     @Query("SELECT i FROM Invoices i WHERE " +
-            "(:keyword IS NULL OR trim(:keyword) = '' OR " +
+            "i.deleteAt = false " +
+            "AND (:keyword IS NULL OR trim(:keyword) = '' OR " +
             " str(i.id) LIKE :keyword_1 OR " +
             " i.user.name LIKE :keyword_1) " +
             "AND (:status IS NULL OR trim(:status) = '' OR i.paymentStatus = :status)")
@@ -21,4 +22,10 @@ public interface InvoiceRepository extends JpaRepository<Invoices, Integer> { //
                                   @Param("status") String status);
 
     Optional<Invoices> findByBookingId(Integer bookingId);
+
+    // Danh sách hóa đơn chưa xóa (dùng cho trang chính)
+    List<Invoices> findAllByDeleteAtFalse();
+
+    // ==== Dùng cho trang trash ====
+    List<Invoices> findAllByDeleteAtTrue();
 }

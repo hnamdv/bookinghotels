@@ -121,7 +121,9 @@
             const filtered = allUsers.filter(u => {
                 const isDeleted = Boolean(u.deleteAt);
                 const matchStatus = (isDeleted === isTrashView);
-                const matchKeyword = (u.name.toLowerCase().includes(keyword) || u.email.toLowerCase().includes(keyword));
+                const matchKeyword =
+                    (u.name || "").toLowerCase().includes(keyword) ||
+                    (u.email || "").toLowerCase().includes(keyword);
                 const matchRole = (roleSel === "" || (u.roles && u.roles.some(r => r.roleName === roleSel)));
                 return matchStatus && matchKeyword && matchRole;
             });
@@ -220,16 +222,32 @@
         }
 
         async function deleteUser(id) {
-            if (confirm('Xóa nhân viên này?')) {
-                await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
-                loadUsers();
+
+            if (!confirm("Xóa nhân viên này?")) return;
+
+            const res = await fetch(`${API_URL}/${id}`, {
+                method: "DELETE"
+            });
+
+            if(res.ok){
+                await loadUsers();
+            }else{
+                alert("Xóa thất bại");
             }
         }
 
-        async function restoreUser(id) {
-            if (confirm('Khôi phục tài khoản này?')) {
-                await fetch(`${API_URL}/restore/${id}`, { method: 'PUT' });
-                loadUsers();
+        async function restoreUser(id){
+
+            if(!confirm("Khôi phục tài khoản này?")) return;
+
+            const res = await fetch(`${API_URL}/restore/${id}`,{
+                method:"PUT"
+            });
+
+            if(res.ok){
+                await loadUsers();
+            }else{
+                alert("Khôi phục thất bại");
             }
         }
 

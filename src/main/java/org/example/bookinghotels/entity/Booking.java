@@ -37,7 +37,10 @@ public class Booking {
 
     @Column(name = "checkout_date", nullable = false)
     private LocalDate checkoutDate;
-    //Bao//
+
     @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
     private List<BookingDetail> bookingDetails = new ArrayList<>();
+
+    @Column(name = "delete_at")
+    private Boolean deleteAt = false;
 }

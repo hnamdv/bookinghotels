@@ -4,6 +4,7 @@ import org.example.bookinghotels.entity.Invoices;
 import org.example.bookinghotels.repository.InvoiceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +15,9 @@ public class InvoiceService {
     @Autowired
     private InvoiceRepository invoiceRepository;
 
-    // Lấy tất cả hóa đơn
+    // Lấy tất cả hóa đơn (chưa xóa)
     public List<Invoices> getAllInvoices() {
-        return invoiceRepository.findAll();
+        return invoiceRepository.findAllByDeleteAtFalse();
     }
 
     // Tìm kiếm hóa đơn
@@ -44,5 +45,13 @@ public class InvoiceService {
         Optional<Invoices> invoice = invoiceRepository.findByBookingId(bookingId);
         return invoice.orElse(null);
     }
-}
 
+    // ==== Xóa mềm ====
+    @Transactional
+    public void softDeleteInvoice(Integer id) {
+        invoiceRepository.findById(id).ifPresent(invoice -> {
+            invoice.setDeleteAt(true);
+            invoiceRepository.save(invoice);
+        });
+    }
+}

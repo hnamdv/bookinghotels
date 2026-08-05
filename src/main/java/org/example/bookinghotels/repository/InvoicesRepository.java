@@ -6,38 +6,27 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface InvoicesRepository extends JpaRepository<Invoices, Integer> {
 
-    @Query("SELECT i FROM Invoices i WHERE i.booking.id = :bookingId ORDER BY i.id DESC")
-    List<Invoices> findInvoicesByBookingIdDesc(@Param("bookingId") Integer bookingId);
+    Optional<Invoices> findFirstByBookingIdOrderByIdDesc(Long bookingId);
 
-    default Optional<Invoices> findByBookingId(Integer bookingId) {
-        if (bookingId == null) return Optional.empty();
-        List<Invoices> invoices = findInvoicesByBookingIdDesc(bookingId);
-        return invoices.isEmpty() ? Optional.empty() : Optional.of(invoices.get(0));
-    }
+    // ==== Soft delete ====
+    List<Invoices> findAllByDeleteAtFalseOrDeleteAtIsNull();
 
-    default Optional<Invoices> findByBookingId(Long bookingId) {
-        if (bookingId == null) return Optional.empty();
-        return findByBookingId(bookingId.intValue());
-    }
+    List<Invoices> findAllByDeleteAtTrue();
 
-    default Optional<Invoices> findFirstByBookingIdOrderByIdDesc(Long bookingId) {
-        return findByBookingId(bookingId);
-    }
-
-    default Optional<Invoices> findFirstByBookingIdOrderByIdDesc(Integer bookingId) {
-        return findByBookingId(bookingId);
-    }
+    // ==== Bản không lọc (StatisticsController đang dùng) ====
 
     @Query(value = """
             SELECT TO_CHAR(invoice_date,'YYYY-MM-DD'),
                    SUM(total_amount)
             FROM invoices
+            WHERE delete_at IS NOT TRUE
             GROUP BY TO_CHAR(invoice_date,'YYYY-MM-DD')
             ORDER BY TO_CHAR(invoice_date,'YYYY-MM-DD')
             """, nativeQuery = true)
@@ -47,6 +36,7 @@ public interface InvoicesRepository extends JpaRepository<Invoices, Integer> {
             SELECT TO_CHAR(invoice_date,'YYYY-MM'),
                    SUM(total_amount)
             FROM invoices
+            WHERE delete_at IS NOT TRUE
             GROUP BY TO_CHAR(invoice_date,'YYYY-MM')
             ORDER BY TO_CHAR(invoice_date,'YYYY-MM')
             """, nativeQuery = true)
@@ -56,8 +46,47 @@ public interface InvoicesRepository extends JpaRepository<Invoices, Integer> {
             SELECT TO_CHAR(invoice_date,'YYYY'),
                    SUM(total_amount)
             FROM invoices
+            WHERE delete_at IS NOT TRUE
             GROUP BY TO_CHAR(invoice_date,'YYYY')
             ORDER BY TO_CHAR(invoice_date,'YYYY')
             """, nativeQuery = true)
     List<Object[]> getRevenueByYear();
+
+    // ==== Bản có lọc theo khoảng ngày / theo tháng-năm ====
+
+    @Query(value = """
+            SELECT TO_CHAR(invoice_date,'YYYY-MM-DD'),
+                   SUM(total_amount)
+            FROM invoices
+            WHERE delete_at IS NOT TRUE
+              AND (CAST(:fromDate AS date) IS NULL OR invoice_date >= CAST(:fromDate AS date))
+              AND (CAST(:toDate AS date) IS NULL OR invoice_date < CAST(:toDate AS date) + 1)
+            GROUP BY TO_CHAR(invoice_date,'YYYY-MM-DD')
+            ORDER BY TO_CHAR(invoice_date,'YYYY-MM-DD')
+            """, nativeQuery = true)
+    List<Object[]> getRevenueByDayFiltered(@Param("fromDate") LocalDate fromDate,
+                                           @Param("toDate") LocalDate toDate);
+
+    @Query(value = """
+            SELECT TO_CHAR(invoice_date,'YYYY-MM'),
+                   SUM(total_amount)
+            FROM invoices
+            WHERE delete_at IS NOT TRUE
+              AND (CAST(:year AS integer) IS NULL OR EXTRACT(YEAR FROM invoice_date) = CAST(:year AS integer))
+              AND (CAST(:month AS integer) IS NULL OR EXTRACT(MONTH FROM invoice_date) = CAST(:month AS integer))
+            GROUP BY TO_CHAR(invoice_date,'YYYY-MM')
+            ORDER BY TO_CHAR(invoice_date,'YYYY-MM')
+            """, nativeQuery = true)
+    List<Object[]> getRevenueByMonthFiltered(@Param("month") Integer month,
+                                             @Param("year") Integer year);
+
+    @Query(value = """
+            SELECT COUNT(*)
+            FROM invoices
+            WHERE delete_at IS NOT TRUE
+              AND (CAST(:fromDate AS date) IS NULL OR invoice_date >= CAST(:fromDate AS date))
+              AND (CAST(:toDate AS date) IS NULL OR invoice_date < CAST(:toDate AS date) + 1)
+            """, nativeQuery = true)
+    long countFiltered(@Param("fromDate") LocalDate fromDate,
+                       @Param("toDate") LocalDate toDate);
 }
