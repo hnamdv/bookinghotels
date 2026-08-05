@@ -10,17 +10,19 @@ import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
-    // Load tất cả booking kèm detail và room type (không filter)
-    @Query("SELECT DISTINCT b FROM Booking b " +
-            "LEFT JOIN FETCH b.bookingDetails bd " +
-            "LEFT JOIN FETCH bd.roomType rt")
-    List<Booking> findAllWithDetails();
-
-    // Filter theo status, ngày, roomType
+    // Load tất cả booking (chưa xóa) kèm detail và room type
     @Query("SELECT DISTINCT b FROM Booking b " +
             "LEFT JOIN FETCH b.bookingDetails bd " +
             "LEFT JOIN FETCH bd.roomType rt " +
-            "WHERE (:roomTypeId IS NULL OR rt.id = :roomTypeId) " +
+            "WHERE b.deleteAt = false")
+    List<Booking> findAllWithDetails();
+
+    // Filter theo status, ngày, roomType (chưa xóa)
+    @Query("SELECT DISTINCT b FROM Booking b " +
+            "LEFT JOIN FETCH b.bookingDetails bd " +
+            "LEFT JOIN FETCH bd.roomType rt " +
+            "WHERE b.deleteAt = false " +
+            "AND (:roomTypeId IS NULL OR rt.id = :roomTypeId) " +
             "AND (:status IS NULL OR " +
             "     (:status = 'CHECKED' AND b.checkoutDate < CURRENT_DATE) OR " +
             "     (:status = 'PENDING' AND b.checkinDate > CURRENT_DATE) OR " +
@@ -32,4 +34,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
                                           @Param("status") String status,
                                           @Param("startDate") LocalDate startDate,
                                           @Param("endDate") LocalDate endDate);
+
+    // ==== Dùng cho trang trash ====
+    List<Booking> findAllByDeleteAtTrue();
 }
