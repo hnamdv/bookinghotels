@@ -1,6 +1,5 @@
 package org.example.bookinghotels.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.bookinghotels.listener.ActivityLogListener;
@@ -28,4 +27,7 @@ public class Room {
     private String roomNumber;
 
     private String thumbnail;
+
+    @Column(name = "delete_at")
+    private Boolean deleteAt = false;
 }

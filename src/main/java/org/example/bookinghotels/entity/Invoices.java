@@ -37,4 +37,8 @@ public class Invoices {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
+
+    // ==== Soft delete ====
+    @Column(name = "delete_at")
+    private Boolean deleteAt = false;
 }
