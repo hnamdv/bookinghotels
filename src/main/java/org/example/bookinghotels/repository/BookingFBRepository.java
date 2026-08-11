@@ -10,8 +10,6 @@ import java.util.List;
 
 @Repository
 public interface BookingFBRepository extends JpaRepository<BookingFB, Integer> {
-
-    // Tìm BookingFB theo BookingDetail ID
-    @Query("SELECT bf FROM BookingFB bf WHERE bf.bookingDetail.id = :bookingDetailId")
+    @Query("SELECT bfb FROM BookingFB bfb LEFT JOIN FETCH bfb.fwb WHERE bfb.bookingDetail.id = :bookingDetailId")
     List<BookingFB> findByBookingDetailId(@Param("bookingDetailId") Integer bookingDetailId);
 }

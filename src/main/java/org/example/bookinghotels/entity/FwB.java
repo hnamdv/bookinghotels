@@ -3,13 +3,10 @@ package org.example.bookinghotels.entity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.bookinghotels.listener.ActivityLogListener;
-
 import java.util.Map;
 
 @Entity
 @Table(name = "fwb")
-@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -77,4 +74,38 @@ public class FwB {
         // Mặc định trả về 0 nếu trường text không chứa cấu trúc giá JSON
         return 0.0;
     }
+
+
+    public String getUnit() {
+        Object value = getJsonValue("unit");
+        return value == null || value.toString().isBlank() ? "lượt" : value.toString();
+    }
+
+    public String getCategory() {
+        Object value = getJsonValue("category");
+        return value == null || value.toString().isBlank() ? "Dịch vụ phòng" : value.toString();
+    }
+
+    public String getImage() {
+        Object value = getJsonValue("image");
+        return value == null ? "" : value.toString();
+    }
+
+    private Object getJsonValue(String key) {
+        if (this.description == null || this.description.trim().isEmpty()) {
+            return null;
+        }
+        String trimmed = this.description.trim();
+        if (!trimmed.startsWith("{")) {
+            return null;
+        }
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> data = mapper.readValue(trimmed, Map.class);
+            return data == null ? null : data.get(key);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 }

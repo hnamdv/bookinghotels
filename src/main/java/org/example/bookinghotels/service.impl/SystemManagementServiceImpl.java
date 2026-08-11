@@ -8,7 +8,6 @@ import org.example.bookinghotels.entity.PromotionRoomType;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.SystemManagementService;
-import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -43,7 +42,6 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
     @Autowired
     private BookingDetailRepository bookingDetailRepository;
-
     @Override
     public Promotion savePromotion(Promotion promotion) {
         validatePromotion(promotion);
@@ -85,6 +83,11 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     public void deletePromotion(Integer id) {
         Promotion promotion = getPromotionById(id);
         promotionRepository.delete(promotion);
+    }
+
+    @Override
+    public PromotionCheckResponse checkPromotionCode(String code) {
+        return checkPromotionCode(code, null);
     }
 
     @Override
@@ -190,7 +193,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
     @Override
     public List<ActivityLog> getAllLogs() {
-        return activityLogRepository.findAllByOrderByCreatedAtDesc();
+        return activityLogRepository.findAll();
     }
 
     private void validatePromotion(Promotion promotion) {
@@ -233,7 +236,6 @@ public class SystemManagementServiceImpl implements SystemManagementService {
             }
         }
     }
-
     @Override
     public List<RevenueDTO> getRevenueByDay() {
 
@@ -289,6 +291,51 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                 Math.round(occupancyRate * 100.0) / 100.0
         );
     }
+    @Override
+    public List<RevenueDTO> getRevenueByDay(LocalDate fromDate, LocalDate toDate) {
+        return invoicesRepository.findAll()
+                .stream()
+                .filter(invoice -> invoice.getInvoiceDate() != null)
+                .filter(invoice -> fromDate == null || !invoice.getInvoiceDate().toLocalDate().isBefore(fromDate))
+                .filter(invoice -> toDate == null || !invoice.getInvoiceDate().toLocalDate().isAfter(toDate))
+                .collect(java.util.stream.Collectors.groupingBy(
+                        invoice -> invoice.getInvoiceDate().toLocalDate().toString(),
+                        java.util.TreeMap::new,
+                        java.util.stream.Collectors.summingDouble(invoice -> invoice.getTotalAmount() == null ? 0.0 : invoice.getTotalAmount())
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> new RevenueDTO(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    @Override
+    public List<RevenueDTO> getRevenueByMonth(Integer month, Integer year) {
+        return invoicesRepository.findAll()
+                .stream()
+                .filter(invoice -> invoice.getInvoiceDate() != null)
+                .filter(invoice -> month == null || invoice.getInvoiceDate().getMonthValue() == month)
+                .filter(invoice -> year == null || invoice.getInvoiceDate().getYear() == year)
+                .collect(java.util.stream.Collectors.groupingBy(
+                        invoice -> String.format("%04d-%02d", invoice.getInvoiceDate().getYear(), invoice.getInvoiceDate().getMonthValue()),
+                        java.util.TreeMap::new,
+                        java.util.stream.Collectors.summingDouble(invoice -> invoice.getTotalAmount() == null ? 0.0 : invoice.getTotalAmount())
+                ))
+                .entrySet()
+                .stream()
+                .map(entry -> new RevenueDTO(entry.getKey(), entry.getValue()))
+                .toList();
+    }
+
+    @Override
+    public long getInvoiceCount(LocalDate fromDate, LocalDate toDate) {
+        return invoicesRepository.findAll()
+                .stream()
+                .filter(invoice -> invoice.getInvoiceDate() != null)
+                .filter(invoice -> fromDate == null || !invoice.getInvoiceDate().toLocalDate().isBefore(fromDate))
+                .filter(invoice -> toDate == null || !invoice.getInvoiceDate().toLocalDate().isAfter(toDate))
+                .count();
+    }
 
     @Override
     public List<RoomType> getAllRoomTypes() {
@@ -297,38 +344,30 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
     @Override
     public void updatePromotionRoomTypes(Integer id, List<Integer> roomTypeIds) {
-
-    }
-
-    @Override
-    public @Nullable Object getRoomTypeIdsByPromotion(Integer id) {
-        return null;
-    }
-
-    @Override
-    public List<RevenueDTO> getRevenueByDay(LocalDate fromDate, LocalDate toDate) {
-        return invoicesRepository.getRevenueByDayFiltered(fromDate, toDate)
+        Promotion promotion = getPromotionById(id);
+        List<PromotionRoomType> existing = promotionRoomTypeRepository.findAll()
                 .stream()
-                .map(item -> new RevenueDTO(
-                        item[0].toString(),
-                        ((Number) item[1]).doubleValue()
-                ))
+                .filter(item -> item.getPromotion() != null && item.getPromotion().getId() != null && item.getPromotion().getId().equals(id))
                 .toList();
+        promotionRoomTypeRepository.deleteAll(existing);
+        if (roomTypeIds == null) return;
+        for (Integer roomTypeId : roomTypeIds) {
+            RoomType roomType = roomTypeRepository.findById(roomTypeId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loại phòng không tồn tại"));
+            PromotionRoomType mapping = new PromotionRoomType();
+            mapping.setPromotion(promotion);
+            mapping.setRoomType(roomType);
+            promotionRoomTypeRepository.save(mapping);
+        }
     }
 
     @Override
-    public List<RevenueDTO> getRevenueByMonth(Integer month, Integer year) {
-        return invoicesRepository.getRevenueByMonthFiltered(month, year)
+    public Object getRoomTypeIdsByPromotion(Integer id) {
+        return promotionRoomTypeRepository.findAll()
                 .stream()
-                .map(item -> new RevenueDTO(
-                        item[0].toString(),
-                        ((Number) item[1]).doubleValue()
-                ))
+                .filter(item -> item.getPromotion() != null && item.getPromotion().getId() != null && item.getPromotion().getId().equals(id))
+                .filter(item -> item.getRoomType() != null && item.getRoomType().getId() != null)
+                .map(item -> item.getRoomType().getId())
                 .toList();
-    }
-
-    @Override
-    public long getInvoiceCount(LocalDate fromDate, LocalDate toDate) {
-        return invoicesRepository.countFiltered(fromDate, toDate);
     }
 }

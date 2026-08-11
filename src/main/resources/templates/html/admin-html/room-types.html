@@ -7,7 +7,7 @@
         .form-control,.form-select{border-radius:10px}.brand-btn{background:#bd6c3c;color:#fff;border:0;border-radius:10px;padding:10px 20px}.brand-btn:hover{background:#9d5830;color:#fff}
         .image-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px}.image-option{position:relative;border:2px solid transparent;border-radius:12px;overflow:hidden;background:#f5f5f5}.image-option img{width:100%;height:90px;object-fit:cover}.image-option input{position:absolute;top:7px;right:7px;width:18px;height:18px}
         .thumbs{display:flex;gap:6px}.thumbs img{width:48px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
-        table td,table th{vertical-align:middle}
+        table td,table th{vertical-align:middle}.amenity-pick{display:flex;flex-wrap:wrap;gap:10px}.amenity-pick label{border:1px solid #dfc7aa;border-radius:999px;padding:8px 14px;background:#fffaf3;cursor:pointer}.amenity-pick input{margin-right:6px}.empty-amenities{border:1px dashed #d8c5ad;border-radius:12px;padding:14px;color:#7b6c5b;background:#fffaf7}
     </style>
 </head>
 <body>
@@ -29,13 +29,39 @@
                 <div class="col-md-3"><label class="form-label">Sức chứa *</label><input class="form-control" type="number" min="1" name="capacity" required th:value="${editRoomType!=null?editRoomType.capacity:1}"></div>
                 <div class="col-md-3"><label class="form-label">Diện tích (m²)</label><input class="form-control" type="number" min="0" step="0.1" name="area" th:value="${editRoomType != null ? editRoomType.area : ''}"></div>
                 <div class="col-md-6"><label class="form-label">Loại giường</label><input class="form-control" name="bed" th:value="${editRoomType != null ? editRoomType.bed : ''}"></div>
-                <div class="col-md-6"><label class="form-label">Tùy chọn giường</label><input class="form-control" name="bedOptions" th:value="${editRoomType != null ? editRoomType.bedOptions : ''}"></div>
+                <div class="col-md-6"><label class="form-label">Tùy chọn giường / nôi / giường phụ</label><input class="form-control" name="bedOptions" placeholder="VD: Có thể thêm 1 nôi trẻ em hoặc 1 giường phụ, phụ thu theo dịch vụ phòng" th:value="${editRoomType != null ? editRoomType.bedOptions : ''}"></div>
                 <div class="col-12"><label class="form-label">Mô tả</label><textarea class="form-control" rows="3" name="description" th:text="${editRoomType != null ? editRoomType.description : ''}"></textarea></div>
-                <div class="col-12 d-flex gap-4 flex-wrap">
-                    <label><input type="checkbox" name="hasWifi" value="true" th:checked="${editRoomType != null and editRoomType.hasWifi}"> Wi-Fi</label>
-                    <label><input type="checkbox" name="hasTv" value="true" th:checked="${editRoomType != null and editRoomType.hasTv}"> TV</label>
-                    <label><input type="checkbox" name="hasBathtub" value="true" th:checked="${editRoomType != null and editRoomType.hasBathtub}"> Bồn tắm</label>
-                    <label><input type="checkbox" name="hasBalcony" value="true" th:checked="${editRoomType != null and editRoomType.hasBalcony}"> Ban công</label>
+                <div class="col-12">
+                    <div class="text-muted small mb-2">
+                        Tiện nghi cố định mặc định có trong RoomType:
+                    </div>
+                    <div class="d-flex gap-4 flex-wrap mb-3">
+                        <label><input type="checkbox" name="hasWifi" value="true" th:checked="${editRoomType != null and editRoomType.hasWifi}"> Wi-Fi</label>
+                        <label><input type="checkbox" name="hasTv" value="true" th:checked="${editRoomType != null and editRoomType.hasTv}"> TV</label>
+                        <label><input type="checkbox" name="hasBathtub" value="true" th:checked="${editRoomType != null and editRoomType.hasBathtub}"> Bồn tắm</label>
+                        <label><input type="checkbox" name="hasBalcony" value="true" th:checked="${editRoomType != null and editRoomType.hasBalcony}"> Ban công</label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div>
+                            <b>Tiện ích mở rộng từ Quản lý tiện ích phòng</b>
+                            <div class="text-muted small">
+                                Tạo tiện ích giá 0đ ở mục Quản lý tiện ích phòng, sau đó tick vào loại phòng tại đây. Các mục có giá lớn hơn 0 vẫn dùng để khách chọn thêm khi đặt phòng.
+                            </div>
+                        </div>
+                        <a class="btn btn-outline-secondary btn-sm" th:href="@{/staff/fwb/amenities}">Quản lý tiện ích</a>
+                    </div>
+
+                    <div class="amenity-pick" th:if="${roomAmenityOptions != null and !#lists.isEmpty(roomAmenityOptions)}">
+                        <label th:each="amenity:${roomAmenityOptions}">
+                            <input type="checkbox" name="roomAmenityIds" th:value="${amenity.id}"
+                                   th:checked="${selectedAmenityIds != null and #lists.contains(selectedAmenityIds, amenity.id)}">
+                            <span th:text="${amenity.name}">Sofa</span>
+                        </label>
+                    </div>
+                    <div class="empty-amenities" th:if="${roomAmenityOptions == null or #lists.isEmpty(roomAmenityOptions)}">
+                        Chưa có tiện ích mở rộng. Hãy vào Quản lý tiện ích phòng, tạo Sofa/Phòng tắm/Máy lạnh với giá 0đ để tick cho loại phòng.
+                    </div>
                 </div>
                 <div class="col-md-6"><label class="form-label">Áp chương trình ưu đãi</label><select class="form-select" name="promotionId"><option value="">Không áp ưu đãi</option><option th:each="p:${promotions}" th:value="${p.id}" th:text="|${p.promotionName} - ${p.discountPercent}%|" th:selected="${selectedPromotionIds!=null and #lists.contains(selectedPromotionIds,p.id)}"></option></select></div>
                 <div class="col-12"><div class="d-flex justify-content-between"><label class="form-label fw-semibold">Chọn ảnh từ thư viện</label><a th:href="@{/admin/media}">Tải thêm ảnh</a></div><div class="image-picker"><label class="image-option" th:each="m:${mediaList}"><img th:src="${m.fileUrl}"><input type="checkbox" name="mediaIds" th:value="${m.id}" th:checked="${selectedImageUrls!=null and #lists.contains(selectedImageUrls,m.fileUrl)}"></label></div></div>
