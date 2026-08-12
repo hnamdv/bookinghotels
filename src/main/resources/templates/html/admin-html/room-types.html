@@ -1,89 +1,924 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{homeadmin}">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{homeadmin}">
+
 <head>
     <title>Quản lý loại phòng</title>
+
     <style>
-        .page-card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
-        .form-control,.form-select{border-radius:10px}.brand-btn{background:#bd6c3c;color:#fff;border:0;border-radius:10px;padding:10px 20px}.brand-btn:hover{background:#9d5830;color:#fff}
-        .image-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px}.image-option{position:relative;border:2px solid transparent;border-radius:12px;overflow:hidden;background:#f5f5f5}.image-option img{width:100%;height:90px;object-fit:cover}.image-option input{position:absolute;top:7px;right:7px;width:18px;height:18px}
-        .thumbs{display:flex;gap:6px}.thumbs img{width:48px;height:38px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
-        table td,table th{vertical-align:middle}.amenity-pick{display:flex;flex-wrap:wrap;gap:10px}.amenity-pick label{border:1px solid #dfc7aa;border-radius:999px;padding:8px 14px;background:#fffaf3;cursor:pointer}.amenity-pick input{margin-right:6px}.empty-amenities{border:1px dashed #d8c5ad;border-radius:12px;padding:14px;color:#7b6c5b;background:#fffaf7}
+        .page-card {
+            background: #fff;
+            border: 1px solid #e9e9e9;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.03);
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 10px;
+        }
+
+        .brand-btn {
+            background: #bd6c3c;
+            color: #fff;
+            border: 0;
+            border-radius: 10px;
+            padding: 10px 20px;
+        }
+
+        .brand-btn:hover {
+            background: #9d5830;
+            color: #fff;
+        }
+
+        .image-picker {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 12px;
+        }
+
+        .image-option {
+            position: relative;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+        .image-option img {
+            width: 100%;
+            height: 90px;
+            object-fit: cover;
+        }
+
+        .image-option input {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 18px;
+            height: 18px;
+        }
+
+        .thumbs {
+            display: flex;
+            gap: 6px;
+        }
+
+        .thumbs img {
+            width: 48px;
+            height: 38px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+
+        table td,
+        table th {
+            vertical-align: middle;
+        }
+
+        .amenity-pick {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .amenity-pick label {
+            border: 1px solid #dfc7aa;
+            border-radius: 999px;
+            padding: 8px 14px;
+            background: #fffaf3;
+            cursor: pointer;
+        }
+
+        .amenity-pick input {
+            margin-right: 6px;
+        }
+
+        .empty-amenities {
+            border: 1px dashed #d8c5ad;
+            border-radius: 12px;
+            padding: 14px;
+            color: #7b6c5b;
+            background: #fffaf7;
+        }
+
+        /* Chi nhánh active */
+        .active-hotel-box {
+            background: #fff8f2;
+            border: 1px solid #e7c9ae;
+            border-radius: 10px;
+        }
+
+        .active-hotel-label {
+            font-size: 13px;
+            color: #8a6a52;
+            margin-bottom: 4px;
+        }
+
+        .active-hotel-name {
+            font-weight: 600;
+            color: #bd6c3c;
+        }
     </style>
 </head>
+
 <body>
+
 <div layout:fragment="content">
-    <div class="mb-4"><h2 class="fw-bold">Quản lý loại phòng</h2><p class="text-muted">Khách đặt loại phòng; số phòng thực tế chỉ được phân khi khách nhận phòng.</p></div>
-    <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
-    <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+
+    <!-- ========================= -->
+    <!-- TIÊU ĐỀ -->
+    <!-- ========================= -->
+
+    <div class="mb-4">
+
+        <h2 class="fw-bold">
+            Quản lý loại phòng
+        </h2>
+
+        <p class="text-muted">
+            Khách đặt loại phòng; số phòng thực tế chỉ được phân khi khách nhận phòng.
+        </p>
+
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- THÔNG BÁO -->
+    <!-- ========================= -->
+
+    <div
+            th:if="${success}"
+            class="alert alert-success"
+            th:text="${success}">
+    </div>
+
+    <div
+            th:if="${error}"
+            class="alert alert-danger"
+            th:text="${error}">
+    </div>
+
+
+    <!-- ========================= -->
+    <!-- FORM -->
+    <!-- ========================= -->
 
     <div class="page-card mb-4">
-        <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold m-0" th:text="${editRoomType==null?'Tạo loại phòng mới':'Cập nhật loại phòng'}"></h5><a class="btn btn-outline-secondary btn-sm" th:if="${editRoomType!=null}" th:href="@{/admin/room-types}">Hủy sửa</a></div>
-        <form th:action="@{/admin/room-types/save}" method="post">
-            <input type="hidden" name="id" th:value="${editRoomType != null ? editRoomType.id : ''}">
+
+        <div class="d-flex justify-content-between align-items-center mb-3">
+
+            <h5
+                    class="fw-bold m-0"
+                    th:text="${editRoomType == null
+                        ? 'Tạo loại phòng mới'
+                        : 'Cập nhật loại phòng'}">
+            </h5>
+
+            <a
+                    class="btn btn-outline-secondary btn-sm"
+                    th:if="${editRoomType != null}"
+                    th:href="@{/admin/room-types}">
+                Hủy sửa
+            </a>
+
+        </div>
+
+
+        <form
+                th:action="@{/admin/room-types/save}"
+                method="post">
+
+            <!-- ID khi cập nhật -->
+            <input
+                    type="hidden"
+                    name="id"
+                    th:value="${editRoomType != null
+                        ? editRoomType.id
+                        : ''}">
+
+
             <div class="row g-3">
-                <div class="col-md-6"><label class="form-label">Tên loại phòng *</label><input class="form-control" name="nameType" required th:value="${editRoomType != null ? editRoomType.nameType : ''}"></div>
-                <div class="col-md-3"><label class="form-label">Khách sạn</label><select class="form-select" name="hotelId"><option value="">-- Chọn khách sạn --</option><option th:each="h:${hotels}" th:value="${h.id}" th:text="${h.name}" th:selected="${editRoomType!=null and editRoomType.hotels!=null and editRoomType.hotels.id==h.id}"></option></select></div>
-                <div class="col-md-3"><label class="form-label">Tổng số phòng *</label><input class="form-control" type="number" min="1" name="totalRooms" required th:value="${editRoomType!=null?editRoomType.totalRooms:1}"></div>
-                <div class="col-md-3"><label class="form-label">Giá phòng *</label><input class="form-control" type="number" min="0" step="1000" name="price" required th:value="${editRoomType != null ? editRoomType.price : ''}"></div>
-                <div class="col-md-3"><label class="form-label">Thuế và phí</label><input class="form-control" type="number" min="0" step="1000" name="taxAndFee" th:value="${editRoomType!=null?editRoomType.taxAndFee:0}"></div>
-                <div class="col-md-3"><label class="form-label">Sức chứa *</label><input class="form-control" type="number" min="1" name="capacity" required th:value="${editRoomType!=null?editRoomType.capacity:1}"></div>
-                <div class="col-md-3"><label class="form-label">Diện tích (m²)</label><input class="form-control" type="number" min="0" step="0.1" name="area" th:value="${editRoomType != null ? editRoomType.area : ''}"></div>
-                <div class="col-md-6"><label class="form-label">Loại giường</label><input class="form-control" name="bed" th:value="${editRoomType != null ? editRoomType.bed : ''}"></div>
-                <div class="col-md-6"><label class="form-label">Tùy chọn giường / nôi / giường phụ</label><input class="form-control" name="bedOptions" placeholder="VD: Có thể thêm 1 nôi trẻ em hoặc 1 giường phụ, phụ thu theo dịch vụ phòng" th:value="${editRoomType != null ? editRoomType.bedOptions : ''}"></div>
-                <div class="col-12"><label class="form-label">Mô tả</label><textarea class="form-control" rows="3" name="description" th:text="${editRoomType != null ? editRoomType.description : ''}"></textarea></div>
+
+
+                <!-- ========================= -->
+                <!-- TÊN LOẠI PHÒNG -->
+                <!-- ========================= -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Tên loại phòng *
+                    </label>
+
+                    <input
+                            class="form-control"
+                            name="nameType"
+                            required
+                            th:value="${editRoomType != null
+                                ? editRoomType.nameType
+                                : ''}"
+                            placeholder="Ví dụ: Deluxe Room">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- CHI NHÁNH ACTIVE -->
+                <!-- ========================= -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Chi nhánh đang hoạt động
+                    </label>
+
+                    <div class="active-hotel-box p-2">
+
+                        <div class="active-hotel-label">
+                            Đang làm việc tại
+                        </div>
+
+                        <div
+                                class="active-hotel-name"
+                                th:text="${activeHotel != null
+                                    ? activeHotel.name
+                                    : 'Chưa chọn chi nhánh'}">
+                            Chưa chọn chi nhánh
+                        </div>
+
+                    </div>
+
+                    <!--
+                        Gửi ID chi nhánh active lên server.
+                        Backend vẫn sẽ kiểm tra lại activeHotelId
+                        trong Session.
+                    -->
+                    <input
+                            type="hidden"
+                            name="hotelId"
+                            th:value="${activeHotel != null
+                                ? activeHotel.id
+                                : ''}">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- TỔNG SỐ PHÒNG -->
+                <!-- ========================= -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Tổng số phòng *
+                    </label>
+
+                    <input
+                            class="form-control"
+                            type="number"
+                            min="1"
+                            name="totalRooms"
+                            required
+                            th:value="${editRoomType != null
+                                ? editRoomType.totalRooms
+                                : 1}">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- GIÁ -->
+                <!-- ========================= -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Giá phòng *
+                    </label>
+
+                    <input
+                            class="form-control"
+                            type="number"
+                            min="0"
+                            step="1000"
+                            name="price"
+                            required
+                            th:value="${editRoomType != null
+                                ? editRoomType.price
+                                : ''}">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- THUẾ PHÍ -->
+                <!-- ========================= -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Thuế và phí
+                    </label>
+
+                    <input
+                            class="form-control"
+                            type="number"
+                            min="0"
+                            step="1000"
+                            name="taxAndFee"
+                            th:value="${editRoomType != null
+                                ? editRoomType.taxAndFee
+                                : 0}">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- SỨC CHỨA -->
+                <!-- ========================= -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Sức chứa *
+                    </label>
+
+                    <input
+                            class="form-control"
+                            type="number"
+                            min="1"
+                            name="capacity"
+                            required
+                            th:value="${editRoomType != null
+                                ? editRoomType.capacity
+                                : 1}">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- DIỆN TÍCH -->
+                <!-- ========================= -->
+
+                <div class="col-md-3">
+
+                    <label class="form-label">
+                        Diện tích (m²)
+                    </label>
+
+                    <input
+                            class="form-control"
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            name="area"
+                            th:value="${editRoomType != null
+                                ? editRoomType.area
+                                : ''}">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- LOẠI GIƯỜNG -->
+                <!-- ========================= -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Loại giường
+                    </label>
+
+                    <input
+                            class="form-control"
+                            name="bed"
+                            th:value="${editRoomType != null
+                                ? editRoomType.bed
+                                : ''}"
+                            placeholder="Ví dụ: 1 giường đôi">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- BED OPTIONS -->
+                <!-- ========================= -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Tùy chọn giường / nôi / giường phụ
+                    </label>
+
+                    <input
+                            class="form-control"
+                            name="bedOptions"
+                            placeholder="VD: Có thể thêm 1 nôi trẻ em hoặc 1 giường phụ, phụ thu theo dịch vụ phòng"
+                            th:value="${editRoomType != null
+                                ? editRoomType.bedOptions
+                                : ''}">
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- MÔ TẢ -->
+                <!-- ========================= -->
+
                 <div class="col-12">
+
+                    <label class="form-label">
+                        Mô tả
+                    </label>
+
+                    <textarea
+                            class="form-control"
+                            rows="3"
+                            name="description"
+                            th:text="${editRoomType != null
+                                ? editRoomType.description
+                                : ''}">
+                    </textarea>
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- TIỆN NGHI -->
+                <!-- ========================= -->
+
+                <div class="col-12">
+
                     <div class="text-muted small mb-2">
                         Tiện nghi cố định mặc định có trong RoomType:
                     </div>
+
                     <div class="d-flex gap-4 flex-wrap mb-3">
-                        <label><input type="checkbox" name="hasWifi" value="true" th:checked="${editRoomType != null and editRoomType.hasWifi}"> Wi-Fi</label>
-                        <label><input type="checkbox" name="hasTv" value="true" th:checked="${editRoomType != null and editRoomType.hasTv}"> TV</label>
-                        <label><input type="checkbox" name="hasBathtub" value="true" th:checked="${editRoomType != null and editRoomType.hasBathtub}"> Bồn tắm</label>
-                        <label><input type="checkbox" name="hasBalcony" value="true" th:checked="${editRoomType != null and editRoomType.hasBalcony}"> Ban công</label>
+
+                        <label>
+                            <input
+                                    type="checkbox"
+                                    name="hasWifi"
+                                    value="true"
+                                    th:checked="${editRoomType != null
+                                        and editRoomType.hasWifi}">
+                            Wi-Fi
+                        </label>
+
+                        <label>
+                            <input
+                                    type="checkbox"
+                                    name="hasTv"
+                                    value="true"
+                                    th:checked="${editRoomType != null
+                                        and editRoomType.hasTv}">
+                            TV
+                        </label>
+
+                        <label>
+                            <input
+                                    type="checkbox"
+                                    name="hasBathtub"
+                                    value="true"
+                                    th:checked="${editRoomType != null
+                                        and editRoomType.hasBathtub}">
+                            Bồn tắm
+                        </label>
+
+                        <label>
+                            <input
+                                    type="checkbox"
+                                    name="hasBalcony"
+                                    value="true"
+                                    th:checked="${editRoomType != null
+                                        and editRoomType.hasBalcony}">
+                            Ban công
+                        </label>
+
                     </div>
+
+
+                    <!-- ========================= -->
+                    <!-- TIỆN ÍCH MỞ RỘNG -->
+                    <!-- ========================= -->
 
                     <div class="d-flex justify-content-between align-items-center mb-2">
+
                         <div>
-                            <b>Tiện ích mở rộng từ Quản lý tiện ích phòng</b>
+
+                            <b>
+                                Tiện ích mở rộng từ Quản lý tiện ích phòng
+                            </b>
+
                             <div class="text-muted small">
-                                Tạo tiện ích giá 0đ ở mục Quản lý tiện ích phòng, sau đó tick vào loại phòng tại đây. Các mục có giá lớn hơn 0 vẫn dùng để khách chọn thêm khi đặt phòng.
+
+                                Tạo tiện ích giá 0đ ở mục Quản lý tiện ích phòng,
+                                sau đó tick vào loại phòng tại đây.
+                                Các mục có giá lớn hơn 0 vẫn dùng để khách chọn thêm
+                                khi đặt phòng.
+
                             </div>
+
                         </div>
-                        <a class="btn btn-outline-secondary btn-sm" th:href="@{/staff/fwb/amenities}">Quản lý tiện ích</a>
+
+                        <a
+                                class="btn btn-outline-secondary btn-sm"
+                                th:href="@{/staff/fwb/amenities}">
+                            Quản lý tiện ích
+                        </a>
+
                     </div>
 
-                    <div class="amenity-pick" th:if="${roomAmenityOptions != null and !#lists.isEmpty(roomAmenityOptions)}">
-                        <label th:each="amenity:${roomAmenityOptions}">
-                            <input type="checkbox" name="roomAmenityIds" th:value="${amenity.id}"
-                                   th:checked="${selectedAmenityIds != null and #lists.contains(selectedAmenityIds, amenity.id)}">
-                            <span th:text="${amenity.name}">Sofa</span>
+
+                    <div
+                            class="amenity-pick"
+                            th:if="${roomAmenityOptions != null
+                                and !#lists.isEmpty(roomAmenityOptions)}">
+
+                        <label
+                                th:each="amenity:${roomAmenityOptions}">
+
+                            <input
+                                    type="checkbox"
+                                    name="roomAmenityIds"
+                                    th:value="${amenity.id}"
+                                    th:checked="${selectedAmenityIds != null
+                                        and #lists.contains(
+                                            selectedAmenityIds,
+                                            amenity.id
+                                        )}">
+
+                            <span th:text="${amenity.name}">
+                                Sofa
+                            </span>
+
                         </label>
+
                     </div>
-                    <div class="empty-amenities" th:if="${roomAmenityOptions == null or #lists.isEmpty(roomAmenityOptions)}">
-                        Chưa có tiện ích mở rộng. Hãy vào Quản lý tiện ích phòng, tạo Sofa/Phòng tắm/Máy lạnh với giá 0đ để tick cho loại phòng.
+
+
+                    <div
+                            class="empty-amenities"
+                            th:if="${roomAmenityOptions == null
+                                or #lists.isEmpty(roomAmenityOptions)}">
+
+                        Chưa có tiện ích mở rộng.
+                        Hãy vào Quản lý tiện ích phòng,
+                        tạo Sofa/Phòng tắm/Máy lạnh với giá 0đ
+                        để tick cho loại phòng.
+
                     </div>
+
                 </div>
-                <div class="col-md-6"><label class="form-label">Áp chương trình ưu đãi</label><select class="form-select" name="promotionId"><option value="">Không áp ưu đãi</option><option th:each="p:${promotions}" th:value="${p.id}" th:text="|${p.promotionName} - ${p.discountPercent}%|" th:selected="${selectedPromotionIds!=null and #lists.contains(selectedPromotionIds,p.id)}"></option></select></div>
-                <div class="col-12"><div class="d-flex justify-content-between"><label class="form-label fw-semibold">Chọn ảnh từ thư viện</label><a th:href="@{/admin/media}">Tải thêm ảnh</a></div><div class="image-picker"><label class="image-option" th:each="m:${mediaList}"><img th:src="${m.fileUrl}"><input type="checkbox" name="mediaIds" th:value="${m.id}" th:checked="${selectedImageUrls!=null and #lists.contains(selectedImageUrls,m.fileUrl)}"></label></div></div>
+
+
+                <!-- ========================= -->
+                <!-- KHUYẾN MÃI -->
+                <!-- ========================= -->
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Áp chương trình ưu đãi
+                    </label>
+
+                    <select
+                            class="form-select"
+                            name="promotionId">
+
+                        <option value="">
+                            Không áp ưu đãi
+                        </option>
+
+                        <option
+                                th:each="p:${promotions}"
+                                th:value="${p.id}"
+                                th:text="|${p.promotionName} - ${p.discountPercent}%|"
+                                th:selected="${selectedPromotionIds != null
+                                    and #lists.contains(
+                                        selectedPromotionIds,
+                                        p.id
+                                    )}">
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- ẢNH -->
+                <!-- ========================= -->
+
+                <div class="col-12">
+
+                    <div class="d-flex justify-content-between">
+
+                        <label class="form-label fw-semibold">
+                            Chọn ảnh từ thư viện
+                        </label>
+
+                        <a th:href="@{/admin/media}">
+                            Tải thêm ảnh
+                        </a>
+
+                    </div>
+
+
+                    <div class="image-picker">
+
+                        <label
+                                class="image-option"
+                                th:each="m:${mediaList}">
+
+                            <img
+                                    th:src="${m.fileUrl}"
+                                    alt="Ảnh loại phòng">
+
+                            <input
+                                    type="checkbox"
+                                    name="mediaIds"
+                                    th:value="${m.id}"
+                                    th:checked="${selectedImageUrls != null
+                                        and #lists.contains(
+                                            selectedImageUrls,
+                                            m.fileUrl
+                                        )}">
+
+                        </label>
+
+                    </div>
+
+                </div>
+
             </div>
-            <div class="mt-4"><button class="brand-btn" type="submit"><i class="fa-solid fa-floppy-disk me-2"></i><span th:text="${editRoomType==null?'Tạo loại phòng':'Lưu thay đổi'}"></span></button></div>
+
+
+            <!-- ========================= -->
+            <!-- NÚT LƯU -->
+            <!-- ========================= -->
+
+            <div class="mt-4">
+
+                <button
+                        class="brand-btn"
+                        type="submit">
+
+                    <i class="fa-solid fa-floppy-disk me-2"></i>
+
+                    <span
+                            th:text="${editRoomType == null
+                                ? 'Tạo loại phòng'
+                                : 'Lưu thay đổi'}">
+                    </span>
+
+                </button>
+
+            </div>
+
         </form>
+
     </div>
+
+
+    <!-- ========================= -->
+    <!-- DANH SÁCH LOẠI PHÒNG -->
+    <!-- ========================= -->
 
     <div class="page-card">
-        <div class="d-flex justify-content-between mb-3"><h5 class="fw-bold">Danh sách loại phòng</h5><span class="badge bg-light text-dark border" th:text="|${#lists.size(roomTypes)} loại phòng|"></span></div>
-        <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Loại phòng</th><th>Khách sạn</th><th>Giá</th><th>Số lượng</th><th>Ưu đãi</th><th>Ảnh</th><th class="text-end">Thao tác</th></tr></thead><tbody>
-            <tr th:each="rt:${roomTypes}">
-                <td><div class="fw-bold" th:text="${rt.nameType}"></div><small class="text-muted" th:text="|${rt.capacity} khách · ${rt.area!=null?rt.area:0} m²|"></small></td>
-                <td th:text="${rt.hotels!=null?rt.hotels.name:'Chưa chọn'}"></td>
-                <td class="fw-semibold" th:text="|${#numbers.formatDecimal(rt.price,0,'POINT',0,'COMMA')} đ|"></td>
-                <td th:text="${rt.totalRooms}"></td>
-                <td><span th:if="${promotionByRoomType[rt.id] != null}" class="badge bg-success-subtle text-success" th:text="|-${promotionByRoomType[rt.id].promotion.discountPercent}%|"></span><span class="text-muted" th:if="${promotionByRoomType[rt.id] == null}">Không có</span></td>
-                <td><div class="thumbs"><img th:each="img,st:${rt.images}" th:if="${st.index<3}" th:src="${img.image}"></div><small class="text-muted" th:text="|${rt.images!=null?#lists.size(rt.images):0} ảnh|"></small></td>
-                <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/admin/room-types(editId=${rt.id})}"><i class="fa-solid fa-pen"></i></a><form class="d-inline" th:action="@{/admin/room-types/{id}/delete(id=${rt.id})}" method="post"><button class="btn btn-sm btn-outline-danger" type="submit"><i class="fa-solid fa-trash"></i></button></form></td>
-            </tr>
-        </tbody></table></div>
+
+        <div class="d-flex justify-content-between mb-3">
+
+            <div>
+
+                <h5 class="fw-bold mb-1">
+                    Danh sách loại phòng
+                </h5>
+
+                <small
+                        class="text-muted"
+                        th:if="${activeHotel != null}">
+                    Chi nhánh:
+                    <strong th:text="${activeHotel.name}">
+                        Chi nhánh
+                    </strong>
+                </small>
+
+            </div>
+
+            <span
+                    class="badge bg-light text-dark border"
+                    th:text="|${#lists.size(roomTypes)} loại phòng|">
+            </span>
+
+        </div>
+
+
+        <div class="table-responsive">
+
+            <table class="table align-middle">
+
+                <thead>
+
+                <tr>
+
+                    <th>
+                        Loại phòng
+                    </th>
+
+                    <th>
+                        Khách sạn
+                    </th>
+
+                    <th>
+                        Giá
+                    </th>
+
+                    <th>
+                        Số lượng
+                    </th>
+
+                    <th>
+                        Ưu đãi
+                    </th>
+
+                    <th>
+                        Ảnh
+                    </th>
+
+                    <th class="text-end">
+                        Thao tác
+                    </th>
+
+                </tr>
+
+                </thead>
+
+
+                <tbody>
+
+                <tr th:each="rt:${roomTypes}">
+
+                    <!-- TÊN -->
+                    <td>
+
+                        <div
+                                class="fw-bold"
+                                th:text="${rt.nameType}">
+                        </div>
+
+                        <small
+                                class="text-muted"
+                                th:text="|${rt.capacity} khách · ${rt.area != null ? rt.area : 0} m²|">
+                        </small>
+
+                    </td>
+
+
+                    <!-- CHI NHÁNH -->
+                    <td>
+
+                        <span
+                                th:if="${rt.hotels != null}"
+                                th:text="${rt.hotels.name}">
+                        </span>
+
+                        <span
+                                class="text-muted"
+                                th:if="${rt.hotels == null}">
+                            Chưa chọn
+                        </span>
+
+                    </td>
+
+
+                    <!-- GIÁ -->
+                    <td class="fw-semibold">
+
+                        <span
+                                th:text="|${#numbers.formatDecimal(
+                                    rt.price,
+                                    0,
+                                    'POINT',
+                                    0,
+                                    'COMMA'
+                                )} đ|">
+                        </span>
+
+                    </td>
+
+
+                    <!-- SỐ LƯỢNG -->
+                    <td th:text="${rt.totalRooms}">
+                    </td>
+
+
+                    <!-- ƯU ĐÃI -->
+                    <td>
+
+                        <span
+                                th:if="${promotionByRoomType[rt.id] != null}"
+                                class="badge bg-success-subtle text-success"
+                                th:text="|-${promotionByRoomType[rt.id].promotion.discountPercent}%|">
+                        </span>
+
+                        <span
+                                class="text-muted"
+                                th:if="${promotionByRoomType[rt.id] == null}">
+                            Không có
+                        </span>
+
+                    </td>
+
+
+                    <!-- ẢNH -->
+                    <td>
+
+                        <div class="thumbs">
+
+                            <img
+                                    th:each="img,st:${rt.images}"
+                                    th:if="${st.index < 3}"
+                                    th:src="${img.image}"
+                                    alt="Ảnh phòng">
+
+                        </div>
+
+                        <small
+                                class="text-muted"
+                                th:text="|${rt.images != null ? #lists.size(rt.images) : 0} ảnh|">
+                        </small>
+
+                    </td>
+
+
+                    <!-- THAO TÁC -->
+                    <td class="text-end">
+
+                        <a
+                                class="btn btn-sm btn-outline-primary"
+                                th:href="@{/admin/room-types(editId=${rt.id})}">
+
+                            <i class="fa-solid fa-pen"></i>
+
+                        </a>
+
+
+                        <form
+                                class="d-inline"
+                                th:action="@{/admin/room-types/{id}/delete(id=${rt.id})}"
+                                method="post">
+
+                            <button
+                                    class="btn btn-sm btn-outline-danger"
+                                    type="submit">
+
+                                <i class="fa-solid fa-trash"></i>
+
+                            </button>
+
+                        </form>
+
+                    </td>
+
+                </tr>
+
+
+                <!-- KHÔNG CÓ LOẠI PHÒNG -->
+                <tr th:if="${roomTypes == null or #lists.isEmpty(roomTypes)}">
+
+                    <td
+                            colspan="7"
+                            class="text-center py-5">
+
+                        <div class="text-muted">
+
+                            <i class="fa-solid fa-bed fa-2x mb-3"></i>
+
+                            <div>
+                                Chưa có loại phòng nào
+                                tại chi nhánh đang hoạt động.
+                            </div>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
     </div>
+
 </div>
+
 </body>
 </html>

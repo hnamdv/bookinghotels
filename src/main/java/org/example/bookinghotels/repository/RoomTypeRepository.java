@@ -32,4 +32,17 @@ public interface RoomTypeRepository extends JpaRepository<RoomType, Integer> {
 
     @EntityGraph(attributePaths = {"images", "hotels"})
     Optional<RoomType> findById(Integer id);
+    // =====================================================
+    // LẤY LOẠI PHÒNG THEO CHI NHÁNH ĐANG ACTIVE
+    // =====================================================
+    @Query("""
+        SELECT DISTINCT rt
+        FROM RoomType rt
+        LEFT JOIN FETCH rt.images
+        LEFT JOIN FETCH rt.hotels
+        WHERE rt.hotels.id = :hotelId
+        ORDER BY rt.id
+    """)
+    List<RoomType> findByHotelId(@Param("hotelId") Integer hotelId);
 }
+

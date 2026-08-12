@@ -5,6 +5,11 @@ import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.DatabaseSequenceService;
 import org.example.bookinghotels.service.RoomTypeImageService;
 import org.example.bookinghotels.service.RoomInventoryService;
+import org.example.bookinghotels.service.RoomTypeService;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,7 +23,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Controller
 @RequestMapping("/admin/room-types")
 @PreAuthorize("hasAuthority('ROLE_ROOM')")
-public class AdminRoomTypeController {
+public class AdminRoomTypeController{
+
     private final RoomTypeRepository roomTypeRepository;
     private final HotelsRepository hotelsRepository;
     private final PromotionRepository promotionRepository;
@@ -29,18 +35,22 @@ public class AdminRoomTypeController {
     private final RoomTypeImageService roomTypeImageService;
     private final RoomInventoryService roomInventoryService;
     private final FwbRepository fwbRepository;
+    private final RoomTypeService roomTypeService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AdminRoomTypeController(RoomTypeRepository roomTypeRepository,
-                                   HotelsRepository hotelsRepository,
-                                   PromotionRepository promotionRepository,
-                                   PromotionRoomTypeRepository promotionRoomTypeRepository,
-                                   MediaRepository mediaRepository,
-                                   RoomImgRepository roomImgRepository,
-                                   DatabaseSequenceService sequenceService,
-                                   RoomTypeImageService roomTypeImageService,
-                                   RoomInventoryService roomInventoryService,
-                                   FwbRepository fwbRepository) {
+    public AdminRoomTypeController(
+            RoomTypeRepository roomTypeRepository,
+            HotelsRepository hotelsRepository,
+            PromotionRepository promotionRepository,
+            PromotionRoomTypeRepository promotionRoomTypeRepository,
+            MediaRepository mediaRepository,
+            RoomImgRepository roomImgRepository,
+            DatabaseSequenceService sequenceService,
+            RoomTypeImageService roomTypeImageService,
+            RoomInventoryService roomInventoryService,
+            FwbRepository fwbRepository,
+            RoomTypeService roomTypeService
+    ) {
         this.roomTypeRepository = roomTypeRepository;
         this.hotelsRepository = hotelsRepository;
         this.promotionRepository = promotionRepository;
@@ -51,22 +61,83 @@ public class AdminRoomTypeController {
         this.roomTypeImageService = roomTypeImageService;
         this.roomInventoryService = roomInventoryService;
         this.fwbRepository = fwbRepository;
+        this.roomTypeService = roomTypeService;
     }
 
+    // =====================================================
+    // CHỌN / ĐỔI CHI NHÁNH DÙNG CHUNG
+    // Mapping: POST /admin/room-types/select-hotel/{id}
+    // =====================================================
+
+    @PostMapping("/select-hotel/{id}")
+    public String selectActiveHotel(
+            @PathVariable("id") Integer id,
+            HttpSession session,
+            HttpServletRequest request,
+            RedirectAttributes ra
+    ) {
+        // 1. Lưu activeHotelId
+        session.setAttribute("activeHotelId", id);
+
+        // 2. Lấy tên chi nhánh từ Database và cập nhật activeHotelName vào Session
+        Hotels hotel = hotelsRepository.findById(id).orElse(null);
+        if (hotel != null) {
+            session.setAttribute("activeHotelName", hotel.getName());
+        }
+
+        ra.addFlashAttribute("success", "Đã đổi chi nhánh làm việc thành công!");
+
+        String referer = request.getHeader("Referer");
+        if (referer != null && !referer.isBlank()) {
+            return "redirect:" + referer;
+        }
+        return "redirect:/admin/room-types";
+    }
+    // =====================================================
+    // HIỂN THỊ DANH SÁCH LOẠI PHÒNG
+    // =====================================================
+
     @GetMapping
-    public String page(@RequestParam(required = false) Integer editId, Model model) {
+    public String roomTypes(
+            @RequestParam(required = false) Integer editId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") Integer page,
+            Model model,
+            HttpSession session
+    ) {
+        model.addAttribute("currentPage", page);
+
+        // Lấy chi nhánh active từ session
+        Integer activeHotelId = (Integer) session.getAttribute("activeHotelId");
+
+        // Lọc danh sách loại phòng theo chi nhánh nếu có activeHotelId
+        if (activeHotelId != null) {
+            List<RoomType> roomTypesByHotel = roomTypeService.getRoomTypesByHotelId(activeHotelId);
+            model.addAttribute("roomTypesByHotel", roomTypesByHotel);
+            Hotels activeHotel = hotelsRepository.findById(activeHotelId).orElse(null);
+            model.addAttribute("activeHotel", activeHotel);
+        } else {
+            model.addAttribute("errorSession", "Bạn chưa chọn chi nhánh đang hoạt động!");
+        }
+
+        // Dữ liệu chung
         model.addAttribute("hotels", hotelsRepository.findAll());
         model.addAttribute("promotions", promotionRepository.findAll());
         model.addAttribute("mediaList", mediaRepository.findAll());
         model.addAttribute("roomAmenityOptions", getFreeAmenityOptions());
         model.addAttribute("roomTypes", roomTypeRepository.findAllWithImages());
+
+        // Mapping Khuyến Mãi
         var promotionMappings = promotionRoomTypeRepository.findAll();
         model.addAttribute("promotionMappings", promotionMappings);
         Map<Integer, PromotionRoomType> promotionByRoomType = new HashMap<>();
         for (PromotionRoomType mapping : promotionMappings) {
-            if (mapping.getRoomType() != null) promotionByRoomType.put(mapping.getRoomType().getId(), mapping);
+            if (mapping.getRoomType() != null) {
+                promotionByRoomType.put(mapping.getRoomType().getId(), mapping);
+            }
         }
         model.addAttribute("promotionByRoomType", promotionByRoomType);
+
+        // Chế độ chỉnh sửa
         if (editId != null) {
             roomTypeRepository.findDetailById(editId).ifPresent(rt -> {
                 model.addAttribute("editRoomType", rt);
@@ -75,36 +146,51 @@ public class AdminRoomTypeController {
                 model.addAttribute("selectedAmenityIds", extractAmenityIds(rt.getBedOptions()));
             });
         }
+
         return "html/admin-html/room-types";
     }
 
+    // =====================================================
+    // LƯU / CẬP NHẬT LOẠI PHÒNG
+    // =====================================================
+
     @PostMapping("/save")
-    public String save(@RequestParam(required = false) Integer id,
-                       @RequestParam String nameType,
-                       @RequestParam Double price,
-                       @RequestParam Integer capacity,
-                       @RequestParam(required = false) Integer hotelId,
-                       @RequestParam(required = false) String bed,
-                       @RequestParam(required = false) String bedOptions,
-                       @RequestParam(required = false) List<Integer> roomAmenityIds,
-                       @RequestParam(required = false) String description,
-                       @RequestParam(required = false) Double area,
-                       @RequestParam(defaultValue = "1") Integer totalRooms,
-                       @RequestParam(defaultValue = "0") Double taxAndFee,
-                       @RequestParam(defaultValue = "false") Boolean hasWifi,
-                       @RequestParam(defaultValue = "false") Boolean hasBathtub,
-                       @RequestParam(defaultValue = "false") Boolean hasTv,
-                       @RequestParam(defaultValue = "false") Boolean hasBalcony,
-                       @RequestParam(required = false) List<Integer> mediaIds,
-                       @RequestParam(required = false) Integer promotionId,
-                       RedirectAttributes ra) {
+    public String save(
+            @RequestParam(required = false) Integer id,
+            @RequestParam String nameType,
+            @RequestParam Double price,
+            @RequestParam Integer capacity,
+            @RequestParam(required = false) Integer hotelId,
+            @RequestParam(required = false) String bed,
+            @RequestParam(required = false) String bedOptions,
+            @RequestParam(required = false) List<Integer> roomAmenityIds,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) Double area,
+            @RequestParam(defaultValue = "1") Integer totalRooms,
+            @RequestParam(defaultValue = "0") Double taxAndFee,
+            @RequestParam(defaultValue = "false") Boolean hasWifi,
+            @RequestParam(defaultValue = "false") Boolean hasBathtub,
+            @RequestParam(defaultValue = "false") Boolean hasTv,
+            @RequestParam(defaultValue = "false") Boolean hasBalcony,
+            @RequestParam(required = false) List<Integer> mediaIds,
+            @RequestParam(required = false) Integer promotionId,
+            RedirectAttributes ra,
+            HttpSession session
+    ) {
         try {
             if (nameType == null || nameType.isBlank()) throw new IllegalArgumentException("Tên loại phòng không được để trống.");
             if (price == null || price < 0) throw new IllegalArgumentException("Giá phòng không hợp lệ.");
             if (capacity == null || capacity < 1) throw new IllegalArgumentException("Sức chứa phải lớn hơn 0.");
 
+            // Ưu tiên hotelId từ form, nếu không có thì lấy activeHotelId từ Session
+            Integer targetHotelId = hotelId;
+            if (targetHotelId == null) {
+                targetHotelId = (Integer) session.getAttribute("activeHotelId");
+            }
+
             RoomType rt = id == null ? new RoomType() : roomTypeRepository.findById(id)
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy loại phòng."));
+
             rt.setNameType(nameType.trim());
             rt.setPrice(price);
             rt.setCapacity(capacity);
@@ -118,17 +204,24 @@ public class AdminRoomTypeController {
             rt.setHasBathtub(Boolean.TRUE.equals(hasBathtub));
             rt.setHasTv(Boolean.TRUE.equals(hasTv));
             rt.setHasBalcony(Boolean.TRUE.equals(hasBalcony));
-            if (hotelId != null) rt.setHotels(hotelsRepository.findById(hotelId)
-                    .orElseThrow(() -> new IllegalArgumentException("Khách sạn không tồn tại.")));
+
+            if (targetHotelId != null) {
+                final Integer hId = targetHotelId;
+                rt.setHotels(hotelsRepository.findById(hId)
+                        .orElseThrow(() -> new IllegalArgumentException("Khách sạn không tồn tại.")));
+            }
+
             if (id == null) sequenceService.synchronize("room_type");
             rt = roomTypeRepository.saveAndFlush(rt);
 
-            // Đồng bộ tuyệt đối ảnh theo checkbox: bỏ tick là gỡ ngay, không giữ bản ghi cũ và không nhân bản.
+            // Đồng bộ ảnh theo checkbox
             roomTypeImageService.replaceImages(rt, mediaIds);
 
+            // Đồng bộ phòng vật lý
             int actualRoomCount = roomInventoryService.ensurePhysicalRooms(rt);
             rt.setTotalRooms(actualRoomCount);
 
+            // Đồng bộ khuyến mãi
             promotionRoomTypeRepository.deleteByRoomTypeId(rt.getId());
             if (promotionId != null) {
                 Promotion promotion = promotionRepository.findById(promotionId)
@@ -148,12 +241,24 @@ public class AdminRoomTypeController {
         return "redirect:/admin/room-types";
     }
 
+    // =====================================================
+    // XÓA LOẠI PHÒNG
+    // =====================================================
+
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Integer id, RedirectAttributes ra) {
-        ra.addFlashAttribute("error", "Không xóa loại phòng để bảo toàn dữ liệu đặt phòng. Hãy sửa thông tin hoặc ngừng sử dụng loại phòng này.");
+        try {
+            // Bảo vệ dữ liệu đặt phòng theo ràng buộc hệ thống
+            ra.addFlashAttribute("error", "Không xóa loại phòng để bảo toàn dữ liệu đặt phòng. Hãy sửa thông tin hoặc ngừng sử dụng loại phòng này.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("error", "Không thể xóa loại phòng: " + e.getMessage());
+        }
         return "redirect:/admin/room-types";
     }
 
+    // =====================================================
+    // HELPER METHODS
+    // =====================================================
 
     private List<FwB> getFreeAmenityOptions() {
         return fwbRepository.findAll().stream()
@@ -249,6 +354,7 @@ public class AdminRoomTypeController {
     }
 
     private String blankToNull(String value) { return value == null || value.isBlank() ? null : value.trim(); }
+
     private String rootMessage(Throwable ex) {
         Throwable root = ex;
         while (root.getCause() != null) root = root.getCause();
