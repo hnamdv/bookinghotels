@@ -50,7 +50,7 @@ public class OrderBookingServiceImpl implements OrderBookingService {
             String paymentMethod
     ) {
 
-        // 1. Lưu booking trước + flush ngay xuống DB để sinh ra ID (Ví dụ: ID = 50)
+        // 1. Lưu booking trước + flush ngay xuống DB để sinh ra ID
         Booking savedBooking = bookingRepository.saveAndFlush(booking);
 
         // 2. Lấy trực tiếp RoomType từ Room đã được tìm thấy ở Controller để tránh lỗi đồng bộ JPA
@@ -88,14 +88,19 @@ public class OrderBookingServiceImpl implements OrderBookingService {
         detail.setDiscountAmount(discount);
         BookingDetail savedDetail = bookingDetailRepository.saveAndFlush(detail);
 
-        // 6. Tổng hóa đơn = giá phòng sau ưu đãi + thuế/phí.
-        double totalAmount = discountedRoomTotal
-                + (roomType.getTaxAndFee() == null ? 0D : roomType.getTaxAndFee());
+        // 6. Tổng hóa đơn = giá phòng sau ưu đãi (Không cộng dồn taxAndFee để khớp tuyệt đối với giao diện)
+        double totalAmount = discountedRoomTotal;
 
         // 7. Nếu có dịch vụ đồ ăn / thức uống kèm theo
         if (orderedFoods != null && !orderedFoods.isEmpty()) {
             for (BookingFB foodOrder : orderedFoods) {
                 foodOrder.setBookingDetail(savedDetail);
+
+                // Đảm bảo không bị lỗi null priceAtOrder
+                if (foodOrder.getPriceAtOrder() == null && foodOrder.getFwb() != null) {
+                    foodOrder.setPriceAtOrder(foodOrder.getFwb().getPrice());
+                }
+
                 bookingFBRepository.save(foodOrder);
 
                 totalAmount += (
@@ -299,10 +304,24 @@ public class OrderBookingServiceImpl implements OrderBookingService {
         return null;
     }
 
-    // --- FIX LỖI TRẢ VỀ NULL TẠI ĐÂY ---
     @Override
     public Invoices findInvoiceByBookingId(Long bookingId) {
         return invoicesRepository.findByBookingId(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy hóa đơn cho mã đặt phòng: " + bookingId));
+    }
+
+    @Override
+    @Transactional
+    public void updateBookingStatus(Long bookingId, String status) {
+        List<BookingDetail> details = bookingDetailRepository.findByBookingId(bookingId.intValue());
+        for (BookingDetail detail : details) {
+            detail.setStatus(status);
+            bookingDetailRepository.save(detail);
+        }
+
+        Invoices invoice = findInvoiceByBookingId(bookingId);
+        if (invoice != null) {
+            invoice.setPaymentStatus("CANCELLED".equals(status) ? "CANCELLED" : status);
+        }
     }
 }

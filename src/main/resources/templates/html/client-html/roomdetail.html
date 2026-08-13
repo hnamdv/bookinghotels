@@ -1,6 +1,92 @@
-<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Chi tiết phòng | FeelHome</title><link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"><link rel="stylesheet" href="/css/style.css?v=20260622-header-exact-v3"></head><body>
-<header class="fh-header"><div class="fh-header__inner"><a href="/home" class="fh-logo fh-logo--centered"><img id="detailSiteLogo" class="fh-logo__image" alt="Logo" hidden><span id="detailLogoFallback" class="fh-logo__icon">◈</span><span id="detailSiteName" class="fh-logo__text">FEELHOME</span></a><nav class="fh-nav" id="fh-nav"><a href="/home" class="fh-nav__link">Trang Chủ</a><a href="/home#rooms-section" class="fh-nav__link">Phòng Nghỉ</a><a href="/offers" class="fh-nav__link">Ưu Đãi</a><a href="/favorites.html" class="fh-nav__link">Yêu Thích</a></nav><button class="fh-hamburger" id="fh-hamburger"><span></span><span></span><span></span></button></div></header>
-<main class="detail-page" id="detailPage"><div class="empty">Đang tải chi tiết phòng...</div></main>
-<footer class="fh-footer"><div class="fh-footer__inner"><div><a href="/home" class="fh-logo"><span class="fh-logo__icon">◈</span><span class="fh-logo__text">FEELHOME</span></a><p>Nơi mỗi kỳ nghỉ trở thành một phần ký ức đẹp.</p></div><div><h4>KHÁM PHÁ</h4><a href="/home#rooms-section">Phòng & Suite</a><a href="/offers">Ưu đãi</a></div><div><h4>LIÊN HỆ KHÁCH SẠN</h4><p id="detailHotelContact">Thông tin liên hệ sẽ hiển thị theo khách sạn.</p></div></div></footer>
-<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script><script src="/js/detail.js"></script><script src="/js/public-header.js"></script>
-</body></html>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết phòng | FeelHome</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/style.css?v=20260622-header-exact-v3">
+</head>
+<body>
+<header class="fh-header">
+    <div class="fh-header__inner">
+        <a href="/home" class="fh-logo fh-logo--centered">
+            <img id="detailSiteLogo" class="fh-logo__image" alt="Logo" hidden>
+            <span id="detailLogoFallback" class="fh-logo__icon">◈</span>
+            <span id="detailSiteName" class="fh-logo__text">FEELHOME</span>
+        </a>
+        <nav class="fh-nav" id="fh-nav">
+            <a href="/home" class="fh-nav__link">Trang Chủ</a>
+            <a href="/home#rooms-section" class="fh-nav__link">Phòng Nghỉ</a>
+            <a href="/offers" class="fh-nav__link">Ưu Đãi</a>
+            <a href="/favorites.html" class="fh-nav__link">Yêu Thích</a>
+        </nav>
+        <button class="fh-hamburger" id="fh-hamburger">
+            <span></span><span></span><span></span>
+        </button>
+    </div>
+</header>
+
+<main class="detail-page" id="detailPage">
+    <div class="empty">Đang tải chi tiết phòng...</div>
+</main>
+
+<footer class="fh-footer">
+    <div class="fh-footer__inner">
+        <div>
+            <a href="/home" class="fh-logo"><span class="fh-logo__icon">◈</span><span class="fh-logo__text">FEELHOME</span></a>
+            <p>Nơi mỗi kỳ nghỉ trở thành một phần ký ức đẹp.</p>
+        </div>
+        <div>
+            <h4>KHÁM PHÁ</h4>
+            <a href="/home#rooms-section">Phòng & Suite</a>
+            <a href="/offers">Ưu đãi</a>
+        </div>
+        <div>
+            <h4>LIÊN HỆ KHÁCH SẠN</h4>
+            <p id="detailHotelContact">Thông tin liên hệ sẽ hiển thị theo khách sạn.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="/js/detail.js"></script>
+<script src="/js/public-header.js"></script>
+
+<!-- Script bổ trợ đồng bộ tham số đặt phòng tránh lỗi lệch roomId/roomTypeId -->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const observer = new MutationObserver(function (mutations, obs) {
+            const bookingButtons = document.querySelectorAll('a[href*="/booking"], button.btn-book, .book-btn, a[href*="payment"]');
+            bookingButtons.forEach(btn => {
+                if (!btn.dataset.fixed) {
+                    btn.dataset.fixed = "true";
+                    btn.addEventListener("click", function (e) {
+                        e.preventDefault();
+                        const urlParams = new URLSearchParams(window.location.search);
+                        const roomTypeId = urlParams.get('id') || urlParams.get('roomTypeId');
+                        const checkin = urlParams.get('checkin') || new Date().toISOString().split('T')[0];
+                        let checkout = urlParams.get('checkout');
+                        
+                        if (!checkout) {
+                            let d = new Date();
+                            d.setDate(d.getDate() + 1);
+                            checkout = d.toISOString().split('T')[0];
+                        }
+
+                        if (roomTypeId) {
+                            // Chuyển hướng chuẩn sang trang check phòng với đầy đủ thông tin loại phòng và ngày tháng
+                            window.location.href = `/booking/check?roomTypeId=${roomTypeId}&checkin=${checkin}&checkout=${checkout}`;
+                        } else {
+                            window.location.href = btn.href || `/booking/check?checkin=${checkin}&checkout=${checkout}`;
+                        }
+                    });
+                }
+            });
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
+    });
+</script>
+</body>
+</html>

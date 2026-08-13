@@ -15,8 +15,11 @@ public interface OrderBookingService {
     List<Integer> getAvailableRooms(List<Integer> allRoomIds, LocalDate checkinDate, LocalDate checkoutDate);
     void validateBooking(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate);
 
-    // --- THÊM 2 HÀM NÀY ĐỂ FIX LỖI Ở BANKWEBHOOKCONTROLLER ---
+    // --- CÁC HÀM XỬ LÝ THANH TOÁN & TRẠNG THÁI ---
     void updateStatusToPaid(String bookingIdStr);
     Booking getBookingById(String bookingIdStr);
     Invoices findInvoiceByBookingId(Long bookingId);
+
+    // --- BỔ SUNG ĐỂ FIX LỖI Ở BOOKINGCONTROLLER ---
+    void updateBookingStatus(Long bookingId, String status);
 }

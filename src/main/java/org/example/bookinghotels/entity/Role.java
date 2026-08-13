@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+
 public class Role {
 
     @Id
@@ -24,4 +25,5 @@ public class Role {
     @JsonIgnore
     // Role không phải là chủ sở hữu, User mới là chủ
     private List<User> users;
+
 }
