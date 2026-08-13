@@ -1,5 +1,6 @@
 package org.example.bookinghotels.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.bookinghotels.listener.ActivityLogListener;
@@ -18,6 +19,7 @@ public class BookingFB {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "booking_detail_id")
+    @JsonIgnore // Ngắt vòng lặp ngược về BookingDetail khi Jackson serialize JSON
     private BookingDetail bookingDetail;
 
     @ManyToOne(fetch = FetchType.EAGER)

@@ -19,32 +19,36 @@ public class AdminInvoiceController {
     @Autowired
     private BookingDetailRepository bookingDetailRepository;
 
-    @GetMapping("/invoices")
+    @GetMapping("/invoice-list")
     public String viewInvoicesPage(
             @RequestParam(value = "keyword", required = false) String keyword,
+            @RequestParam(value = "status", required = false) String status,
             Model model) {
 
-        // 1. Lấy toàn bộ danh sách đặt phòng có kèm chi tiết giống hệt trang Dashboard
         List<BookingDetail> allDetails = bookingDetailRepository.findAllWithDetails();
 
-        // 2. Tạo danh sách hóa đơn từ dữ liệu đặt phòng
-        List<BookingDetail> paidInvoices = allDetails.stream()
+        List<BookingDetail> filteredInvoices = allDetails.stream()
                 .filter(bd -> bd.getBooking() != null)
                 .collect(Collectors.toList());
 
-        // 3. Xử lý tìm kiếm theo từ khóa (Đã sửa đổi tên hàm getter cho khớp Entity Booking)
+        if (status != null && !status.trim().isEmpty()) {
+            filteredInvoices = filteredInvoices.stream()
+                    .filter(bd -> status.equalsIgnoreCase(bd.getStatus()))
+                    .collect(Collectors.toList());
+        }
+
         if (keyword != null && !keyword.trim().isEmpty()) {
             String finalKeyword = keyword.toLowerCase().trim();
-            paidInvoices = paidInvoices.stream()
+            filteredInvoices = filteredInvoices.stream()
                     .filter(bd -> (bd.getBooking().getName() != null && bd.getBooking().getName().toLowerCase().contains(finalKeyword))
                             || (bd.getBooking().getPhone() != null && bd.getBooking().getPhone().contains(finalKeyword))
                             || (bd.getBooking().getEmail() != null && bd.getBooking().getEmail().toLowerCase().contains(finalKeyword)))
                     .collect(Collectors.toList());
         }
 
-        // Đẩy dữ liệu ra ngoài giao diện
-        model.addAttribute("invoices", paidInvoices);
+        model.addAttribute("invoices", filteredInvoices);
         model.addAttribute("keyword", keyword);
+        model.addAttribute("status", status);
 
         return "html/admin-html/invoice-list";
     }

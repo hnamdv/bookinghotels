@@ -1,5 +1,6 @@
 package org.example.bookinghotels.entity;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
@@ -38,9 +39,11 @@ public class Booking {
     @Column(name = "checkout_date", nullable = false)
     private LocalDate checkoutDate;
 
-    @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
-    private List<BookingDetail> bookingDetails = new ArrayList<>();
-
+    // THÊM ĐOẠN NÀY VÀO ĐỂ KHỚP VỚI REPOSITORY
     @Column(name = "delete_at")
     private Boolean deleteAt = false;
+
+    @OneToMany(mappedBy = "booking", fetch = FetchType.LAZY)
+    @JsonManagedReference("booking-detail-ref")
+    private List<BookingDetail> bookingDetails = new ArrayList<>();
 }

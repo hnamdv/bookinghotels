@@ -6,269 +6,696 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý đặt phòng | FeelHome Admin</title>
-    <link rel="stylesheet" th:href="@{/css/admin-css/booking.css}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background: #F5F7FC; font-family: 'Inter', sans-serif; padding: 0px 0px; color: #1E2A3E; }
-        .dashboard { max-width: 1600px; margin: 0 auto; }
-        .page-header h1 { font-size: 28px; font-weight: 700; margin-bottom: 6px; }
-        .stats-row { display: flex; gap: 24px; margin-bottom: 28px; flex-wrap: wrap; }
-        .stat-card { background: white; border-radius: 24px; padding: 20px; flex: 1; min-width: 220px; border: 1px solid #EDF2F7; }
-        .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .stat-title { font-size: 14px; font-weight: 600; text-transform: uppercase; color: #5B6B8C; }
-        .stat-body { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-        .stat-number { font-size: 36px; font-weight: 800; color: #0F1825; }
-        .search-area { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-        .search-bar-wrapper { background: white; border: 1px solid #E2E8F0; border-radius: 40px; padding: 10px 18px; display: inline-flex; align-items: center; gap: 12px; }
-        .search-bar-wrapper input { border: none; background: transparent; font-size: 14px; width: 240px; outline: none; }
-        .filters-bar { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; margin-bottom: 28px; background: white; padding: 20px 24px; border-radius: 24px; border: 1px solid #EDF2F7; }
-        .filter-group { display: flex; flex-direction: column; gap: 6px; min-width: 140px; }
-        .filter-group label { font-size: 12px; font-weight: 600; color: #5B6B8C; text-transform: uppercase; }
-        .filter-group select, .filter-group input { padding: 10px 14px; border-radius: 12px; border: 1px solid #E2E8F0; font-size: 14px; background: white; }
-        .btn-apply, .btn-reset, .btn-create { padding: 10px 24px; border-radius: 40px; border: none; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; text-decoration: none; }
-        .btn-apply { background: #1E6CD4; color: white; }
-        .btn-reset { background: #6B7280; color: white; }
-        .btn-create { background: #10B981; color: white; }
-        .table-wrapper { background: white; border-radius: 24px; border: 1px solid #EDF2F7; overflow-x: auto; margin-bottom: 32px; }
-        .booking-table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1500px; }
-        .booking-table th { text-align: left; padding: 14px 10px; background: #F9FBFE; color: #516281; font-weight: 600; border-bottom: 1px solid #ECF1F7; white-space: nowrap; }
-        .booking-table td { padding: 12px 10px; border-bottom: 1px solid #F0F4FA; color: #1F2C48; font-weight: 500; }
-        .status-badge { padding: 5px 12px; border-radius: 40px; font-size: 12px; font-weight: 600; display: inline-block; white-space: nowrap; }
-        .status-badge.pending { background: #FEF3C7; color: #D97706; }
-        .status-badge.confirmed { background: #EFF5FF; color: #1E6CD4; }
-        .status-badge.cancelled { background: #FEE2E2; color: #DC2626; }
-        .status-badge.checked { background: #D1FAE5; color: #059669; }
-        .action-buttons { display: flex; gap: 6px; }
-        .btn-approve, .btn-reject { padding: 5px 10px; border-radius: 16px; border: none; font-size: 11px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-        .btn-approve { background: #10B981; color: white; }
-        .btn-approve:hover { background: #059669; }
-        .btn-reject { background: #EF4444; color: white; }
-        .btn-reject:hover { background: #DC2626; }
-        .room-cell { cursor: pointer; }
-        .room-null { color: #F59E0B; font-weight: 600; text-decoration: underline; }
-        .room-null:hover { color: #D97706; }
-        .room-picked { color: #1E6CD4; font-weight: 600; background: #EFF5FF; padding: 2px 8px; border-radius: 8px; }
-        .room-assigned { color: #1E6CD4; font-weight: 600; }
-        .table-footer { padding: 16px 20px; border-top: 1px solid #EDF2F7; font-size: 14px; color: #4B5563; background: white; border-radius: 0 0 24px 24px; text-align: right; font-weight: 500; }
-        .bottom-grid { display: flex; gap: 28px; margin-top: 0; flex-wrap: wrap; }
-        .staff-logs, .forecast-card { background: white; border-radius: 24px; border: 1px solid #EDF2F7; padding: 20px; flex: 1; min-width: 350px; }
-        .section-title { font-weight: 700; font-size: 16px; padding-bottom: 12px; border-bottom: 1px solid #F0F3F9; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-        .log-item { padding: 12px 0; border-bottom: 1px solid #F5F8FE; }
-        .log-main { font-weight: 600; margin-bottom: 4px; font-size: 14px; }
-        .text-muted { color: #999; font-style: italic; }
-        .line-chart-container { position: relative; height: 220px; width: 100%; }
-        canvas#lineChart { max-height: 220px; width: 100% !important; }
-
-        .toast-container { position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-        .toast { padding: 14px 20px; border-radius: 12px; color: white; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); animation: slideIn 0.3s ease; min-width: 320px; }
-        .toast.success { background: #10B981; }
-        .toast.error { background: #EF4444; }
-        .toast.warning { background: #F59E0B; }
-        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-
-        .popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
-        .popup-overlay.active { display: flex; }
-        .popup-box { background: white; border-radius: 16px; padding: 24px; width: 600px; max-height: 70vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-        .popup-box h3 { margin-bottom: 16px; font-size: 18px; }
-        .room-card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .room-card { padding: 16px; border: 2px solid #E2E8F0; border-radius: 12px; cursor: pointer; transition: all 0.2s; text-align: center; }
-        .room-card:hover { border-color: #1E6CD4; background: #F8FAFF; transform: translateY(-2px); }
-        .room-card.selected { background: #EFF5FF; border-color: #1E6CD4; }
-        .room-card .room-icon { font-size: 28px; color: #1E6CD4; margin-bottom: 8px; }
-        .room-card .room-number { font-size: 18px; font-weight: 700; color: #1F2C48; }
-
-        @media (max-width:780px) { body { padding:20px; } .stats-row { flex-direction:column; } .filters-bar { flex-direction:column; align-items:stretch; } .room-card-grid { grid-template-columns: repeat(2, 1fr); } .bottom-grid { flex-direction:column; } }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#F5F7FC;font-family:'Inter',sans-serif;color:#1E2A3E}
+        .dashboard{max-width:1600px;margin:0 auto;padding:20px}
+        .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .page-header h1{font-size:24px;font-weight:700}
+        .stats-row{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+        .stat-card{background:#fff;border-radius:16px;padding:16px;flex:1;min-width:180px;border:1px solid #EDF2F7}
+        .stat-title{font-size:12px;font-weight:600;text-transform:uppercase;color:#5B6B8C;margin-bottom:8px}
+        .stat-number{font-size:24px;font-weight:800;color:#0F1825}
+        .filters-bar{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:20px;background:#fff;padding:16px 20px;border-radius:16px;border:1px solid #EDF2F7}
+        .filter-group{display:flex;flex-direction:column;gap:4px;min-width:130px}
+        .filter-group label{font-size:11px;font-weight:600;color:#5B6B8C;text-transform:uppercase}
+        .filter-group select,.filter-group input{padding:8px 12px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px;background:#fff}
+        .btn-apply,.btn-reset,.btn-walkin{padding:8px 20px;border-radius:20px;border:none;font-weight:600;font-size:13px;cursor:pointer}
+        .btn-apply{background:#1E6CD4;color:#fff}
+        .btn-reset{background:#6B7280;color:#fff;text-decoration:none;display:inline-flex;align-items:center}
+        .btn-walkin{background:#059669;color:#fff;display:inline-flex;align-items:center;gap:6px}
+        .btn-walkin:hover{background:#047857}
+        .table-wrapper{background:#fff;border-radius:16px;border:1px solid #EDF2F7;overflow-x:auto;margin-bottom:24px}
+        .booking-table{width:100%;border-collapse:collapse;font-size:12px;min-width:1500px}
+        .booking-table th{text-align:left;padding:12px 8px;background:#F9FBFE;color:#516281;font-weight:600;border-bottom:1px solid #ECF1F7;white-space:nowrap;font-size:11px;text-transform:uppercase}
+        .booking-table td{padding:10px 8px;border-bottom:1px solid #F0F4FA;color:#1F2C48;font-weight:500}
+        .clickable{cursor:pointer;transition:background .2s}
+        .clickable:hover{background:#EFF5FF;border-radius:4px}
+        .status-badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;display:inline-block;white-space:nowrap}
+        .status-badge.pending{background:#FEF3C7;color:#D97706}
+        .status-badge.confirmed{background:#EFF5FF;color:#1E6CD4}
+        .status-badge.cancelled{background:#FEE2E2;color:#DC2626}
+        .status-badge.checked{background:#D1FAE5;color:#059669}
+        .status-badge.paid{background:#DBEAFE;color:#1E40AF}
+        .action-buttons{display:flex;gap:4px;flex-wrap:wrap}
+        .btn-food{padding:4px 8px;border-radius:14px;border:none;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;background:#3B82F6;color:#fff}
+        .btn-approve,.btn-reject,.btn-paid{padding:4px 8px;border-radius:14px;border:none;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
+        .btn-approve{background:#10B981;color:#fff}
+        .btn-reject{background:#EF4444;color:#fff}
+        .btn-paid{background:#059669;color:#fff}
+        .room-null{color:#F59E0B;font-weight:600;cursor:pointer;font-size:12px;display:inline-block;padding:4px 8px;border:1px dashed #F59E0B;border-radius:6px;background:#FFF8F0}
+        .room-null:hover{color:#D97706;background:#FFF0E0;border-color:#D97706}
+        .room-picked{color:#1E6CD4;font-weight:600;background:#EFF5FF;padding:4px 8px;border-radius:6px;cursor:pointer}
+        .room-editable{color:#1E6CD4;font-weight:600;cursor:pointer}
+        .room-editable:hover{text-decoration:underline}
+        .room-locked{color:#374151;font-weight:600}
+        .badge-paid-online{font-size:10px;padding:3px 8px;border-radius:4px;font-weight:700;display:inline-block;margin-top:2px}
+        .due-amount{font-weight:800;font-size:13px}
+        .pagination-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fff;border-top:1px solid #EDF2F7;border-radius:0 0 16px 16px}
+        .pagination-bar button{padding:5px 10px;border-radius:6px;border:1px solid #D1D5DB;background:#fff;cursor:pointer;font-size:11px;color:#4B5563}
+        .pagination-bar button:hover{background:#F3F4F6}
+        .bottom-grid{display:flex;gap:20px;flex-wrap:wrap}
+        .staff-logs,.forecast-card{background:#fff;border-radius:16px;border:1px solid #EDF2F7;padding:16px;flex:1;min-width:300px}
+        .section-title{font-weight:700;font-size:15px;padding-bottom:10px;border-bottom:1px solid #F0F3F9;margin-bottom:12px}
+        .log-item{padding:10px 0;border-bottom:1px solid #F5F8FE;font-size:13px}
+        .text-muted{color:#999;font-style:italic;font-size:12px}
+        .line-chart-container{position:relative;height:200px;width:100%}
+        .toast-container{position:fixed;top:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px}
+        .toast{padding:12px 18px;border-radius:10px;color:#fff;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,0.15);animation:slideIn .3s ease;min-width:280px}
+        .toast.success{background:#10B981}.toast.error{background:#EF4444}.toast.warning{background:#F5F00B}
+        @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+        .popup-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);z-index:1000;justify-content:center;align-items:center}
+        .popup-overlay.active{display:flex}
+        .popup-box{background:#fff;border-radius:16px;padding:24px;width:520px;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+        .popup-box h3{margin-bottom:16px;font-size:18px}
+        .popup-box .form-group{margin-bottom:12px}
+        .popup-box .form-group label{display:block;font-size:12px;font-weight:600;color:#5B6B8C;margin-bottom:4px}
+        .popup-box .form-group input,.popup-box .form-group select{width:100%;padding:8px 12px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px}
+        .popup-box .btn-row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+        .btn-cancel{padding:8px 16px;border-radius:8px;border:1px solid #D1D5DB;background:#fff;cursor:pointer;font-size:13px}
+        .btn-save{padding:8px 16px;border-radius:8px;border:none;background:#1E6CD4;color:#fff;cursor:pointer;font-size:13px}
+        .room-card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+        .room-card{padding:12px;border:2px solid #E2E8F0;border-radius:10px;cursor:pointer;text-align:center;transition:all .2s}
+        .room-card:hover{border-color:#1E6CD4;background:#F8FAFF}
+        .room-card.selected{background:#EFF5FF;border-color:#1E6CD4}
+        .room-card .room-number{font-size:16px;font-weight:700}
+        @keyframes pulse-animation {
+            0%, 100% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+        }
+        @media(max-width:780px){.stats-row{flex-direction:column}.filters-bar{flex-direction:column;align-items:stretch}}
     </style>
 </head>
 <div layout:fragment="content">
     <div class="dashboard">
-        <div class="page-header"><h1>Quản lý đặt phòng</h1></div>
-
-        <div class="stats-row">
-            <div class="stat-card"><div class="stat-header"><span class="stat-title">Khách đến hôm nay</span></div><div class="stat-body"><div class="stat-number" th:text="${arrivalsToday}">0</div></div></div>
-            <div class="stat-card"><div class="stat-header"><span class="stat-title">Khách đi hôm nay</span></div><div class="stat-body"><div class="stat-number" th:text="${departuresToday}">0</div></div></div>
-            <div class="stat-card"><div class="stat-header"><span class="stat-title">Tỉ lệ lấp đầy</span></div><div class="stat-body"><div class="stat-number" th:text="${occupancy} + '%'">0%</div></div></div>
-            <div class="stat-card"><div class="stat-header"><span class="stat-title">Giá trung bình/đêm</span></div><div class="stat-body"><div class="stat-number" th:text="'$' + ${avgDailyRate}">$0</div></div></div>
+        <div class="page-header">
+            <h1>Quản lý đặt phòng</h1>
+            <button type="button" class="btn-walkin" onclick="openWalkInModal()">
+                <i class="fas fa-plus-circle"></i> Đặt phòng tại quầy
+            </button>
         </div>
 
-        <div class="search-area"><div class="search-bar-wrapper"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Tìm kiếm đơn đặt phòng..."></div></div>
+        <div class="stats-row">
+            <div class="stat-card"><div class="stat-title">Khách đến hôm nay</div><div class="stat-number" th:text="${arrivalsToday != null ? arrivalsToday : 0}">0</div></div>
+            <div class="stat-card"><div class="stat-title">Khách đi hôm nay</div><div class="stat-number" th:text="${departuresToday != null ? departuresToday : 0}">0</div></div>
+            <div class="stat-card"><div class="stat-title">Tỉ lệ lấp đầy</div><div class="stat-number" th:text="${(occupancy != null ? occupancy : 0)} + '%'">0%</div></div>
+            <div class="stat-card"><div class="stat-title">Giá TB/đêm</div><div class="stat-number" th:text="${#numbers.formatDecimal((avgDailyRate != null ? avgDailyRate : 0), 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</div></div>
+        </div>
+
         <form method="get" action="/admin/bookings" class="filters-bar">
             <div class="filter-group"><label>Loại phòng</label><select name="roomTypeId"><option value="">Tất cả</option><option th:each="type : ${roomTypes}" th:value="${type.id}" th:text="${type.nameType}"></option></select></div>
-            <div class="filter-group"><label>Trạng thái</label><select name="status"><option value="">Tất cả</option><option value="PENDING">CHỜ DUYỆT</option><option value="CONFIRMED">ĐÃ DUYỆT</option><option value="CHECKED_OUT">ĐÃ TRẢ PHÒNG</option><option value="CANCELLED">ĐÃ HỦY</option></select></div>
+            <div class="filter-group"><label>Trạng thái</label><select name="status"><option value="">Tất cả</option><option value="PENDING">CHỜ DUYỆT</option><option value="CONFIRMED">ĐÃ DUYỆT</option><option value="PAID">ĐÃ THANH TOÁN</option><option value="CHECKED_OUT">ĐÃ TRẢ PHÒNG</option><option value="CANCELLED">ĐÃ HỦY</option></select></div>
             <div class="filter-group"><label>Từ ngày</label><input type="date" name="startDate"></div>
             <div class="filter-group"><label>Đến ngày</label><input type="date" name="endDate"></div>
-            <button type="submit" class="btn-apply">Áp dụng</button>
-            <a href="/admin/bookings" class="btn-reset">Đặt lại</a>
+            <button type="submit" class="btn-apply"><i class="fas fa-filter"></i> Lọc</button>
+            <a href="/admin/bookings" class="btn-reset"><i class="fas fa-redo"></i> Đặt lại</a>
         </form>
 
         <div class="table-wrapper">
             <table class="booking-table">
-                <thead><tr><th>Mã Đơn</th><th>Khách hàng</th><th>SĐT</th><th>Email</th><th>Giới tính</th><th>Phòng</th><th>Loại phòng</th><th>Nhận phòng</th><th>Trả phòng</th><th>Khách</th><th>Tiền phòng</th><th>F&B</th><th>Tiền F&B</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead>
+                <thead>
+                <tr>
+                    <th>Mã</th>
+                    <th>Khách</th>
+                    <th>SĐT</th>
+                    <th>Phòng</th>
+                    <th>Loại</th>
+                    <th>Nhận / Trả</th>
+                    <th>Khách</th>
+                    <th>Tiền phòng (Web)</th>
+                    <th>Dịch vụ F&B</th>
+                    <th>Phụ thu F&B</th>
+                    <th>Cần thu khi Check-out</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+                </thead>
                 <tbody id="tableBody">
-                <tr th:each="bd, iterStat : ${bookingDetails}" th:if="${bd != null and iterStat.index < 10}">
-                    <td th:text="'#' + ${bd.booking.id}"></td>
-                    <td th:text="${bd.booking.name}"></td>
-                    <td th:text="${bd.booking.phone}"></td>
-                    <td th:text="${bd.booking.email}"></td>
-                    <td th:text="${bd.booking.gender != null ? (bd.booking.gender ? 'Nam' : 'Nữ') : 'N/A'}"></td>
-                    <td>
-                        <span th:if="${bd.room != null && bd.status != 'PENDING'}" class="room-assigned" th:text="${bd.room.roomNumber}"></span>
-                        <span th:if="${bd.room == null && bd.status == 'PENDING'}"
-                              class="room-null room-cell"
-                              th:attr="onclick='openPickRoomPopup(' + ${bd.id} + ', ' + ${bd.roomType.id} + ', this)'">
-                        <i class="fas fa-bed"></i> Chưa xếp
-                    </span>
-                        <span th:if="${bd.room == null && bd.status != 'PENDING'}" class="text-muted">-</span>
+                <tr th:each="bd : ${bookingDetails}" th:attr="data-detail-id=${bd.id}">
+                    <td th:text="'#' + ${bd.booking != null ? bd.booking.id : ''}"></td>
+
+                    <!-- KHÁCH -->
+                    <td class="clickable" th:attr="onclick='openEditPopup('+${bd.id}+',\'name\',\''+${bd.booking != null ? bd.booking.name : ''}+'\')'">
+                        <div th:text="${bd.booking != null ? bd.booking.name : ''}" style="font-weight:600"></div>
+                        <div th:text="${bd.booking != null ? bd.booking.email : ''}" style="font-size:10px;color:#6B7280"></div>
                     </td>
-                    <td th:text="${bd.roomType.nameType}"></td>
-                    <td th:text="${#temporals.format(bd.booking.checkinDate, 'dd/MM/yyyy')}"></td>
-                    <td th:text="${#temporals.format(bd.booking.checkoutDate, 'dd/MM/yyyy')}"></td>
-                    <td><span th:text="${bd.adultCount} + ' NL'"></span><span th:if="${bd.childCount > 0}" th:text="', ' + ${bd.childCount} + ' TE'"></span></td>
-                    <td th:text="'$' + ${#numbers.formatDecimal(bd.price, 0, 'COMMA', 2, 'POINT')}"></td>
-                    <td><span th:each="fb : ${bd.bookingFBs}" th:text="${fb.fwb.description} + ' x' + ${fb.quantity}" style="font-size:11px;"></span><span th:if="${#lists.isEmpty(bd.bookingFBs)}" class="text-muted">-</span></td>
-                    <td th:with="fbTotal=${#aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity])}">$<span th:text="${#numbers.formatDecimal(fbTotal != null ? fbTotal : 0, 0, 'COMMA', 2, 'POINT')}"></span></td>
-                    <td th:with="fbTotal=${#aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity])}">$<span th:text="${#numbers.formatDecimal(bd.price + (fbTotal != null ? fbTotal : 0), 0, 'COMMA', 2, 'POINT')}"></span></td>
-                    <td><span class="status-badge" th:classappend="${bd.status == 'CONFIRMED'} ? 'confirmed' : (${bd.status == 'PENDING'} ? 'pending' : (${bd.status == 'CANCELLED'} ? 'cancelled' : 'checked'))" th:text="${bd.status == 'PENDING' ? 'CHỜ DUYỆT' : (bd.status == 'CONFIRMED' ? 'ĐÃ DUYỆT' : (bd.status == 'CANCELLED' ? 'ĐÃ HỦY' : 'ĐÃ TRẢ PHÒNG'))}"></span></td>
+
+                    <!-- SĐT -->
+                    <td class="clickable" th:text="${bd.booking != null ? bd.booking.phone : ''}" th:attr="onclick='openEditPopup('+${bd.id}+',\'phone\',\''+${bd.booking != null ? bd.booking.phone : ''}+'\')'"></td>
+
+                    <!-- PHÒNG -->
+                    <td>
+                        <span th:if="${bd.status == 'PENDING'}" class="room-null" th:attr="onclick='openPickRoomPopup('+${bd.id}+','+${bd.roomType != null ? bd.roomType.id : 0}+')'"><i class="fas fa-plus-circle"></i> Chọn phòng</span>
+                        <span th:if="${(bd.status == 'CONFIRMED' || bd.status == 'PAID') && bd.room != null && bd.room.id != null}" class="room-editable" th:text="${bd.room.roomNumber}" th:attr="onclick='openPickRoomPopup('+${bd.id}+','+${bd.roomType != null ? bd.roomType.id : 0}+')'"></span>
+                        <span th:if="${(bd.status == 'CONFIRMED' || bd.status == 'PAID') && (bd.room == null || bd.room.id == null)}" class="room-null" th:attr="onclick='openPickRoomPopup('+${bd.id}+','+${bd.roomType != null ? bd.roomType.id : 0}+')'"><i class="fas fa-plus-circle"></i> Chọn phòng</span>
+                        <span th:if="${(bd.status == 'CHECKED_OUT' || bd.status == 'CANCELLED') && bd.room != null && bd.room.id != null}" class="room-locked" th:text="${bd.room.roomNumber}"></span>
+                        <span th:if="${(bd.status == 'CHECKED_OUT' || bd.status == 'CANCELLED') && (bd.room == null || bd.room.id == null)}" class="text-muted">-</span>
+                    </td>
+
+                    <!-- LOẠI PHÒNG -->
+                    <td th:text="${bd.roomType != null ? bd.roomType.nameType : ''}"></td>
+
+                    <!-- NHẬN / TRẢ PHÒNG -->
+                    <td>
+                        <div th:if="${bd.booking != null}" th:text="${#temporals.format(bd.booking.checkinDate, 'dd/MM') + ' - ' + #temporals.format(bd.booking.checkoutDate, 'dd/MM/yyyy')}" style="font-size:11px; font-weight:600"></div>
+                    </td>
+
+                    <!-- KHÁCH (số lượng) -->
+                    <td class="clickable" th:attr="onclick='openEditPopup('+${bd.id}+',\'guests\',\''+${bd.adultCount}+','+${bd.childCount}+'\')'">
+                        <span th:text="${bd.adultCount}+' NL'"></span><span th:if="${bd.childCount > 0}" th:text="', '+${bd.childCount}+' TE'"></span>
+                    </td>
+
+                    <!-- TIỀN PHÒNG (WEB) -->
+                    <td>
+                        <div th:text="${bd.price != null ? #numbers.formatDecimal(bd.price, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}"></div>
+                        <span th:if="${bd.status == 'PAID' || bd.status == 'CHECKED_OUT'}" class="badge-paid-online" style="background:#D1FAE5; color:#059669;">
+                            <i class="fas fa-check-circle"></i> Đã thanh toán
+                        </span>
+                        <span th:unless="${bd.status == 'PAID' || bd.status == 'CHECKED_OUT' || bd.status == 'CANCELLED'}" class="badge-paid-online" style="background:#FEF3C7; color:#D97706;">
+                            <i class="fas fa-clock"></i> Thu khi Check-out
+                        </span>
+                        <span th:if="${bd.status == 'CANCELLED'}" class="badge-paid-online" style="background:#FEE2E2; color:#DC2626;">
+                            <i class="fas fa-ban"></i> Đã hủy
+                        </span>
+                    </td>
+
+                    <!-- DANH SÁCH F&B -->
+                    <td>
+                        <span th:each="fb : ${bd.bookingFBs}" style="font-size:11px; display:block;">
+                            • <span th:text="${fb.fwb != null ? (fb.fwb.name != null ? fb.fwb.name : fb.fwb.description) : 'Dịch vụ'}"></span> x<b th:text="${fb.quantity}"></b>
+                        </span>
+                        <span th:if="${#lists.isEmpty(bd.bookingFBs)}" class="text-muted">- Không -</span>
+                    </td>
+
+                    <!-- PHỤ THU F&B -->
+                    <td>
+                        <span th:with="fbTotal=${!#lists.isEmpty(bd.bookingFBs) ? #aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity]) : 0}">
+                            <span th:text="${#numbers.formatDecimal((fbTotal != null ? fbTotal : 0), 0, 'COMMA', 0, 'POINT')} + ' VND'"></span>
+                        </span>
+                    </td>
+
+                    <!-- CẦN THU KHI CHECK-OUT -->
+                    <td th:with="isCancelled=${bd.status == 'CANCELLED'},
+                                totalFB=${!#lists.isEmpty(bd.bookingFBs) ? #aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity]) : 0},
+                                firstFB=${!#lists.isEmpty(bd.bookingFBs) ? (bd.bookingFBs[0].priceAtOrder * bd.bookingFBs[0].quantity) : 0},
+                                extraDue=${!#lists.isEmpty(bd.bookingFBs) && bd.bookingFBs.size() > 1 ? (totalFB - firstFB) : 0}">
+
+                        <span th:if="${isCancelled}" class="due-amount" style="color:#9CA3AF;">0 VND</span>
+                        <span th:unless="${isCancelled}"
+                              class="due-amount"
+                              th:style="${extraDue > 0} ? 'color:#D97706;' : 'color:#059669;'"
+                              th:text="${#numbers.formatDecimal(extraDue, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                        </span>
+                    </td>
+
+                    <!-- TRẠNG THÁI -->
+                    <td>
+    <span class="status-badge"
+          th:classappend="${bd.status == 'CONFIRMED'} ? 'confirmed' : (${bd.status == 'PENDING'} ? 'pending' : (${bd.status == 'CANCELLED'} ? 'cancelled' : (${bd.status == 'PAID'} ? 'paid' : 'checked')))"
+          th:text="${bd.status == 'PENDING' ? 'CHỜ DUYỆT' : (bd.status == 'CONFIRMED' ? 'ĐÃ DUYỆT' : (bd.status == 'PAID' ? 'ĐÃ THANH TOÁN' : (bd.status == 'CANCELLED' ? 'ĐÃ HỦY' : 'ĐÃ TRẢ PHÒNG')))}">
+    </span>
+                    </td>
+
+                    <!-- THAO TÁC (ĐÃ THÊM ĐIỀU KIỆN ẨN KHI ĐÃ HỦY HOẶC ĐÃ THANH TOÁN) -->
                     <td>
                         <div class="action-buttons">
-                            <button th:if="${bd.status == 'PENDING'}" class="btn-approve"
-                                    th:attr="onclick='approveNow(' + ${bd.id} + ')'">
+                            <!-- Nút Gọi F&B chỉ hiện khi đơn chưa bị HỦY và chưa TRẢ PHÒNG -->
+                            <button class="btn-food" th:if="${bd.status != 'CANCELLED' && bd.status != 'CHECKED_OUT'}" th:onclick="'openFoodPopup(' + ${bd.id} + ')'">
+                                <i class="fas fa-utensils"></i> Gọi F&B
+                            </button>
+
+                            <button th:if="${bd.status == 'PENDING'}" class="btn-approve" th:attr="onclick='approveNow('+${bd.id}+')'">
                                 <i class="fas fa-check"></i> Duyệt
                             </button>
-                            <button th:if="${bd.status == 'PENDING'}" class="btn-reject" th:onclick="'rejectDetail(' + ${bd.id} + ')'">
-                                <i class="fas fa-times"></i> Từ chối
+
+                            <button th:if="${bd.status != 'CANCELLED' && bd.status != 'PAID' && bd.status != 'CHECKED_OUT'}"
+                                    class="btn-paid"
+                                    th:attr="onclick='markAsPaid('+${bd.id}+')'">
+                                <i class="fas fa-money-bill-wave"></i> Đã thanh toán
+                            </button>
+
+                            <button th:if="${bd.status != 'CANCELLED' && bd.status != 'CHECKED_OUT'}" class="btn-reject" th:onclick="'rejectDetail('+${bd.id}+')'">
+                                <i class="fas fa-times"></i> Hủy
                             </button>
                         </div>
                     </td>
                 </tr>
-                <tr th:if="${#lists.isEmpty(bookingDetails)}"><td colspan="16" style="text-align:center; padding:40px;">📭 Không có đơn đặt phòng nào</td></tr>
+                <tr th:if="${#lists.isEmpty(bookingDetails)}"><td colspan="13" style="text-align:center;padding:40px">📭 Không có đơn đặt phòng nào</td></tr>
                 </tbody>
             </table>
-            <div class="table-footer"><span th:text="'Hiển thị ' + ${#lists.size(bookingDetails)} + ' / ' + ${totalBookings} + ' đơn'"></span></div>
+            <div class="pagination-bar">
+                <div style="display:flex;gap:6px"><button onclick="goToPage('first')"><i class="fas fa-angle-double-left"></i> Đầu</button><button onclick="goToPage('prev')"><i class="fas fa-angle-left"></i> Trước</button></div>
+                <span style="font-size:12px;color:#4B5563">Trang <strong id="currentPage">1</strong> / <strong id="totalPages">1</strong></span>
+                <div style="display:flex;gap:6px"><button onclick="goToPage('next')">Sau <i class="fas fa-angle-right"></i></button><button onclick="goToPage('last')">Cuối <i class="fas fa-angle-double-right"></i></button></div>
+            </div>
         </div>
 
         <div class="bottom-grid">
-            <div class="staff-logs"><div class="section-title">Nhật ký gần đây <i class="fas fa-clock" style="color:#9AA6C2;"></i></div><div th:each="log : ${recentLogs}" class="log-item"><div class="log-main" th:text="'Đơn #' + ${log.booking.id} + ' - ' + ${log.booking.name}"></div></div></div>
-            <div class="forecast-card"><div class="section-title">Dự báo lấp đầy <i class="fas fa-chart-line" style="color:#9AA6C2;"></i></div><div class="line-chart-container"><canvas id="lineChart"></canvas></div></div>
+            <div class="staff-logs"><div class="section-title">📋 Nhật ký gần đây</div><div th:each="log : ${recentLogs}" class="log-item"><div th:text="'Đơn #'+${log.booking != null ? log.booking.id : ''}+' - '+${log.booking != null ? log.booking.name : ''}"></div></div></div>
+            <div class="forecast-card"><div class="section-title">📈 Dự báo lấp đầy</div><div class="line-chart-container"><canvas id="lineChart"></canvas></div></div>
         </div>
     </div>
 
-    <!-- TOAST -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- POPUP CHỌN PHÒNG -->
-    <div id="pickRoomPopup" class="popup-overlay">
-        <div class="popup-box">
-            <h3><i class="fas fa-bed"></i> Chọn phòng</h3>
-            <div class="room-card-grid" id="pickRoomCardGrid"><p style="color:#999; text-align:center; grid-column:1/-1; padding:20px;">Đang tải phòng trống...</p></div>
+    <!-- POPUP ĐẶT PHÒNG TẠI QUẦY (WALK-IN) -->
+    <div id="walkInModal" class="popup-overlay">
+        <div class="popup-box" style="width: 550px;">
+            <h3><i class="fas fa-concierge-bell"></i> Lập đơn đặt phòng tại quầy (Walk-in)</h3>
+            <form id="walkInForm" onsubmit="submitWalkInForm(event)">
+                <div class="form-group">
+                    <label>Tên khách hàng *</label>
+                    <input type="text" id="wName" required placeholder="Nhập họ tên khách hàng">
+                </div>
+                <div class="form-group">
+                    <label>Số điện thoại *</label>
+                    <input type="text" id="wPhone" required placeholder="Nhập số điện thoại">
+                </div>
+                <div class="form-group">
+                    <label>Email (Không bắt buộc)</label>
+                    <input type="email" id="wEmail" placeholder="email@example.com">
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Ngày nhận phòng *</label>
+                        <input type="date" id="wCheckin" required onchange="loadWalkInRooms()">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Ngày trả phòng *</label>
+                        <input type="date" id="wCheckout" required onchange="loadWalkInRooms()">
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1;">
+                        <label>Số người lớn</label>
+                        <input type="number" id="wAdult" value="1" min="1">
+                    </div>
+                    <div class="form-group" style="flex:1;">
+                        <label>Số trẻ em</label>
+                        <input type="number" id="wChild" value="0" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Chọn phòng trống khả dụng *</label>
+                    <select id="wRoomId" required style="background: white;">
+                        <option value="">-- Vui lòng chọn ngày nhận/trả để lọc phòng --</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Hình thức thanh toán</label>
+                    <select id="wPaymentMethod" style="background: white;">
+                        <option value="TIEN_MAT">Tiền mặt</option>
+                        <option value="CHUYEN_KHOAN">Chuyển khoản / QR</option>
+                        <option value="THE">Thẻ ngân hàng</option>
+                    </select>
+                </div>
+                <div class="btn-row">
+                    <button type="button" class="btn-cancel" onclick="closeWalkInModal()">Hủy bỏ</button>
+                    <button type="submit" class="btn-save"><i class="fas fa-check"></i> Xác nhận tạo đơn</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <script th:inline="javascript">
-        var forecastDays = /*[[${forecastDays}]]*/ [];
-        var forecastData = /*[[${forecastData}]]*/ [];
-    </script>
+    <!-- POPUP HIỂN THỊ MÃ QR THANH TOÁN TẠI QUẦY -->
+    <div id="walkInQrModal" class="popup-overlay">
+        <div class="popup-box" style="text-align: center; width: 480px; background: #fdfbf7; border-radius: 0px; border: 1px solid #e8e4dc; padding: 30px;">
+            <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 600; margin-bottom: 5px;">Thanh Toán QR Tại Quầy</h3>
+            <p style="font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px;">Vui lòng quét mã QR dưới đây để hoàn tất thanh toán</p>
 
+            <div style="background: #ffffff; border: 1px solid #e8e4dc; padding: 15px; display: inline-block; margin-bottom: 15px; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
+                <img id="dynamicQrImg" src="" alt="Mã QR Chuyển Khoản FeelHome" style="width: 240px; height: 240px; object-fit: contain;">
+            </div>
+
+            <div style="background-color: #f9f6f0; border-left: 3px solid #c5a880; padding: 12px; text-align: left; margin-bottom: 20px;">
+                <div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 4px;">NỘI DUNG CHUYỂN KHOẢN CHUẨN XÁC:</div>
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <span id="qrContentText" style="font-size: 1.25rem; font-weight: bold; color: #dc3545; letter-spacing: 0.05em;">FEELHOMEBK...</span>
+                    <span style="background: #1e1e24; color: #fff; font-size: 0.75rem; padding: 3px 8px;"><i class="fas fa-barcode me-1"></i> Tự động quét</span>
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; color: #666; margin-bottom: 20px;">
+                <div style="width: 8px; height: 8px; background-color: #c5a880; border-radius: 50%; animation: pulse-animation 1.5s infinite ease-in-out;"></div>
+                <span>Hệ thống đang chờ giao dịch thực tế từ SePay...</span>
+            </div>
+
+            <div class="btn-row" style="justify-content: center;">
+                <button type="button" class="btn-cancel" onclick="cancelWalkInQrModal()" style="background: transparent; color: #888; border: 1px solid #e8e4dc; padding: 10px 20px; text-transform: uppercase; font-size: 0.85rem; width: 100%;">
+                    <i class="fas fa-times-circle me-1"></i> Đóng / Hủy giao dịch
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP CHỌN PHÒNG -->
+    <div id="pickRoomPopup" class="popup-overlay"><div class="popup-box"><h3><i class="fas fa-bed"></i> Chọn phòng</h3><div class="room-card-grid" id="pickRoomCardGrid"><p style="color:#999;text-align:center;grid-column:1/-1;padding:20px">Đang tải...</p></div></div></div>
+
+    <!-- POPUP SỬA THÔNG TIN -->
+    <div id="editPopup" class="popup-overlay">
+        <div class="popup-box">
+            <h3 id="editPopupTitle"><i class="fas fa-edit"></i> Sửa thông tin</h3>
+            <div id="editPopupContent"></div>
+            <div class="btn-row">
+                <button class="btn-cancel" onclick="closeEditPopup()">Hủy</button>
+                <button class="btn-save" onclick="saveEditPopup()"><i class="fas fa-save"></i> Lưu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP ĐỒ ĂN & DỊCH VỤ -->
+    <div id="foodPopup" class="popup-overlay">
+        <div class="popup-box">
+            <h3><i class="fas fa-utensils"></i> Thêm Đồ ăn & Dịch vụ (Phụ thu)</h3>
+            <p style="font-size:12px; color:#6B7280; margin-bottom:12px;">* Các khoản dịch vụ chọn dưới đây sẽ được cộng vào tiền phụ thu.</p>
+            <div id="foodList"><p style="text-align:center;padding:30px;color:#888;">Đang tải menu dịch vụ...</p></div>
+            <div class="btn-row">
+                <button class="btn-cancel" onclick="closeFoodPopup()">Đóng</button>
+                <button class="btn-save" onclick="saveFoodOrder()"><i class="fas fa-check"></i> Lưu dịch vụ</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">var forecastDays=/*[[${forecastDays}]]*/[];var forecastData=/*[[${forecastData}]]*/[];</script>
     <script>
-        // TOAST
-        function showToast(m, t) {
-            const c = document.getElementById('toastContainer');
-            const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle' };
-            const toast = document.createElement('div');
-            toast.className = 'toast ' + t;
-            toast.innerHTML = '<i class="fas ' + icons[t] + '"></i> ' + m;
-            c.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+        function showToast(m,t){const c=document.getElementById('toastContainer');if(!c)return;const icons={success:'fa-check-circle',error:'fa-times-circle',warning:'fa-exclamation-triangle'};const toast=document.createElement('div');toast.className='toast '+t;toast.innerHTML='<i class="fas '+icons[t]+'"></i> '+m;c.appendChild(toast);setTimeout(()=>{toast.style.opacity='0';toast.style.transition='opacity .3s';setTimeout(()=>toast.remove(),300)},3000)}
+        if(forecastDays && forecastDays.length>0){var ctx=document.getElementById('lineChart');if(ctx)new Chart(ctx.getContext('2d'),{type:'line',data:{labels:forecastDays,datasets:[{label:'Tỉ lệ (%)',data:forecastData,borderColor:'#1E6CD4',backgroundColor:'rgba(30,108,212,0.05)',borderWidth:2,pointRadius:4,tension:.3,fill:!0}]},options:{responsive:!0,maintainAspectRatio:!1,plugins:{legend:{display:!1}},scales:{y:{beginAtZero:!0,max:100}}}}
+        )}
+        const ROWS=10;let cp=1,tr=0;
+        function iP(){const r=document.querySelectorAll('#tableBody tr[data-detail-id]');tr=r.length;document.getElementById('totalPages').textContent=Math.ceil(tr/ROWS)||1;sP(1)}
+        function sP(p){const r=document.querySelectorAll('#tableBody tr[data-detail-id]');const tp=Math.ceil(r.length/ROWS)||1;if(p<1)p=1;if(p>tp)p=tp;cp=p;r.forEach((row,i)=>{row.style.display=(i>=(p-1)*ROWS&&i<p*ROWS)?'':'none'});document.getElementById('currentPage').textContent=cp}
+        function goToPage(a){const tp=Math.ceil(tr/ROWS)||1;if(a==='first')sP(1);else if(a==='prev')sP(cp-1);else if(a==='next')sP(cp+1);else if(a==='last')sP(tp)}
+        let pickedRooms={};
+
+        // ===== LOGIC ĐẶT PHÒNG TẠI QUẦY (WALK-IN) =====
+        function openWalkInModal() {
+            document.getElementById('walkInModal').classList.add('active');
+            const today = new Date().toISOString().split('T')[0];
+            let tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+            document.getElementById('wCheckin').value = today;
+            document.getElementById('wCheckout').value = tomorrowStr;
+            loadWalkInRooms();
         }
 
-        // CHART
-        if (forecastDays.length > 0) {
-            new Chart(document.getElementById('lineChart').getContext('2d'), {
-                type: 'line', data: { labels: forecastDays, datasets: [{ label: 'Tỉ lệ lấp đầy (%)', data: forecastData, borderColor: '#1E6CD4', backgroundColor: 'rgba(30,108,212,0.05)', borderWidth: 2, pointRadius: 4, tension: 0.3, fill: true }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 100, grid: { color: '#E2E8F0' } }, x: { grid: { display: false } } } }
-            });
+        function closeWalkInModal() {
+            document.getElementById('walkInModal').classList.remove('active');
         }
 
-        // SEARCH
-        document.getElementById('searchInput')?.addEventListener('keyup', function() {
-            const v = this.value.toLowerCase();
-            document.querySelectorAll('#tableBody tr').forEach(row => {
-                if (row.cells && row.cells.length > 1) row.style.display = Array.from(row.cells).map(c => c.innerText.toLowerCase()).join(' ').includes(v) ? '' : 'none';
-            });
-        });
+        function loadWalkInRooms() {
+            const checkin = document.getElementById('wCheckin').value;
+            const checkout = document.getElementById('wCheckout').value;
+            if(!checkin || !checkout) return;
 
-        let pickedRooms = {};
-
-        function openPickRoomPopup(detailId, roomTypeId, cellEl) {
-            document.getElementById('pickRoomCardGrid').innerHTML = '<p style="color:#999; text-align:center; grid-column:1/-1; padding:20px;">Đang tải phòng trống...</p>';
-            document.getElementById('pickRoomPopup').classList.add('active');
-
-            fetch('/api/admin/booking-details/' + detailId + '/available-rooms')
-            .then(res => res.json())
-            .then(data => {
-                const grid = document.getElementById('pickRoomCardGrid');
-                if (data.success && data.rooms && data.rooms.length > 0) {
-                    grid.innerHTML = data.rooms.map(r =>
-                        `<div class="room-card" data-room-id="${r.id}" data-room-number="${r.roomNumber}"
-                              onclick="pickRoom(${detailId}, ${r.id}, '${r.roomNumber}')">
-                            <div class="room-icon"><i class="fas fa-door-open"></i></div>
-                            <div class="room-number">${r.roomNumber}</div>
-                        </div>`
-                    ).join('');
-                } else {
-                    grid.innerHTML = '<p style="color:#EF4444; text-align:center; grid-column:1/-1; padding:20px;">❌ Hết phòng trống</p>';
-                }
-            });
+            fetch(`/booking/api/available-rooms?checkin=${checkin}&checkout=${checkout}`)
+                .then(res => res.json())
+                .then(data => {
+                    const select = document.getElementById('wRoomId');
+                    select.innerHTML = '<option value="">-- Chọn phòng trống --</option>';
+                    if(data && data.length > 0) {
+                        data.forEach(room => {
+                            select.innerHTML += `<option value="${room.id}">${room.name}</option>`;
+                        });
+                    } else {
+                        select.innerHTML = '<option value="">❌ Không có phòng trống trong khoảng thời gian này</option>';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast("❌ Không thể tải danh sách phòng trống", "error");
+                });
         }
 
-        function pickRoom(detailId, roomId, roomNumber) {
-            pickedRooms[detailId] = { roomId: roomId, roomNumber: roomNumber };
-            const rows = document.querySelectorAll('#tableBody tr');
-            rows.forEach(row => {
-                const firstCell = row.cells[0];
-                if (firstCell && firstCell.innerText.includes('#' + detailId)) {
-                    const roomCell = row.cells[5];
-                    roomCell.innerHTML = '<span class="room-picked"><i class="fas fa-bed"></i> ' + roomNumber + '</span>';
-                }
-            });
-            document.getElementById('pickRoomPopup').classList.remove('active');
-            showToast('✅ Đã chọn phòng ' + roomNumber + ' (chưa lưu)', 'success');
-        }
+        function submitWalkInForm(event) {
+            event.preventDefault();
+            const paymentMethod = document.getElementById('wPaymentMethod').value;
 
-        document.getElementById('pickRoomPopup').addEventListener('click', function(e) {
-            if (e.target === this) this.classList.remove('active');
-        });
+            const data = {
+                roomId: document.getElementById('wRoomId').value,
+                customerName: document.getElementById('wName').value,
+                customerPhone: document.getElementById('wPhone').value,
+                customerEmail: document.getElementById('wEmail').value,
+                adultCount: document.getElementById('wAdult').value,
+                childCount: document.getElementById('wChild').value,
+                checkinDate: document.getElementById('wCheckin').value,
+                checkoutDate: document.getElementById('wCheckout').value,
+                paymentMethod: paymentMethod
+            };
 
-        function approveNow(detailId) {
-            const picked = pickedRooms[detailId];
-            if (!picked) {
-                showToast('⚠️ Vui lòng chọn phòng trước khi duyệt!', 'warning');
-                return;
-            }
-            fetch('/api/admin/booking-details/' + detailId + '/approve?roomId=' + picked.roomId, {
-                method: 'PUT', headers: { 'Content-Type': 'application/json' }
+            fetch('/booking/admin/walk-in', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(data)
             })
             .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    showToast('✅ Đã duyệt - Phòng ' + picked.roomNumber, 'success');
-                    setTimeout(() => location.reload(), 1500);
-                } else showToast('❌ ' + data.message, 'error');
+            .then(result => {
+                if(result.success) {
+                    closeWalkInModal();
+
+                    if(paymentMethod === 'CHUYEN_KHOAN') {
+                        createdBookingIdForQr = result.bookingId;
+                        const amount = Math.round(parseFloat(result.totalAmount || 0));
+                        const content = "FEELHOMEBK" + result.bookingId;
+
+                        document.getElementById('qrContentText').innerText = content;
+                        const qrUrl = `https://qr.sepay.vn/img?bank=MBBank&acc=0855587468&template=compact&showinfo=true&holder=NGUYEN%20DUC%20PHAT&amount=${amount}&des=${content}`;
+                        document.getElementById('dynamicQrImg').src = qrUrl;
+
+                        document.getElementById('walkInQrModal').classList.add('active');
+                        startWalkInPaymentChecking(result.bookingId);
+                    } else {
+                        showToast("✅ " + result.message, "success");
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                } else {
+                    showToast("❌ " + result.message, "error");
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast("❌ Lỗi kết nối máy chủ!", "error");
             });
         }
 
-        function rejectDetail(detailId) {
-            if (!confirm('Từ chối đơn #' + detailId + '?')) return;
-            fetch('/api/admin/booking-details/' + detailId + '/reject', { method: 'PUT', headers: { 'Content-Type': 'application/json' } })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) { showToast('❌ Đã từ chối đơn #' + detailId, 'warning'); setTimeout(() => location.reload(), 1500); }
-                else showToast('Lỗi: ' + data.message, 'error');
+        let createdBookingIdForQr = null;
+        let walkInPaymentInterval = null;
+        let isWalkInProcessing = false;
+
+        function startWalkInPaymentChecking(bookingId) {
+            if (walkInPaymentInterval) clearInterval(walkInPaymentInterval);
+
+            walkInPaymentInterval = setInterval(function() {
+                if (isWalkInProcessing) return;
+                isWalkInProcessing = true;
+
+                fetch('/booking/api/invoice-status/' + bookingId)
+                    .then(response => {
+                        if (!response.ok) throw new Error('Network error');
+                        return response.json();
+                    })
+                    .then(data => {
+                        isWalkInProcessing = false;
+                        let currentStatus = data.status || data.paymentStatus;
+
+                        if (currentStatus === 'PAID') {
+                            clearInterval(walkInPaymentInterval);
+                            showToast("🎉 Hệ thống đã nhận được tiền thanh toán qua QR!", "success");
+
+                            setTimeout(() => {
+                                document.getElementById('walkInQrModal').classList.remove('active');
+                                location.reload();
+                            }, 1500);
+                        } else if (currentStatus === 'CANCELLED') {
+                            clearInterval(walkInPaymentInterval);
+                        }
+                    })
+                    .catch(error => {
+                        isWalkInProcessing = false;
+                        console.warn('Đang giữ kết nối an toàn với máy chủ...');
+                    });
+            }, 3000);
+        }
+
+        function cancelWalkInQrModal() {
+            if (walkInPaymentInterval) clearInterval(walkInPaymentInterval);
+            document.getElementById('walkInQrModal').classList.remove('active');
+            location.reload();
+        }
+
+        document.getElementById('walkInModal')?.addEventListener('click', function(e) {
+            if(e.target === this) closeWalkInModal();
+        });
+
+        function markAsPaid(detailId) {
+            if (!confirm("Xác nhận khách đã thanh toán tiền phòng cho đơn này?")) return;
+            fetch('/admin/api/booking-details/' + detailId + '/mark-paid', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    showToast("✅ Đã cập nhật trạng thái thanh toán!", "success");
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast("❌ " + res.message, "error");
+                }
+            })
+            .catch(err => { console.error(err); showToast("❌ Lỗi kết nối tới máy chủ!", "error"); });
+        }
+
+        // ===== POPUP F&B =====
+        let currentFoodBookingDetailId = null;
+        function openFoodPopup(detailId){
+            currentFoodBookingDetailId = detailId;
+            const popup = document.getElementById("foodPopup");
+            if(popup) popup.classList.add("active");
+
+            const foodListEl = document.getElementById("foodList");
+            foodListEl.innerHTML = '<p style="text-align:center;padding:25px;color:#888;"><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách menu...</p>';
+
+            fetch("/admin/api/booking-details/" + detailId + "/foods")
+                .then(r => { if (!r.ok) throw new Error("Lỗi tải menu"); return r.json(); })
+                .then(menuList => {
+                    if (!menuList || menuList.length === 0) {
+                        foodListEl.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">Không có danh sách dịch vụ nào.</p>';
+                        return;
+                    }
+
+                    let html = "";
+                    menuList.forEach(item => {
+                        const qty = item.quantity || 0;
+                        html += `
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #EFF2F7; padding-bottom:8px;">
+                            <div>
+                                <b style="font-size:13px; color:#1F2C48;">${item.name}</b><br>
+                                <span style="font-size:12px; color:#1E6CD4; font-weight:600;">${Number(item.price || 0).toLocaleString('vi-VN')} VND</span>
+                            </div>
+                            <input type="number" min="0" value="${qty}" data-fwb-id="${item.id}" class="food-qty-input" style="width:70px; padding:6px; border:1px solid #CBD5E1; border-radius:6px; text-align:center; font-weight:600;">
+                        </div>`;
+                    });
+                    foodListEl.innerHTML = html;
+                })
+                .catch(err => { console.error(err); foodListEl.innerHTML = '<p style="text-align:center;color:#EF4444;padding:20px;">❌ Lỗi kết nối tới máy chủ!</p>'; });
+        }
+
+        function closeFoodPopup(){
+            const popup = document.getElementById("foodPopup");
+            if(popup) popup.classList.remove("active");
+            currentFoodBookingDetailId = null;
+        }
+
+        function saveFoodOrder(){
+            if(!currentFoodBookingDetailId) return;
+            const inputs = document.querySelectorAll("#foodList .food-qty-input");
+
+            let items = [];
+            inputs.forEach(input => {
+                const qty = parseInt(input.value) || 0;
+                const fwbId = parseInt(input.getAttribute("data-fwb-id"));
+                if (fwbId) {
+                    items.push({ fwbId: fwbId, quantity: qty });
+                }
+            });
+
+            fetch("/admin/api/booking-details/" + currentFoodBookingDetailId + "/foods", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(items)
+            })
+            .then(r => r.json())
+            .then(res => {
+                if(res.success) {
+                    showToast("✅ Đã cập nhật phụ thu thành công!", "success");
+                    closeFoodPopup();
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast("❌ " + res.message, "error");
+                }
+            })
+            .catch(err => { console.error(err); showToast("❌ Lỗi kết nối tới máy chủ!", "error"); });
+        }
+        document.getElementById('foodPopup')?.addEventListener('click', function(e){ if(e.target === this) closeFoodPopup(); });
+
+        // ===== POPUP CHỌN PHÒNG =====
+        function openPickRoomPopup(did,rtid){
+            document.getElementById('pickRoomCardGrid').innerHTML='<p style="color:#999;text-align:center;grid-column:1/-1;padding:20px">Đang tải...</p>';
+            document.getElementById('pickRoomPopup').classList.add('active');
+            fetch('/admin/api/booking-details/'+did+'/available-rooms')
+            .then(r=>r.json())
+            .then(d=>{
+                const g=document.getElementById('pickRoomCardGrid');
+                if(d.success&&d.rooms&&d.rooms.length>0){
+                    g.innerHTML=d.rooms.map(r=>'<div class="room-card" onclick="pickRoom('+did+','+r.id+',\''+r.roomNumber+'\')"><div class="room-number">'+r.roomNumber+'</div></div>').join('')
+                } else {
+                    g.innerHTML='<p style="color:#EF4444;text-align:center;grid-column:1/-1;padding:20px">❌ Hết phòng trống (còn '+(d.availableCount||0)+'/'+(d.totalRooms||0)+' phòng)</p>'
+                }
+            }).catch(e => {
+                document.getElementById('pickRoomCardGrid').innerHTML='<p style="color:#EF4444;text-align:center;grid-column:1/-1;padding:20px">❌ Lỗi kết nối máy chủ</p>';
             });
         }
+        function pickRoom(did,rid,rn){pickedRooms[did]={roomId:rid,roomNumber:rn};const row=document.querySelector('tr[data-detail-id="'+did+'"]');if(row)row.cells[3].innerHTML='<span class="room-picked" onclick="openPickRoomPopup('+did+',0)"><i class="fas fa-bed"></i> '+rn+'</span>';document.getElementById('pickRoomPopup').classList.remove('active');showToast('✅ Đã chọn phòng '+rn+' (bấm Duyệt để lưu)','success')}
+        document.getElementById('pickRoomPopup')?.addEventListener('click',function(e){if(e.target===this)this.classList.remove('active')});
+
+        // ===== POPUP SỬA THÔNG TIN =====
+        let editDetailId=null,editField=null;
+        function openEditPopup(did,field,val){
+            editDetailId=did;editField=field;
+            const t=document.getElementById('editPopupTitle');
+            const c=document.getElementById('editPopupContent');
+            if(field==='name'){t.innerHTML='<i class="fas fa-user-edit"></i> Sửa tên khách';c.innerHTML='<div class="form-group"><label>Tên khách</label><input id="editVal" class="form-control" value="'+val+'"></div>'}
+            else if(field==='phone'){t.innerHTML='<i class="fas fa-phone"></i> Sửa SĐT';c.innerHTML='<div class="form-group"><label>Số điện thoại</label><input id="editVal" class="form-control" value="'+val+'"></div>'}
+            else if(field==='bookingDate'||field==='checkinDate'||field==='checkoutDate'){t.innerHTML='<i class="fas fa-calendar"></i> Sửa ngày';c.innerHTML='<div class="form-group"><label>Ngày</label><input type="date" id="editVal" class="form-control" value="'+val+'"></div>'}
+            else if(field==='guests'){const parts=val.split(',');t.innerHTML='<i class="fas fa-users"></i> Sửa số khách';c.innerHTML='<div class="form-group"><label>Người lớn</label><input type="number" id="editAdult" class="form-control" value="'+parts[0]+'" min="1"></div><div class="form-group"><label>Trẻ em</label><input type="number" id="editChild" class="form-control" value="'+(parts[1]||0)+'" min="0"></div>'}
+            document.getElementById('editPopup').classList.add('active');
+        }
+        function closeEditPopup(){document.getElementById('editPopup').classList.remove('active');editDetailId=null;editField=null;}
+        function saveEditPopup(){
+            if(!editDetailId||!editField)return;
+            let val="";
+            if(editField==='guests'){const a=document.getElementById('editAdult').value;const ch=document.getElementById('editChild').value;val=a+','+ch;}
+            else{val=document.getElementById('editVal').value;}
+            fetch('/admin/api/booking-details/'+editDetailId+'/update-field?field='+editField+'&value='+encodeURIComponent(val),{method:'PUT'})
+            .then(r=>r.json()).then(res=>{
+                if(res.success){showToast("✅ Cập nhật thành công!","success");closeEditPopup();setTimeout(()=>location.reload(),1000);}
+                else{showToast("❌ "+res.message,"error");}
+            }).catch(e=>{showToast("❌ Lỗi kết nối!","error");});
+        }
+        document.getElementById('editPopup')?.addEventListener('click',function(e){if(e.target===this)closeEditPopup();});
+
+        function approveNow(did){
+            const p=pickedRooms[did];
+            let url='/admin/api/booking-details/'+did+'/approve';
+            if(p&&p.roomId){url+='?roomId='+p.roomId;}
+            else{
+                const row=document.querySelector('tr[data-detail-id="'+did+'"]');
+                showToast("⚠️ Vui lòng bấm vào 'Chọn phòng' để gán phòng trước khi duyệt!","warning");
+                return;
+            }
+            fetch(url,{method:'PUT'}).then(r=>r.json()).then(res=>{
+                if(res.success){showToast("✅ Đã duyệt đơn và gán phòng thành công!","success");setTimeout(()=>location.reload(),1000);}
+                else{showToast("❌ "+res.message,"error");}
+            }).catch(e=>{showToast("❌ Lỗi kết nối!","error");});
+        }
+
+        function rejectDetail(did){
+            if(!confirm("Bạn có chắc chắn muốn hủy đơn này không?"))return;
+            fetch('/admin/api/booking-details/'+did+'/reject',{method:'PUT'})
+            .then(r=>r.json())
+            .then(res=>{
+                if(res.success){showToast("✅ Đã hủy đơn thành công!","success");setTimeout(()=>location.reload(),1000);}
+                else{showToast("❌ "+res.message,"error");}
+            })
+            .catch(e=>{showToast("❌ Lỗi kết nối!","error");});
+        }
+
+        document.addEventListener("DOMContentLoaded",()=>{iP();});
     </script>
 </div>
 </html>
