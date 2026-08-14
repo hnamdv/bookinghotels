@@ -56,6 +56,9 @@ public class BookingDetail {
     @Column(nullable = false, length = 20)
     private String status = "PENDING";
 
+    @Column(name = "delete_at")
+    private Boolean deleteAt = false; // Thêm trường xóa mềm
+
     @OneToMany(mappedBy = "bookingDetail", fetch = FetchType.LAZY)
     private List<BookingFB> bookingFBs = new ArrayList<>();
 

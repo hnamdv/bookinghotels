@@ -1,7 +1,9 @@
 package org.example.bookinghotels.Controller;
 
 import org.example.bookinghotels.entity.Booking;
+import org.example.bookinghotels.entity.BookingDetail;
 import org.example.bookinghotels.entity.Invoices;
+import org.example.bookinghotels.repository.BookingDetailRepository;
 import org.example.bookinghotels.repository.BookingRepository;
 import org.example.bookinghotels.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,63 +25,53 @@ public class InvoiceController {
     @Autowired
     private BookingRepository bookingRepository;
 
-    // =====================================================
-    // DANH SÁCH HÓA ĐƠN (GIỮ NGUYÊN CHỨC NĂNG CŨ)
-    // =====================================================
-    @GetMapping("/payments")
+    @Autowired
+    private BookingDetailRepository bookingDetailRepository;
+
+    @GetMapping("/admin/invoice-list-custom")
     public String showInvoicesPage(
-            @RequestParam(name = "id", required = false) Integer id,
             @RequestParam(name = "keyword", required = false) String keyword,
             @RequestParam(name = "status", required = false) String status,
             Model model) {
 
-        // 1. Lấy danh sách hóa đơn
-        List<Invoices> invoicesList = invoiceService.searchInvoices(keyword, status);
-        model.addAttribute("invoices", invoicesList);
+        List<BookingDetail> invoices;
 
-        // 2. Hiển thị chi tiết hóa đơn
-        if (id != null) {
-            Invoices selected = invoiceService.findById(id);
-            model.addAttribute("selectedInvoice", selected);
+        boolean hasKeyword = (keyword != null && !keyword.trim().isEmpty());
+        boolean hasStatus = (status != null && !status.trim().isEmpty());
+
+        if (hasKeyword || hasStatus) {
+            String kw = hasKeyword ? "%" + keyword.trim() + "%" : "%";
+            String st = hasStatus ? status : "";
+            invoices = bookingDetailRepository.searchBookingDetails(kw, st);
         } else {
-            if (invoicesList != null && !invoicesList.isEmpty()) {
-                model.addAttribute("selectedInvoice", invoicesList.get(0));
-            }
+            invoices = bookingDetailRepository.findAllWithDetails();
         }
 
-        // 3. Giữ filter
+        model.addAttribute("invoices", invoices);
         model.addAttribute("keyword", keyword);
         model.addAttribute("status", status);
 
-        return "payments";
+        return "html/admin-html/invoice-list";
     }
 
-    // =====================================================
-    // XÓA MỀM HÓA ĐƠN
-    // =====================================================
-    @PostMapping("/payments/delete/{id}")
+    @PostMapping("/admin/invoice/delete/{id}")
     public String deleteInvoice(@PathVariable Integer id) {
-        invoiceService.softDeleteInvoice(id);
-        return "redirect:/payments";
+        // Thay vì deleteById (xóa cứng), ta thực hiện đánh dấu xóa mềm
+        bookingDetailRepository.findById(id).ifPresent(detail -> {
+            detail.setDeleteAt(true);
+            bookingDetailRepository.save(detail);
+        });
+        return "redirect:/admin/invoice-list-custom";
     }
 
-    // =====================================================
-    // TRANG QR THANH TOÁN MỚI
-    // =====================================================
     @GetMapping("/invoice/qr")
-    public String showQR(
-            @RequestParam Integer bookingId,
-            Model model) {
-
+    public String showQR(@RequestParam Integer bookingId, Model model) {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy booking"));
 
-        // lấy invoice theo booking id
         Invoices invoice = invoiceService.findByBookingId(bookingId);
-
         model.addAttribute("booking", booking);
         model.addAttribute("invoice", invoice);
-
         return "html/client-html/qr-payment";
     }
 }

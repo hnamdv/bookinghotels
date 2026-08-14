@@ -13,7 +13,7 @@
 
 <section layout:fragment="content">
 
-    <div class="max-w-5xl mx-auto space-y-8">
+    <div class="max-w-7xl mx-auto space-y-8">
 
         <div class="pb-4 border-b border-gray-100">
             <h2 class="text-2xl font-bold">🗑️ Khôi phục dữ liệu</h2>
@@ -31,25 +31,37 @@
                     <table class="w-full text-left text-sm">
                         <thead class="bg-slate-50 border-b text-slate-500 uppercase text-[10px] font-bold">
                         <tr>
-                            <th class="px-6 py-3">Mã HĐ</th>
-                            <th class="px-6 py-3">Ngày lập</th>
-                            <th class="px-6 py-3">Số tiền</th>
-                            <th class="px-6 py-3">Trạng thái TT</th>
-                            <th class="px-6 py-3"></th>
+                            <th class="px-6 py-3">Mã Hóa Đơn</th>
+                            <th class="px-6 py-3">Khách hàng</th>
+                            <th class="px-6 py-3">Thời gian nhận/trả</th>
+                            <th class="px-6 py-3">Hạng phòng</th>
+                            <th class="px-6 py-3">Tổng thanh toán</th>
+                            <th class="px-6 py-3">Trạng thái</th>
+                            <th class="px-6 py-3 text-right">Thao tác</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                        <tr th:each="inv : ${deletedInvoices}" class="hover:bg-slate-50">
-                            <td class="px-6 py-3 font-medium" th:text="'#' + ${inv.id}"></td>
+                        <tr th:each="bd : ${deletedInvoices}" class="hover:bg-slate-50">
+                            <td class="px-6 py-3 font-medium" th:text="'FH-INV-' + ${bd.id}"></td>
+                            <td class="px-6 py-3" th:text="${bd.booking != null ? bd.booking.name : 'Khách lẻ'}"></td>
+
+                            <!-- Thời gian nhận/trả lấy từ bảng Booking -->
                             <td class="px-6 py-3 text-slate-500"
-                                th:text="${#temporals.format(inv.invoiceDate, 'dd/MM/yyyy HH:mm')}"></td>
-                            <td class="px-6 py-3" th:text="${#numbers.formatDecimal(inv.totalAmount, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+                                th:text="${bd.booking != null && bd.booking.checkinDate != null && bd.booking.checkoutDate != null ? #temporals.format(bd.booking.checkinDate, 'dd/MM/yyyy') + ' - ' + #temporals.format(bd.booking.checkoutDate, 'dd/MM/yyyy') : 'N/A'}">
+                            </td>
+
+                            <!-- Hạng phòng: Sử dụng nameType đúng với entity RoomType -->
+                            <td class="px-6 py-3" th:text="${bd.room != null && bd.room.roomType != null ? bd.room.roomType.nameType : 'N/A'}"></td>
+
+                            <!-- Tổng thanh toán -->
+                            <td class="px-6 py-3 font-medium text-emerald-600" th:text="${#numbers.formatDecimal(bd.price * bd.roomQuantity, 0, 'COMMA', 0, 'POINT')} + ' đ'"></td>
+
                             <td class="px-6 py-3">
-                                <span class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600" th:text="${inv.paymentStatus}"></span>
+                                <span class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600 font-semibold" th:text="${bd.status}"></span>
                             </td>
                             <td class="px-6 py-3 text-right">
-                                <form th:action="@{'/admin/trash/restore/invoice/' + ${inv.id}}" method="post">
-                                    <button type="submit" class="text-emerald-600 hover:underline text-xs font-semibold">
+                                <form th:action="@{'/admin/trash/restore/invoice/' + ${bd.id}}" method="post">
+                                    <button type="submit" class="text-emerald-600 hover:underline text-xs font-semibold inline-flex items-center">
                                         <i class="fa-solid fa-rotate-left mr-1"></i> Khôi phục
                                     </button>
                                 </form>
@@ -79,7 +91,7 @@
                             <th class="px-6 py-3">Username</th>
                             <th class="px-6 py-3">Tên</th>
                             <th class="px-6 py-3">Email</th>
-                            <th class="px-6 py-3"></th>
+                            <th class="px-6 py-3 text-right">Thao tác</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
@@ -89,7 +101,7 @@
                             <td class="px-6 py-3 text-slate-500" th:text="${u.email}"></td>
                             <td class="px-6 py-3 text-right">
                                 <form th:action="@{'/admin/trash/restore/user/' + ${u.id}}" method="post">
-                                    <button type="submit" class="text-emerald-600 hover:underline text-xs font-semibold">
+                                    <button type="submit" class="text-emerald-600 hover:underline text-xs font-semibold inline-flex items-center">
                                         <i class="fa-solid fa-rotate-left mr-1"></i> Khôi phục
                                     </button>
                                 </form>
