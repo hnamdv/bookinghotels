@@ -5,11 +5,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Repository
 public interface BookingDetailRepository extends JpaRepository<BookingDetail, Integer> {
 
     @Query("SELECT COUNT(bd) > 0 FROM BookingDetail bd " +
@@ -32,19 +34,41 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             @Param("checkinDate") LocalDate checkinDate,
             @Param("checkoutDate") LocalDate checkoutDate);
 
-    // ===== TÌM THEO BOOKING ID (THÊM VÀO ĐÂY) =====
+    // ===== TÌM THEO BOOKING ID =====
     @Query("SELECT bd FROM BookingDetail bd WHERE bd.booking.id = :bookingId")
     List<BookingDetail> findByBookingId(@Param("bookingId") Integer bookingId);
 
-    // ===== LOAD TẤT CẢ =====
+    // ===== TÌM KIẾM VÀ LỌC HÓA ĐƠN (LOẠI BỎ BẢN GHI ĐÃ XÓA MỀM) =====
+    @Query("SELECT DISTINCT bd FROM BookingDetail bd " +
+            "LEFT JOIN FETCH bd.booking b " +
+            "LEFT JOIN FETCH bd.room r " +
+            "LEFT JOIN FETCH bd.roomType rt " +
+            "LEFT JOIN FETCH bd.bookingFBs bfb " +
+            "WHERE (bd.deleteAt = false OR bd.deleteAt IS NULL) AND " +
+            "(:status = '' OR bd.status = :status) AND " +
+            "(:keyword = '%' OR b.name LIKE :keyword OR b.phone LIKE :keyword OR b.email LIKE :keyword) " +
+            "ORDER BY b.bookingDate DESC")
+    List<BookingDetail> searchBookingDetails(@Param("keyword") String keyword, @Param("status") String status);
+
+    // ===== LOAD TẤT CẢ (LOẠI BỎ BẢN GHI ĐÃ XÓA MỀM) =====
     @Query("SELECT DISTINCT bd FROM BookingDetail bd " +
             "JOIN FETCH bd.booking b " +
             "LEFT JOIN FETCH bd.room r " +
             "JOIN FETCH bd.roomType rt " +
             "LEFT JOIN FETCH bd.bookingFBs bfb " +
             "LEFT JOIN FETCH bfb.fwb f " +
+            "WHERE bd.deleteAt = false OR bd.deleteAt IS NULL " +
             "ORDER BY b.bookingDate DESC")
     List<BookingDetail> findAllWithDetails();
+
+    // ===== LẤY DANH SÁCH ĐÃ XÓA MỀM (CHO THÙNG RÁC) =====
+    @Query("SELECT DISTINCT bd FROM BookingDetail bd " +
+            "LEFT JOIN FETCH bd.booking b " +
+            "LEFT JOIN FETCH bd.room r " +
+            "LEFT JOIN FETCH bd.roomType rt " +
+            "WHERE bd.deleteAt = true " +
+            "ORDER BY b.bookingDate DESC")
+    List<BookingDetail> findAllByDeleteAtTrue();
 
     // ===== FILTER - Native query =====
     @Query(value = "SELECT bd.* FROM booking_detail bd " +
@@ -53,7 +77,8 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             "JOIN room_type rt ON rt.id = bd.room_type_id " +
             "LEFT JOIN booking_f_b bfb ON bd.id = bfb.booking_detail_id " +
             "LEFT JOIN fwb f ON f.id = bfb.fwb_id " +
-            "WHERE (CAST(:roomTypeId AS INTEGER) IS NULL OR rt.id = CAST(:roomTypeId AS INTEGER)) " +
+            "WHERE (bd.delete_at = false OR bd.delete_at IS NULL) " +
+            "AND (CAST(:roomTypeId AS INTEGER) IS NULL OR rt.id = CAST(:roomTypeId AS INTEGER)) " +
             "AND (CAST(:status AS VARCHAR) IS NULL OR bd.status = CAST(:status AS VARCHAR)) " +
             "AND (CAST(:startDate AS DATE) IS NULL OR b.checkin_date >= CAST(:startDate AS DATE)) " +
             "AND (CAST(:endDate AS DATE) IS NULL OR b.checkin_date <= CAST(:endDate AS DATE)) " +
@@ -152,5 +177,4 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
     List<BookingDetail> findOverlappingBookingsByRoomType(@Param("roomTypeId") Integer roomTypeId,
                                                           @Param("checkinDate") LocalDate checkinDate,
                                                           @Param("checkoutDate") LocalDate checkoutDate);
-
 }

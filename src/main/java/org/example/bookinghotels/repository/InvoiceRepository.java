@@ -11,21 +11,18 @@ import java.util.Optional;
 @Repository
 public interface InvoiceRepository extends JpaRepository<Invoices, Integer> {
 
-    @Query("SELECT i FROM Invoices i WHERE " +
+    @Query("SELECT i FROM Invoices i LEFT JOIN i.user u WHERE " +
             "i.deleteAt = false " +
-            "AND (:keyword IS NULL OR trim(:keyword) = '' OR " +
-            " str(i.id) LIKE :keyword_1 OR " +
-            " i.user.name LIKE :keyword_1) " +
-            "AND (:status IS NULL OR trim(:status) = '' OR i.paymentStatus = :status)")
+            "AND (:keyword IS NULL OR :keyword = '' OR " +
+            "str(i.id) LIKE CONCAT('%', :keyword, '%') OR " +
+            "u.name LIKE CONCAT('%', :keyword, '%')) " +
+            "AND (:status IS NULL OR :status = '' OR i.paymentStatus = :status)")
     List<Invoices> searchInvoices(@Param("keyword") String keyword,
-                                  @Param("keyword_1") String keyword_1,
                                   @Param("status") String status);
 
     Optional<Invoices> findByBookingId(Integer bookingId);
 
-    // Danh sách hóa đơn chưa xóa (dùng cho trang chính)
     List<Invoices> findAllByDeleteAtFalse();
 
-    // ==== Dùng cho trang trash ====
     List<Invoices> findAllByDeleteAtTrue();
 }

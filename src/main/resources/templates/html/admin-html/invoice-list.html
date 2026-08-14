@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"t
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{homeadmin}">
 <head>
     <meta charset="UTF-8">
@@ -85,6 +85,7 @@
         }
     </style>
 </head>
+<body>
 <div layout:fragment="content">
     <div class="dashboard">
         <div class="page-header"><h1>Quản lý xuất hóa đơn</h1></div>
@@ -155,9 +156,18 @@
                         </span>
                     </td>
                     <td>
-                        <button type="button" class="btn-view" onclick="openInvoiceViaRow(this)">
-                            <i class="fas fa-eye"></i> Xem
-                        </button>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <button type="button" class="btn-view" onclick="openInvoiceViaRow(this)">
+                                <i class="fas fa-eye"></i> Xem
+                            </button>
+
+                            <!-- NÚT XÓA MỀM CHUYỂN VÀO THÙNG RÁC -->
+                            <form th:action="@{'/admin/invoice/delete/' + ${bd.id}}" method="post" onsubmit="return confirm('Bạn có chắc chắn muốn chuyển hóa đơn này vào thùng rác không?');" style="margin: 0;">
+                                <button type="submit" style="padding: 5px 10px; border-radius: 16px; border: 1px solid #EF4444; background: transparent; color: #EF4444; font-size: 11px; font-weight: 600; cursor: pointer;">
+                                    <i class="fas fa-trash-alt"></i> Xóa
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 </tbody>
@@ -297,4 +307,5 @@
         });
     </script>
 </div>
+</body>
 </html>
