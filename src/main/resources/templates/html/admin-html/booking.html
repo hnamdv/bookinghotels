@@ -220,10 +220,9 @@
     </span>
                     </td>
 
-                    <!-- THAO TÁC (ĐÃ THÊM ĐIỀU KIỆN ẨN KHI ĐÃ HỦY HOẶC ĐÃ THANH TOÁN) -->
+                    <!-- THAO TÁC -->
                     <td>
                         <div class="action-buttons">
-                            <!-- Nút Gọi F&B chỉ hiện khi đơn chưa bị HỦY và chưa TRẢ PHÒNG -->
                             <button class="btn-food" th:if="${bd.status != 'CANCELLED' && bd.status != 'CHECKED_OUT'}" th:onclick="'openFoodPopup(' + ${bd.id} + ')'">
                                 <i class="fas fa-utensils"></i> Gọi F&B
                             </button>
@@ -255,14 +254,14 @@
         </div>
 
         <div class="bottom-grid">
-            <div class="staff-logs"><div class="section-title">📋 Nhật ký gần đây</div><div th:each="log : ${recentLogs}" class="log-item"><div th:text="'Đơn #'+${log.booking != null ? log.booking.id : ''}+' - '+${log.booking != null ? log.booking.name : ''}"></div></div></div>
+            <div class="staff-logs"><div class="section-title">📋 Nhật ký gần đây</div><div th:each="log : ${recentLogs}" class="log-item"><div th:text="'#'+${log.booking != null ? log.booking.id : ''}+' - '+${log.booking != null ? log.booking.name : ''}"></div></div></div>
             <div class="forecast-card"><div class="section-title">📈 Dự báo lấp đầy</div><div class="line-chart-container"><canvas id="lineChart"></canvas></div></div>
         </div>
     </div>
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- POPUP ĐẶT PHÒNG TẠI QUẦY (WALK-IN) -->
+    <!-- POPUP ĐẶT PHÒNG TẠI QUẦY (WALK-IN) - ĐÃ CẬP NHẬT CHỌN LOẠI PHÒNG -->
     <div id="walkInModal" class="popup-overlay">
         <div class="popup-box" style="width: 550px;">
             <h3><i class="fas fa-concierge-bell"></i> Lập đơn đặt phòng tại quầy (Walk-in)</h3>
@@ -282,11 +281,11 @@
                 <div style="display:flex; gap:10px;">
                     <div class="form-group" style="flex:1;">
                         <label>Ngày nhận phòng *</label>
-                        <input type="date" id="wCheckin" required onchange="loadWalkInRooms()">
+                        <input type="date" id="wCheckin" required>
                     </div>
                     <div class="form-group" style="flex:1;">
                         <label>Ngày trả phòng *</label>
-                        <input type="date" id="wCheckout" required onchange="loadWalkInRooms()">
+                        <input type="date" id="wCheckout" required>
                     </div>
                 </div>
                 <div style="display:flex; gap:10px;">
@@ -300,9 +299,10 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Chọn phòng trống khả dụng *</label>
-                    <select id="wRoomId" required style="background: white;">
-                        <option value="">-- Vui lòng chọn ngày nhận/trả để lọc phòng --</option>
+                    <label>Chọn loại phòng mong muốn *</label>
+                    <select id="wRoomTypeId" required style="background: white;">
+                        <option value="">-- Chọn loại phòng --</option>
+                        <option th:each="type : ${roomTypes}" th:value="${type.id}" th:text="${type.nameType}"></option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -391,7 +391,7 @@
         function goToPage(a){const tp=Math.ceil(tr/ROWS)||1;if(a==='first')sP(1);else if(a==='prev')sP(cp-1);else if(a==='next')sP(cp+1);else if(a==='last')sP(tp)}
         let pickedRooms={};
 
-        // ===== LOGIC ĐẶT PHÒNG TẠI QUẦY (WALK-IN) =====
+        // ===== LOGIC ĐẶT PHÒNG TẠI QUẦY (WALK-IN) THEO LOẠI PHÒNG =====
         function openWalkInModal() {
             document.getElementById('walkInModal').classList.add('active');
             const today = new Date().toISOString().split('T')[0];
@@ -401,35 +401,10 @@
 
             document.getElementById('wCheckin').value = today;
             document.getElementById('wCheckout').value = tomorrowStr;
-            loadWalkInRooms();
         }
 
         function closeWalkInModal() {
             document.getElementById('walkInModal').classList.remove('active');
-        }
-
-        function loadWalkInRooms() {
-            const checkin = document.getElementById('wCheckin').value;
-            const checkout = document.getElementById('wCheckout').value;
-            if(!checkin || !checkout) return;
-
-            fetch(`/booking/api/available-rooms?checkin=${checkin}&checkout=${checkout}`)
-                .then(res => res.json())
-                .then(data => {
-                    const select = document.getElementById('wRoomId');
-                    select.innerHTML = '<option value="">-- Chọn phòng trống --</option>';
-                    if(data && data.length > 0) {
-                        data.forEach(room => {
-                            select.innerHTML += `<option value="${room.id}">${room.name}</option>`;
-                        });
-                    } else {
-                        select.innerHTML = '<option value="">❌ Không có phòng trống trong khoảng thời gian này</option>';
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    showToast("❌ Không thể tải danh sách phòng trống", "error");
-                });
         }
 
         function submitWalkInForm(event) {
@@ -437,7 +412,7 @@
             const paymentMethod = document.getElementById('wPaymentMethod').value;
 
             const data = {
-                roomId: document.getElementById('wRoomId').value,
+                roomTypeId: document.getElementById('wRoomTypeId').value,
                 customerName: document.getElementById('wName').value,
                 customerPhone: document.getElementById('wPhone').value,
                 customerEmail: document.getElementById('wEmail').value,

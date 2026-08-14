@@ -29,7 +29,7 @@
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 60px 20px;
         }
@@ -103,7 +103,7 @@
             background: #ffffff;
             border: 1px solid var(--fh-border);
             border-radius: 4px;
-            padding: 30px;
+            padding: 35px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -111,15 +111,15 @@
         }
         .room-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.04);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
             border-color: #dcdcdc;
         }
 
         .room-info h3 {
             font-family: 'Cormorant Garamond', serif;
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 600;
-            margin: 0 0 12px 0;
+            margin: 8px 0 12px 0;
             color: var(--fh-dark);
             letter-spacing: 0.5px;
         }
@@ -152,27 +152,24 @@
             align-items: center;
             gap: 6px;
         }
-        .room-meta i {
-            font-size: 0.95rem;
-        }
 
         .room-price {
             text-align: right;
-            min-width: 200px;
+            min-width: 220px;
         }
         .price {
             font-family: 'Jost', sans-serif;
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 600;
             color: var(--fh-dark);
-            margin-bottom: 12px;
+            margin-bottom: 15px;
         }
 
         .btn-detail {
             background-color: var(--fh-dark);
             color: #ffffff;
             border: 1px solid var(--fh-dark);
-            padding: 12px 28px;
+            padding: 14px 30px;
             font-weight: 500;
             font-size: 0.85rem;
             border-radius: 0;
@@ -183,20 +180,39 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            text-decoration: none;
         }
         .btn-detail:hover {
             background-color: var(--fh-gold);
             border-color: var(--fh-gold);
             color: var(--fh-dark);
         }
-        .room-card.unavailable{opacity:.82;background:#f8f8f8}.room-card.unavailable:hover{transform:none;box-shadow:none}.status-pill{display:inline-flex;padding:5px 10px;border-radius:99px;font-size:.72rem;font-weight:700;margin-bottom:10px}.status-pill.ok{background:#e8f7ee;color:#177343}.status-pill.busy{background:#fff0e7;color:#b45309}.btn-detail:disabled{background:#aaa;border-color:#aaa;cursor:not-allowed}.available-again{margin-top:10px;font-size:.82rem;color:#9a5a2d}
-        .price-old{font-size:.92rem;color:#999;text-decoration:line-through;margin-bottom:2px}.price-new{color:#b35f23}.booking-promo{font-size:.75rem;color:#9a6519;margin:6px 0 12px}.booking-promo strong{color:#0b8f52}.booking-countdown{display:block;margin-top:4px;color:#a96500}.booking-countdown.expired{color:#9b1c1c}
+        .status-pill {
+            display: inline-flex;
+            padding: 4px 12px;
+            border-radius: 99px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .status-pill.ok {
+            background: #e8f7ee;
+            color: #177343;
+        }
+
         .no-rooms-alert {
             text-align: center;
-            padding: 40px;
+            padding: 50px 30px;
             color: var(--fh-text-muted);
             border: 1px dashed var(--fh-gold);
             background: #fff;
+            border-radius: 4px;
+        }
+        .room-note {
+            margin-top: 12px;
+            font-size: 0.85rem;
+            color: var(--fh-text-muted);
+            font-style: italic;
         }
     </style>
 </head>
@@ -209,56 +225,60 @@
 
     <div class="tabs">
         <button class="tab active" data-tab="booking">Phòng còn trống</button>
-        <button class="tab" data-tab="history">Lịch sử của bạn</button>
     </div>
 
     <div id="bookingSection" class="booking-section-content">
         <div class="rooms-grid">
 
-            <div class="no-rooms-alert" th:if="${selectedRoomTypeId != null and totalAvailable != null and totalAvailable > 0}" style="border-style:solid;margin-bottom:18px;text-align:left;display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;">
-                <div>
-                    <b th:text="${selectedRoomType != null ? selectedRoomType.nameType : 'Loại phòng đã chọn'}">Loại phòng</b>
-                    <div style="margin-top:6px;color:var(--fh-text-muted);" th:text="'Còn ' + ${totalAvailable} + ' phòng phù hợp. Hệ thống sẽ tự xếp 1 phòng trống khi bạn xác nhận đặt.'"></div>
-                </div>
-                <a class="btn-detail" style="text-decoration:none" th:href="@{/booking/payment(roomTypeId=${selectedRoomTypeId},checkin=${checkin},checkout=${checkout})}">ĐẶT NGAY LOẠI PHÒNG NÀY <i class="bi bi-chevron-right text-xs"></i></a>
-            </div>
-            <div class="no-rooms-alert" th:if="${selectedRoomTypeId != null and (totalAvailable == null or totalAvailable <= 0)}" style="margin-bottom:18px;">
-                Loại phòng này đã hết phòng trong khoảng ngày đã chọn.
-            </div>
-
-            
-
-            <div th:each="card : ${roomCards}" class="room-card" th:classappend="${card.available} ? '' : ' unavailable'">
+            <!-- THẺ ĐẶT LOẠI PHÒNG (Giao diện chuẩn gọn gàng cho Khách hàng) -->
+            <div th:if="${selectedRoomType != null and totalAvailable != null and totalAvailable > 0}" class="room-card">
                 <div class="room-info">
-                    <span class="status-pill" th:classappend="${card.available} ? ' ok' : ' busy'" th:text="${card.label}">CÒN TRỐNG</span>
-                    <h3 th:text="${card.room.roomType != null ? card.room.roomType.nameType : 'PHÒNG NGHỈ TIÊU CHUẨN'}">DELUXE ROOM</h3>
-                    <div class="room-dates"><span class="date-badge"><i class="bi bi-calendar3"></i><span th:text="${checkin}"></span><i class="bi bi-arrow-right text-xs px-1"></i><span th:text="${checkout}"></span></span></div>
+                    <span class="status-pill ok">ĐANG CÓ PHÒNG TRỐNG</span>
+                    <h3 th:text="${selectedRoomType.nameType}">Phòng Deluxe Gia Đình</h3>
+
+                    <div class="room-dates">
+                        <span class="date-badge">
+                            <i class="bi bi-calendar3"></i>
+                            <span th:text="${checkin}">2026-08-14</span>
+                            <i class="bi bi-arrow-right text-xs px-1"></i>
+                            <span th:text="${checkout}">2026-08-15</span>
+                        </span>
+                    </div>
+
                     <div class="room-meta">
-                        <span><i class="bi bi-door-open"></i> Phòng số: <span th:text="${card.room.roomNumber}">101</span></span>
-                        <span><i class="bi bi-people"></i> Tối đa: <span th:text="${card.room.roomType != null ? card.room.roomType.capacity : 2}">2</span> khách</span>
+                        <span><i class="bi bi-people"></i> Tối đa: <span th:text="${selectedRoomType.capacity != null ? selectedRoomType.capacity : 2}">4</span> khách</span>
+                        <span><i class="bi bi-check2-circle"></i> Còn <strong th:text="${totalAvailable}">101</strong> phòng phù hợp</span>
                     </div>
-                    <div class="available-again" th:if="${!card.available and card.availableAgain != null}" th:text="'Dự kiến trống lại sau ngày ' + ${#temporals.format(card.availableAgain,'dd/MM/yyyy')}"></div>
+
+                    <div class="room-note">
+                        * Hệ thống sẽ tự động xếp 1 phòng trống cho bạn khi xác nhận đặt.
+                    </div>
                 </div>
+
                 <div class="room-price">
-                    <div class="price-old" th:if="${card.promoted}"
-                         th:text="${#numbers.formatDecimal(card.originalPrice, 0, 'COMMA', 0, 'POINT') + ' VND'}"></div>
-                    <div class="price price-new"
-                         th:text="${#numbers.formatDecimal(card.effectivePrice, 0, 'COMMA', 0, 'POINT') + ' VND'}"></div>
-                    <div class="booking-promo" th:if="${card.promoted}">
-                        <strong th:text="|-${#numbers.formatDecimal(card.discountPercent,0,0)}%|">-10%</strong>
-                        <span th:text="${card.promotionName}">Ưu đãi</span>
-                        <span class="booking-countdown" th:attr="data-end=${card.promotionEndAt}">Đang tính thời gian...</span>
+                    <div class="price" th:text="${selectedRoomType.price != null ? #numbers.formatDecimal(selectedRoomType.price, 0, 'COMMA', 0, 'POINT') + ' VND' : '300,000 VND'}">
+                        300,000 VND
                     </div>
-                    <a class="btn-detail" th:if="${card.available and selectedRoomTypeId == null}" style="text-decoration:none" th:href="@{/booking/payment(roomTypeId=${card.room.roomType.id},checkin=${checkin},checkout=${checkout})}">ĐẶT NGAY <i class="bi bi-chevron-right text-xs"></i></a>
-                    <button class="btn-detail" th:if="${card.available and selectedRoomTypeId != null}" disabled>PHÒNG TRỐNG</button>
-                    <button class="btn-detail" th:if="${!card.available}" disabled>ĐÃ CÓ KHÁCH</button>
+
+                    <a class="btn-detail"
+                       th:href="@{/booking/payment(roomTypeId=${selectedRoomTypeId},checkin=${checkin},checkout=${checkout})}">
+                        ĐẶT NGAY LOẠI PHÒNG NÀY <i class="bi bi-chevron-right text-xs"></i>
+                    </a>
                 </div>
             </div>
 
-            <div th:if="${#lists.isEmpty(roomCards)}" class="no-rooms-alert">
-                <i class="bi bi-exclamation-triangle" style="font-size: 2rem; color: var(--fh-gold);"></i>
-                <p style="margin-top: 10px;">Hiện tại không có phòng nào trống phù hợp.</p>
-                <a href="/booking/check" style="color: var(--fh-dark); font-weight: 500; text-decoration: underline;">Xem tất cả phòng còn trống</a>
+            <!-- Trường hợp đã hết phòng thuộc loại này -->
+            <div class="no-rooms-alert" th:if="${selectedRoomType != null and (totalAvailable == null or totalAvailable <= 0)}">
+                <i class="bi bi-exclamation-circle" style="font-size: 2.2rem; color: #dc3545;"></i>
+                <p style="margin-top: 12px; font-size: 1.05rem;">Loại phòng <strong th:text="${selectedRoomType.nameType}"></strong> đã hết phòng trong khoảng ngày đã chọn.</p>
+                <a href="/booking/check" style="color: var(--fh-dark); font-weight: 500; text-decoration: underline;">Chọn ngày hoặc loại phòng khác</a>
+            </div>
+
+            <!-- Trường hợp chưa chọn loại phòng / Không có dữ liệu -->
+            <div th:if="${selectedRoomType == null}" class="no-rooms-alert">
+                <i class="bi bi-exclamation-triangle" style="font-size: 2.2rem; color: var(--fh-gold);"></i>
+                <p style="margin-top: 12px; font-size: 1.05rem;">Hiện tại không tìm thấy thông tin loại phòng phù hợp.</p>
+                <a href="/booking/check" style="color: var(--fh-dark); font-weight: 500; text-decoration: underline;">Xem tất cả loại phòng còn trống</a>
             </div>
 
         </div>
@@ -266,32 +286,9 @@
 </div>
 
 <script th:inline="javascript">
-    function updateBookingCountdowns() {
-        document.querySelectorAll('.booking-countdown[data-end]').forEach(el => {
-            const diff = new Date(el.dataset.end).getTime() - Date.now();
-            if (diff <= 0) {
-                el.textContent = 'Ưu đãi đã kết thúc';
-                el.classList.add('expired');
-                return;
-            }
-            const d = Math.floor(diff / 86400000);
-            const h = Math.floor((diff % 86400000) / 3600000);
-            const m = Math.floor((diff % 3600000) / 60000);
-            const sec = Math.floor((diff % 60000) / 1000);
-            el.textContent = `Còn ${d} ngày ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
-        });
-    }
     document.addEventListener('DOMContentLoaded', () => {
-        updateBookingCountdowns();
-        setInterval(updateBookingCountdowns, 1000);
+        // Cấu hình JS bổ sung nếu cần
     });
-
-    function goToBookingDetail(button) {
-        const roomTypeId = button.getAttribute('data-room-type-id');
-        const checkin = button.getAttribute('data-checkin');
-        const checkout = button.getAttribute('data-checkout');
-        window.location.href = `/booking/payment?roomTypeId=${roomTypeId}&checkin=${checkin}&checkout=${checkout}`;
-    }
 </script>
 </body>
 </html>
