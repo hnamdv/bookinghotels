@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -20,6 +21,9 @@ public class ActivityLogController {
     public String logs(Model model) {
 
         var logs = systemManagementService.getAllLogs();
+
+        // Sắp xếp theo thời gian tăng dần: cũ nhất -> mới nhất
+        logs.sort(Comparator.comparing(log -> log.getCreatedAt()));
 
         System.out.println("SO LOG = " + logs.size());
 

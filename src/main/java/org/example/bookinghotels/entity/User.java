@@ -10,6 +10,7 @@ import java.util.Set;
 
 @Entity
 @Table(name = "\"USER\"")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
