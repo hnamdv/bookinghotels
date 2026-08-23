@@ -6,6 +6,8 @@ import org.example.bookinghotels.dto.RevenueDTO;
 import org.example.bookinghotels.entity.ActivityLog;
 import org.example.bookinghotels.entity.Promotion;
 import org.example.bookinghotels.entity.RoomType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,6 +33,10 @@ public interface SystemManagementService {
     void logActivity(ActivityLog log);
 
     List<ActivityLog> getAllLogs();
+
+    // Mới thêm: dùng cho trang Activity Logs (filter + sort + phân trang)
+    Page<ActivityLog> searchLogs(String keyword, String action, String module,
+                                 String fromDate, String toDate, Pageable pageable);
 
     // ==== Dashboard ====
 
