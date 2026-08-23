@@ -29,8 +29,4 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
     List<Room> findAvailableRooms(@Param("roomTypeId") Integer roomTypeId,
                                   @Param("checkinDate") LocalDate checkinDate,
                                   @Param("checkoutDate") LocalDate checkoutDate);
-
-    @Query("SELECT r.roomType.id, COUNT(r.id) FROM Room r WHERE r.roomType IS NOT NULL GROUP BY r.roomType.id")
-    List<Object[]> countRoomsGroupByRoomType();
-
 }

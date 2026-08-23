@@ -1,6 +1,7 @@
 package org.example.bookinghotels.dto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public class RoomAvailabilityDto {
     private final Integer roomTypeId;
