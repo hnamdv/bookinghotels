@@ -7,6 +7,11 @@
     <meta charset="UTF-8">
     <title>Activity Logs Dashboard</title>
 
+    <!--
+      ⚠️ Tailwind Play CDN chỉ nên dùng cho dev/demo.
+      Với production nên build Tailwind qua CLI/PostCSS và import file CSS
+      đã compile để tránh biên dịch CSS runtime trong trình duyệt (chậm hơn).
+    -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
@@ -18,26 +23,97 @@
     <div class="max-w-6xl mx-auto">
 
         <!-- HEADER -->
-        <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
             <div>
                 <h2 class="text-2xl font-bold">Activity Logs</h2>
                 <p class="text-slate-500 text-sm mt-1">Lịch sử hoạt động hệ thống</p>
             </div>
 
-            <!-- SEARCH -->
+            <!-- QUICK FILTER (chỉ lọc các dòng đang hiển thị trên trang hiện tại) -->
             <div class="relative">
+                <label for="searchInput" class="sr-only">Tìm nhanh trong trang hiện tại</label>
                 <input type="text"
                        id="searchInput"
+                       aria-label="Tìm nhanh trong trang hiện tại"
                        class="pl-10 pr-4 py-2 w-full md:w-64 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none text-sm"
-                       placeholder="Tìm kiếm log..." />
+                       placeholder="Tìm nhanh trong trang này..." />
 
                 <svg class="absolute left-3 top-2.5 w-4 h-4 text-slate-400"
-                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                     fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                           d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
                 </svg>
             </div>
         </div>
+
+        <!--
+          BỘ LỌC SERVER-SIDE
+          Yêu cầu Controller đọc các query param bên dưới (keyword, action, module,
+          fromDate, toDate, sort, dir, page) và trả về danh sách đã lọc + phân trang.
+          Xem gợi ý Controller/Repository ở phần chat bên dưới file này.
+        -->
+        <form method="get" th:action="@{/admin/logs}"
+              class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+
+                <div>
+                    <label for="filterKeyword" class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Từ khóa</label>
+                    <input type="text" id="filterKeyword" name="keyword"
+                           th:value="${param.keyword != null ? param.keyword[0] : ''}"
+                           placeholder="Mô tả, user..."
+                           class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+
+                <div>
+                    <label for="filterAction" class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Hành động</label>
+                    <select id="filterAction" name="action"
+                            class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="" th:selected="${param.action == null}">Tất cả</option>
+                        <option value="CHECK_IN" th:selected="${param.action != null and param.action[0] == 'CHECK_IN'}">Nhận phòng</option>
+                        <option value="CHECK_OUT" th:selected="${param.action != null and param.action[0] == 'CHECK_OUT'}">Trả phòng</option>
+                        <option value="STATUS_UPDATE" th:selected="${param.action != null and param.action[0] == 'STATUS_UPDATE'}">Cập nhật trạng thái</option>
+                        <option value="REMINDER" th:selected="${param.action != null and param.action[0] == 'REMINDER'}">Nhắc nhở</option>
+                        <option value="AUTO_CHECK_OUT" th:selected="${param.action != null and param.action[0] == 'AUTO_CHECK_OUT'}">Tự động trả phòng</option>
+                        <option value="CREATE" th:selected="${param.action != null and param.action[0] == 'CREATE'}">Tạo mới</option>
+                        <option value="UPDATE" th:selected="${param.action != null and param.action[0] == 'UPDATE'}">Cập nhật</option>
+                        <option value="DELETE" th:selected="${param.action != null and param.action[0] == 'DELETE'}">Xóa</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="filterModule" class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Module</label>
+                    <input type="text" id="filterModule" name="module"
+                           th:value="${param.module != null ? param.module[0] : ''}"
+                           placeholder="VD: attendance"
+                           class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+
+                <div>
+                    <label for="filterFrom" class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Từ ngày</label>
+                    <input type="date" id="filterFrom" name="fromDate"
+                           th:value="${param.fromDate != null ? param.fromDate[0] : ''}"
+                           class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+
+                <div>
+                    <label for="filterTo" class="block text-[11px] font-bold text-slate-500 uppercase mb-1">Đến ngày</label>
+                    <input type="date" id="filterTo" name="toDate"
+                           th:value="${param.toDate != null ? param.toDate[0] : ''}"
+                           class="w-full px-3 py-2 rounded-lg border border-slate-200 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                </div>
+            </div>
+
+            <div class="flex gap-2 mt-3">
+                <button type="submit"
+                        class="px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+                    Áp dụng bộ lọc
+                </button>
+                <a th:href="@{/admin/logs}"
+                   class="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                    Xóa lọc
+                </a>
+            </div>
+        </form>
 
         <!-- TABLE -->
         <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -47,7 +123,14 @@
 
                     <thead class="bg-slate-50 border-b text-slate-500 uppercase text-[10px] font-bold">
                     <tr>
-                        <th class="px-6 py-3">Thời gian</th>
+                        <!-- Cột có thể sắp xếp: link giữ nguyên bộ lọc hiện tại, chỉ đổi sort/dir -->
+                        <th class="px-6 py-3">
+                            <a class="flex items-center gap-1 hover:text-slate-700"
+                               th:href="@{/admin/logs(keyword=${param.keyword != null ? param.keyword[0] : null}, action=${param.action != null ? param.action[0] : null}, module=${param.module != null ? param.module[0] : null}, fromDate=${param.fromDate != null ? param.fromDate[0] : null}, toDate=${param.toDate != null ? param.toDate[0] : null}, sort='createdAt', dir=${sortField == 'createdAt' and sortDir == 'asc' ? 'desc' : 'asc'})}">
+                                Thời gian
+                                <span th:if="${sortField == 'createdAt'}" th:text="${sortDir == 'asc' ? '↑' : '↓'}"></span>
+                            </a>
+                        </th>
                         <th class="px-6 py-3">User</th>
                         <th class="px-6 py-3">Hành động</th>
                         <th class="px-6 py-3">Module</th>
@@ -60,13 +143,16 @@
                     <tr th:each="log : ${logs}" class="hover:bg-slate-50">
 
                         <td class="px-6 py-3 text-slate-600 whitespace-nowrap"
-                            th:text="${#temporals.format(log.createdAt, 'dd/MM HH:mm:ss')}"></td>
+                            th:text="${#temporals.format(log.createdAt, 'dd/MM/yyyy HH:mm:ss')}"></td>
 
                         <td class="px-6 py-3">
                             <div th:if="${log.user != null}" class="flex items-center gap-2">
 
-                                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">
-                                    [[${#strings.substring(log.user.username, 0, 1)}]]
+                                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold"
+                                     aria-hidden="true">
+                                    <span th:text="${log.user.username != null and !#strings.isEmpty(log.user.username)}
+                                                    ? ${#strings.toUpperCase(#strings.substring(log.user.username, 0, 1))}
+                                                    : '?'"></span>
                                 </div>
 
                                 <span class="font-medium"
@@ -79,8 +165,20 @@
                         </span>
                         </td>
 
+                        <!--
+                          Badge màu theo action: giữ nguyên logic gốc nhưng nên cân nhắc
+                          chuyển sang 1 method Java (VD LogAction.cssClass()) để dễ maintain
+                          khi thêm action mới — xem gợi ý trong chat.
+                        -->
+                        <!--
+                          Badge: màu + nhãn hiển thị được map từ log.action (giá trị enum tiếng Anh lưu DB,
+                          dùng để filter/sort). Nếu thêm action mới, nhớ thêm cả nhánh màu lẫn nhánh nhãn bên dưới.
+                          Cân nhắc chuyển 2 mapping này vào 1 method Java (VD LogAction.cssClass()/label())
+                          nếu danh sách action còn tăng thêm, để đỡ phải sửa 2 chỗ trong template.
+                        -->
                         <td class="px-6 py-3">
                         <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase inline-block"
+                              th:title="${log.action}"
                               th:classappend="${
                                 log.action == 'CHECK_IN' ? 'bg-emerald-100 text-emerald-700' :
                                 log.action == 'CHECK_OUT' ? 'bg-rose-100 text-rose-700' :
@@ -92,7 +190,17 @@
                                 log.action == 'DELETE' ? 'bg-rose-100 text-rose-700' :
                                 'bg-gray-100 text-gray-700'
                               }"
-                              th:text="${log.action}">
+                              th:text="${
+                                log.action == 'CHECK_IN' ? 'Nhận phòng' :
+                                log.action == 'CHECK_OUT' ? 'Trả phòng' :
+                                log.action == 'STATUS_UPDATE' ? 'Cập nhật trạng thái' :
+                                log.action == 'REMINDER' ? 'Nhắc nhở' :
+                                log.action == 'AUTO_CHECK_OUT' ? 'Tự động trả phòng' :
+                                log.action == 'CREATE' ? 'Tạo mới' :
+                                log.action == 'UPDATE' ? 'Cập nhật' :
+                                log.action == 'DELETE' ? 'Xóa' :
+                                log.action
+                              }">
                         </span>
                         </td>
 
@@ -103,7 +211,7 @@
                         </td>
 
                         <td class="px-6 py-3 text-slate-700 text-xs max-w-md break-words"
-                            th:text="${log.description}">
+                            th:text="${T(org.example.bookinghotels.util.ActivityLogDisplay).humanize(log.description)}">
                         </td>
 
                     </tr>
@@ -114,13 +222,33 @@
 
             <div th:if="${#lists.isEmpty(logs)}"
                  class="p-8 text-center text-slate-400 text-sm">
-                Không có dữ liệu log
+                Không có log nào khớp bộ lọc hiện tại. Thử đổi từ khóa hoặc khoảng thời gian, hoặc bấm "Xóa lọc".
+            </div>
+
+            <!-- PHÂN TRANG -->
+            <div th:if="${!#lists.isEmpty(logs) and totalPages > 1}"
+                 class="flex flex-col md:flex-row items-center justify-between gap-3 px-6 py-4 border-t border-slate-100 text-sm text-slate-500">
+
+                <span>
+                    Trang <span th:text="${currentPage + 1}"></span> / <span th:text="${totalPages}"></span>
+                    — tổng <span th:text="${totalItems}"></span> log
+                </span>
+
+                <div class="flex gap-1">
+                    <a th:if="${currentPage > 0}"
+                       th:href="@{/admin/logs(keyword=${param.keyword != null ? param.keyword[0] : null}, action=${param.action != null ? param.action[0] : null}, module=${param.module != null ? param.module[0] : null}, fromDate=${param.fromDate != null ? param.fromDate[0] : null}, toDate=${param.toDate != null ? param.toDate[0] : null}, sort=${sortField}, dir=${sortDir}, page=${currentPage - 1})}"
+                       class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">Trước</a>
+
+                    <a th:if="${currentPage < totalPages - 1}"
+                       th:href="@{/admin/logs(keyword=${param.keyword != null ? param.keyword[0] : null}, action=${param.action != null ? param.action[0] : null}, module=${param.module != null ? param.module[0] : null}, fromDate=${param.fromDate != null ? param.fromDate[0] : null}, toDate=${param.toDate != null ? param.toDate[0] : null}, sort=${sortField}, dir=${sortDir}, page=${currentPage + 1})}"
+                       class="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50">Sau</a>
+                </div>
             </div>
 
         </div>
 
-        <p id="noResultMsg" class="hidden p-6 text-center text-slate-400 text-sm">
-            Không tìm thấy log phù hợp
+        <p id="noResultMsg" class="hidden p-6 text-center text-slate-400 text-sm" role="status" aria-live="polite">
+            Không tìm thấy log phù hợp trong trang này. Thử dùng bộ lọc phía trên để tìm trong toàn bộ dữ liệu.
         </p>
     </div>
 
@@ -134,8 +262,10 @@
 
         if (!searchInput || !tableBody) return;
 
-        searchInput.addEventListener('input', function () {
-            const keyword = this.value.trim().toLowerCase();
+        let debounceTimer;
+
+        function applyQuickFilter() {
+            const keyword = searchInput.value.trim().toLowerCase();
             const rows = tableBody.querySelectorAll('tr');
             let visibleCount = 0;
 
@@ -147,6 +277,12 @@
             });
 
             noResultMsg.classList.toggle('hidden', visibleCount !== 0 || rows.length === 0);
+        }
+
+        // Debounce nhẹ để tránh filter lại trên mỗi keystroke khi bảng lớn
+        searchInput.addEventListener('input', function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(applyQuickFilter, 200);
         });
     });
 </script>
