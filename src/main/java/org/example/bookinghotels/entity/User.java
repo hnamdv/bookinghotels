@@ -4,6 +4,7 @@ package org.example.bookinghotels.entity;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.bookinghotels.listener.ActivityLogListener;
 
 import java.util.HashSet;
 import java.util.Set;

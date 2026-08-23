@@ -3,13 +3,16 @@ package org.example.bookinghotels.entity;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.bookinghotels.listener.ActivityLogListener;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "bookings")
+@Table(name = "booking")
+
 @Getter
 @Setter
 @NoArgsConstructor

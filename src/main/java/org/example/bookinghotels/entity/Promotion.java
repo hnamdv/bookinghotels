@@ -3,11 +3,14 @@ package org.example.bookinghotels.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.bookinghotels.listener.ActivityLogListener;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 
 @Entity
 @Table(name = "promotion")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

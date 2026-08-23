@@ -38,33 +38,6 @@ public class PosController {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    // ===== KIỂM TRA BOOKING ID CÓ TỒN TẠI KHÔNG =====
-    @GetMapping("/check-booking/{bookingId}")
-    @ResponseBody
-    public ResponseEntity<?> checkBooking(@PathVariable Integer bookingId) {
-        try {
-            Optional<Booking> booking = bookingRepository.findById(bookingId);
-            if (booking.isPresent()) {
-                Map<String, Object> result = new HashMap<>();
-                result.put("exists", true);
-                result.put("bookingId", bookingId);
-                result.put("customerName", booking.get().getName() != null ? booking.get().getName() : "Khách hàng");
-                result.put("message", "Booking ID hợp lệ");
-                return ResponseEntity.ok(result);
-            } else {
-                return ResponseEntity.ok(Map.of(
-                        "exists", false,
-                        "message", "Booking ID không tồn tại trong hệ thống"
-                ));
-            }
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "exists", false,
-                    "message", "Lỗi kiểm tra: " + e.getMessage()
-            ));
-        }
-    }
-
     // ===== API LẤY DANH SÁCH MÓN CHO POS =====
     @GetMapping("/menu")
     @ResponseBody

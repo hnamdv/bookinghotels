@@ -3,9 +3,11 @@ package org.example.bookinghotels.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.bookinghotels.listener.ActivityLogListener;
 
 @Entity
 @Table(name = "booking_f_b")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

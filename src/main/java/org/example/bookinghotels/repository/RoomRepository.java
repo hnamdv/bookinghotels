@@ -10,17 +10,14 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RoomRepository extends JpaRepository<Room, Integer> {
-
     Optional<Room> findByRoomNumberIgnoreCase(String roomNumber);
-
     boolean existsByRoomNumberIgnoreCase(String roomNumber);
 
-    @Query("SELECT r FROM Room r WHERE r.roomType.id = :roomTypeId AND r.deleteAt = false ORDER BY r.roomNumber")
+    @Query("SELECT r FROM Room r WHERE r.roomType.id = :roomTypeId ORDER BY r.roomNumber")
     List<Room> findByRoomTypeId(@Param("roomTypeId") Integer roomTypeId);
 
     @Query("SELECT r FROM Room r " +
             "WHERE r.roomType.id = :roomTypeId " +
-            "AND r.deleteAt = false " +
             "AND r.id NOT IN (" +
             "   SELECT bd.room.id FROM BookingDetail bd " +
             "   JOIN bd.booking b " +
@@ -33,6 +30,7 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
                                   @Param("checkinDate") LocalDate checkinDate,
                                   @Param("checkoutDate") LocalDate checkoutDate);
 
-    // ==== Dùng cho trang trash ====
-    List<Room> findAllByDeleteAtTrue();
+    @Query("SELECT r.roomType.id, COUNT(r.id) FROM Room r WHERE r.roomType IS NOT NULL GROUP BY r.roomType.id")
+    List<Object[]> countRoomsGroupByRoomType();
+
 }

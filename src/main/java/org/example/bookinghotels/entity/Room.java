@@ -2,9 +2,11 @@ package org.example.bookinghotels.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.bookinghotels.listener.ActivityLogListener;
 
 @Entity
 @Table(name = "room")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

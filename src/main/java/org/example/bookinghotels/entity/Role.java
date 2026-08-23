@@ -3,10 +3,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.bookinghotels.entity.User;
+import org.example.bookinghotels.listener.ActivityLogListener;
+
 import java.util.List;
 
 @Entity
 @Table(name = "role")
+@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor

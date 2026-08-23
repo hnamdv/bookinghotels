@@ -63,6 +63,21 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #c0c0c0;
         }
+
+        .filter-input {
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            background: #fff;
+        }
+        .filter-input:focus {
+            outline: none;
+            border-color: var(--brand-brown);
+            background: var(--input-focus-bg);
+            box-shadow: 0 0 0 3px rgba(167, 82, 46, 0.1);
+        }
     </style>
 
     <div class="max-w-[1600px] mx-auto p-6 md:p-8 space-y-6">
@@ -71,6 +86,67 @@
         <div class="pb-4 border-b border-gray-100">
             <h1 class="text-3xl font-bold text-[#1c2a38] tracking-tight">📊 Thống Kê Khách Sạn</h1>
             <p class="text-sm text-gray-500 mt-1">Hệ thống báo cáo chỉ số công suất phòng và doanh thu thời gian thực</p>
+        </div>
+
+        <!-- Bộ lọc theo khoảng ngày / tháng -->
+        <form method="get" class="bg-white p-5 rounded-xl border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.02)] flex flex-wrap items-end gap-4">
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Từ ngày</label>
+                <input type="date" name="fromDate" th:value="${param.fromDate != null ? param.fromDate[0] : ''}"
+                       class="filter-input">
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Đến ngày</label>
+                <input type="date" name="toDate" th:value="${param.toDate != null ? param.toDate[0] : ''}"
+                       class="filter-input">
+            </div>
+
+            <span class="text-gray-300 pb-2 hidden sm:inline">|</span>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Tháng</label>
+                <select name="month" class="filter-input">
+                    <option value="">-- Chọn --</option>
+                    <option th:each="m : ${#numbers.sequence(1,12)}"
+                            th:value="${m}"
+                            th:text="'Tháng ' + ${m}"
+                            th:selected="${param.month != null and param.month[0] == ''+m}"></option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Năm</label>
+                <select name="year" class="filter-input">
+                    <option th:each="y : ${#numbers.sequence(2022, 2027)}"
+                            th:value="${y}"
+                            th:text="${y}"
+                            th:selected="${param.year != null and param.year[0] == ''+y}"></option>
+                </select>
+            </div>
+
+            <div class="flex gap-2 ml-auto">
+                <button type="submit"
+                        class="bg-[#a7522e] hover:bg-[#914424] text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition inline-flex items-center gap-2">
+                    <i class="fa-solid fa-filter"></i> Áp dụng
+                </button>
+                <a th:href="@{/admin/thongke}"
+                   class="bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm font-semibold px-5 py-2.5 rounded-lg transition inline-flex items-center">
+                    <i class="fa-solid fa-rotate-left mr-1"></i> Xóa lọc
+                </a>
+            </div>
+        </form>
+
+        <!-- Dòng hiển thị khoảng thời gian đang xem -->
+        <div th:if="${param.fromDate != null or param.toDate != null or param.month != null}"
+             class="text-sm text-[#a7522e] bg-orange-50 border border-orange-100 rounded-lg px-4 py-2 inline-flex items-center gap-2">
+            <i class="fa-solid fa-calendar-days"></i>
+            <span>Đang xem dữ liệu
+                <span th:if="${param.fromDate != null}" th:text="'từ ' + ${param.fromDate[0]}"></span>
+                <span th:if="${param.toDate != null}" th:text="' đến ' + ${param.toDate[0]}"></span>
+                <span th:if="${param.month != null}" th:text="'Tháng ' + ${param.month[0]} + (${param.year != null} ? '/' + ${param.year[0]} : '')"></span>
+            </span>
         </div>
 
         <!-- Khối thẻ chỉ số (Stats Grid) -->
