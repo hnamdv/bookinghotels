@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>FeelHome Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root{--navy:#121b2a;--gold:#d2ad5b;--cream:#f7f2ea;--card:#fff;--ink:#162033;--muted:#6b7280;--line:#eadfce;--accent:#c56f3c}
+        *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Jost,sans-serif}a{text-decoration:none;color:inherit}
+        .site-header{position:sticky;top:0;z-index:50;background:#121b2a;color:#fff;border-bottom:1px solid rgba(210,173,91,.35);box-shadow:0 10px 35px rgba(0,0,0,.18)}
+        .nav-wrap{max-width:1320px;margin:auto;height:76px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;gap:24px}.brand{display:flex;align-items:center;gap:12px;font-family:'Cormorant Garamond',serif;font-weight:700;letter-spacing:.18em;font-size:24px}.brand i{color:var(--gold);font-size:18px}.brand-logo{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid rgba(210,173,91,.6);background:#fff}.footer-logo{width:82px;height:82px;border-radius:50%;object-fit:cover;border:3px solid rgba(210,173,91,.65);background:#fff;margin:0 auto 12px;display:block}.nav{display:flex;align-items:center;gap:26px}.nav a{position:relative;text-transform:uppercase;font-weight:700;font-size:13px;letter-spacing:.13em}.nav a:after{content:"";position:absolute;left:0;right:auto;bottom:-10px;height:2px;width:0;background:linear-gradient(90deg,var(--gold),#fff0b4);transition:.28s}.nav a:hover:after,.nav a.active:after{width:100%}.book-now{position:relative;overflow:hidden;background:#f4c76d;color:#111827;border-radius:999px;padding:13px 24px;font-weight:800}.book-now:before{content:"";position:absolute;top:-70%;left:-40%;width:35%;height:240%;background:rgba(255,255,255,.65);transform:rotate(25deg);transition:.55s}.book-now:hover:before{left:120%}
+        .wrap{max-width:1320px;margin:auto;padding:0 28px}.hero{padding:76px 0 54px;overflow:hidden}.hero-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:54px;align-items:center}.tag{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border-radius:999px;background:#fff0d8;color:#a55b16;font-weight:800;text-transform:uppercase;letter-spacing:.05em;margin-bottom:26px}.hero h1{font-family:'Cormorant Garamond',serif;font-size:clamp(48px,5vw,82px);line-height:1.02;margin:0 0 22px}.hero h1 span{color:#c56f3c}.hero p{font-family:'Cormorant Garamond',serif;font-size:22px;line-height:1.75;color:#686868;max-width:640px}.hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}.btn-primary,.btn-outline{border-radius:999px;padding:17px 30px;font-weight:800;display:inline-flex;gap:10px;align-items:center;justify-content:center;transition:.28s}.btn-primary{background:#c56f3c;color:#fff;box-shadow:0 18px 35px rgba(197,111,60,.25)}.btn-primary:hover{transform:translateY(-3px);box-shadow:0 24px 42px rgba(197,111,60,.32)}.btn-outline{border:1px solid #d3b56f;background:#fff;color:#172033}.hero-visual{position:relative;min-height:520px}.hero-card{position:absolute;inset:30px 85px 0 0;border-radius:34px;overflow:hidden;box-shadow:0 35px 80px rgba(17,24,39,.16);transform:rotate(-4deg);background:#e9e1d5}.hero-card img{width:100%;height:100%;object-fit:cover}.hero-phone{position:absolute;right:20px;bottom:34px;width:190px;height:360px;border:10px solid #111827;border-radius:34px;overflow:hidden;background:#fff;box-shadow:0 28px 60px rgba(0,0,0,.22);transform:rotate(8deg)}.hero-phone img{width:100%;height:100%;object-fit:cover}.stat-card{position:absolute;right:0;background:#fff;border-radius:18px;padding:18px 20px;box-shadow:0 18px 40px rgba(17,24,39,.12);min-width:170px}.stat-card b{display:block;font-size:28px;color:#111827}.stat-card span{color:#777;font-size:13px}.stat-card small{color:#bd6c3c;font-weight:800}.stat-1{top:38px}.stat-2{top:190px}.stat-3{top:342px}.arrow-up{position:absolute;right:165px;top:240px;color:#d2ad5b;font-size:90px;transform:rotate(-10deg)}
+        .section{padding:62px 0}.section-head{display:flex;justify-content:space-between;align-items:flex-end;gap:28px;margin-bottom:26px}.eyebrow{text-transform:uppercase;letter-spacing:.17em;color:#b78a32;font-size:12px;font-weight:800}.section h2{font-family:'Cormorant Garamond',serif;font-size:48px;line-height:1.05;margin:8px 0 0}.section-head p{max-width:580px;color:#666;line-height:1.7}.booking-area{display:grid;grid-template-columns:320px 1fr;gap:28px;align-items:start}.filter{position:sticky;top:96px;background:#fff;border:1px solid var(--line);border-radius:26px;padding:24px;box-shadow:0 20px 48px rgba(17,24,39,.06)}.filter h3{font-family:'Cormorant Garamond',serif;font-size:36px;margin:0 0 16px}.filter label{font-weight:700;color:#4b5563;font-size:13px}.filter input{width:100%;height:48px;border:1px solid #ded3c1;border-radius:14px;margin:7px 0 14px;padding:0 14px;background:#fff}.check{display:flex;align-items:center;gap:8px;margin:8px 0}.check input{width:auto;height:auto;margin:0}.result-bar{text-align:right;margin-bottom:16px;font-weight:700}.room-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}.room-card{background:#fff;border:1px solid var(--line);border-radius:24px;overflow:hidden;box-shadow:0 20px 44px rgba(17,24,39,.07);transition:.3s}.room-card:hover{transform:translateY(-8px)}.room-img{height:245px;position:relative;background:#eee}.room-img img{width:100%;height:100%;object-fit:cover}.pill{position:absolute;left:16px;top:16px;background:#fff5ca;color:#8d6215;border:1px solid #d5ac43;border-radius:999px;padding:9px 14px;font-weight:800}.promo{position:absolute;right:14px;top:14px;background:#158957;color:#fff;border-radius:999px;padding:9px 12px;font-weight:900}.room-body{padding:22px}.kicker{font-size:11px;letter-spacing:.18em;color:#b78a32;text-transform:uppercase;font-weight:800}.room-body h3{font-family:'Cormorant Garamond',serif;font-size:34px;line-height:1.06;margin:8px 0}.room-body p{color:#666;line-height:1.65;min-height:52px}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.chip{border:1px solid #ead8b7;background:#fbf6eb;border-radius:999px;padding:7px 11px;font-size:13px;color:#6b5527}.price strong{font-size:26px;color:#c76f3b}.price del{color:#999;margin-right:8px}.actions{display:flex;gap:10px;margin-top:16px}.actions a{flex:1;border-radius:12px;padding:13px 12px;text-align:center;font-weight:800}.detail{border:1px solid #d6b96a;background:#fff}.book{background:#121b2a;color:#fff}.book:hover{background:#d2ad5b;color:#111}
+        .story-grid{display:grid;grid-template-columns:1fr 1fr;gap:30px}.panel{background:#fff;border:1px solid var(--line);border-radius:28px;padding:34px;box-shadow:0 18px 42px rgba(17,24,39,.06)}.panel h3{font-family:'Cormorant Garamond',serif;font-size:44px;line-height:1.08;margin:0 0 14px}.panel p{color:#666;line-height:1.8}.photo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}.photo-grid img{width:100%;height:225px;object-fit:cover;border-radius:24px;box-shadow:0 16px 32px rgba(17,24,39,.09)}.feature-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.feature{background:#fff;border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 16px 40px rgba(17,24,39,.05)}.feature i{font-size:28px;color:#d2ad5b}.feature h4{font-family:'Cormorant Garamond',serif;font-size:28px;margin:14px 0 8px}.feature p{color:#666;line-height:1.7}.cta{margin:65px 0;background:#121b2a;border-radius:30px;color:#fff;padding:36px;display:flex;justify-content:space-between;gap:22px;align-items:center}.cta h3{font-family:'Cormorant Garamond',serif;font-size:44px;margin:0}.cta p{color:rgba(255,255,255,.72);max-width:650px}.footer{background:#111827;color:#d1d5db;margin-top:40px;padding:50px 0 24px}.footer-grid{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:30px}.footer h3{font-family:'Cormorant Garamond',serif;color:#fff;font-size:34px}.footer p,.footer a{color:#cbd5e1;line-height:1.8}.footer-bottom{border-top:1px solid rgba(255,255,255,.1);margin-top:28px;padding-top:18px;text-align:center;color:#94a3b8}.empty{background:#fff;border:1px dashed #c9a75d;border-radius:22px;padding:40px;text-align:center;color:#777}
+        @media(max-width:1100px){.hero-grid,.booking-area,.story-grid{grid-template-columns:1fr}.room-grid,.feature-grid{grid-template-columns:repeat(2,1fr)}.filter{position:static}.hero-visual{min-height:430px}.footer-grid{grid-template-columns:1fr}}
+        @media(max-width:700px){.nav{display:none}.wrap{padding:0 16px}.hero{padding-top:45px}.hero-visual{min-height:360px}.hero-card{inset:20px 20px 10px 0}.hero-phone,.stat-card,.arrow-up{display:none}.room-grid,.feature-grid,.photo-grid{grid-template-columns:1fr}.section-head,.cta{display:block}.section h2{font-size:36px}.hero h1{font-size:46px}.hero p{font-size:18px}}
+    
+        .room-grid{align-items:stretch}
+        .room-card{height:100%;display:flex;flex-direction:column}
+        .room-body{display:flex;flex-direction:column;flex:1}
+        .room-body h3{min-height:74px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .room-body p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+        .chips{min-height:86px}
+        .actions{margin-top:auto}
+        .branch-note{font-size:13px;color:#8a6931;background:#fff6df;border:1px solid #ecd29a;border-radius:999px;padding:9px 13px;display:inline-flex;gap:7px;align-items:center;margin-bottom:12px}
+        @media(max-width:1100px){.photo-grid[style]{grid-template-columns:repeat(2,1fr)!important}}
+
+        /* Card phòng: ép các chip tiện ích thành pill nhỏ, không bị tròn to/xấu */
+        .room-card .chips{
+            min-height:72px;
+            display:flex;
+            align-content:flex-start;
+            align-items:flex-start;
+            gap:8px;
+            margin:18px 0 16px;
+        }
+        .room-card .chips span{
+            width:auto!important;
+            height:auto!important;
+            min-width:0!important;
+            min-height:0!important;
+            flex:0 0 auto!important;
+            display:inline-flex!important;
+            align-items:center;
+            justify-content:center;
+            gap:6px;
+            padding:7px 11px!important;
+            border-radius:999px!important;
+            background:#fff9ed!important;
+            border:1px solid #ead1a2!important;
+            color:#7a541c!important;
+            font-size:12.5px!important;
+            line-height:1.15!important;
+            white-space:nowrap;
+            box-shadow:none!important;
+        }
+        .room-card .chips span b{font-weight:700}
+        .room-body h3{min-height:82px;line-height:1.05}
+        .room-body .price{margin-top:auto}
+        .actions{margin-top:12px}
+
+
+        .promo-flag{right:14px;top:0;border-radius:0 0 7px 7px!important;padding:14px 13px 18px!important;background:linear-gradient(180deg,#12a76b,#057044)!important;box-shadow:0 12px 25px rgba(5,112,68,.28);font-size:18px;letter-spacing:.02em}
+        .promo-flag:after{content:"";position:absolute;left:0;right:0;bottom:-13px;border-left:28px solid transparent;border-right:28px solid transparent;border-top:13px solid #057044}
+        .promo-countdown{position:absolute;left:16px;bottom:16px;display:inline-flex;align-items:center;gap:7px;background:rgba(18,27,42,.88);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;backdrop-filter:blur(8px)}
+        .promo-countdown i{color:#f4c76d}
+        .promo-ribbon{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg,#eafff4,#fff);border:1px solid #b6e9cc;color:#047044;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;margin-top:8px}
+</style>
+</head>
+<body>
+<header class="site-header">
+    <div class="nav-wrap">
+        <a href="/home" class="brand"><img th:if="${siteLogo != null and !siteLogo.isBlank()}" class="brand-logo" th:src="${siteLogo}" alt="Logo"><span th:if="${siteLogo == null or siteLogo.isBlank()}" class="brand-logo" style="display:inline-flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;font-family:Jost,sans-serif;letter-spacing:0">FH</span><span th:text="${siteName}">FEELHOME HOTEL</span></a>
+        <nav class="nav">
+            <a href="/home" class="active">Trang chủ</a>
+            <a href="#rooms-section">Phòng nghỉ</a>
+            <a href="#about-section">Giới thiệu</a>
+            <a href="/offers">Ưu đãi</a>
+            <a href="/favorites">Yêu thích</a>
+        </nav>
+        <a href="#rooms-section" class="book-now">Đặt Ngay</a>
+    </div>
+</header>
+<main>
+    <section class="hero">
+        <div class="wrap hero-grid">
+            <div class="hero-copy">
+                <div class="tag"><i class="bi bi-bar-chart-fill"></i> <span th:text="${siteHeroBadge}">Khách sạn nghỉ dưỡng</span></div>
+                <h1><span th:text="${siteHeroAccent}">FeelHome</span><br><span style="color:var(--ink)" th:text="${siteHeroTitle}">đặt phòng nhanh, trải nghiệm bền vững</span></h1>
+                <p th:text="${siteWelcomeText}">Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn.</p>
+                <div class="hero-actions"><a class="btn-primary" href="#rooms-section"><i class="bi bi-telephone-fill"></i> Đặt phòng ngay <i class="bi bi-arrow-right"></i></a><a class="btn-outline" href="#gallery-section">Xem album ảnh</a></div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-card"><img th:src="${!#lists.isEmpty(siteHeroSlides) ? siteHeroSlides[0] : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80'}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1400&q=80'"></div>
+                <div class="hero-phone"><img th:src="${#lists.size(siteHeroSlides) > 1 ? siteHeroSlides[1] : (!#lists.isEmpty(siteHeroSlides) ? siteHeroSlides[0] : 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80')}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80'"></div>
+                <i class="bi bi-arrow-up-short arrow-up"></i>
+                <div class="stat-card stat-1"><span>Loại phòng</span><b th:text="${heroRoomCount}">12</b><small>+ phòng đang bán</small></div>
+                <div class="stat-card stat-2"><span>Chi nhánh</span><b th:text="${heroHotelCount}">2</b><small>quản lý trong admin</small></div>
+                <div class="stat-card stat-3"><span>Ảnh nổi bật</span><b th:text="${#lists.size(siteHeroSlides)}">4</b><small>đổi từ thư viện</small></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="rooms-section">
+        <div class="wrap">
+            <div class="section-head"><div><div class="eyebrow">Bộ lọc & phòng trống</div><h2>Chọn phòng theo ngày bạn muốn</h2></div><p>Bộ lọc vẫn nằm bên trái, danh sách phòng nằm bên phải. Khách chọn ngày một lần rồi bấm đặt, hệ thống tự chuyển đúng thông tin sang trang booking.</p></div>
+            <div class="branch-note" th:if="${selectedHotelId != null}"><i class="bi bi-building"></i> Đang xem chi nhánh: <strong th:text="${activeHotelName}">Chi nhánh</strong></div><div class="booking-area">
+                <aside class="filter gsap-item"><h3>Bộ lọc</h3><form method="get" th:action="@{/home}"><label>Khách sạn / chi nhánh</label><select name="hotelId" style="width:100%;height:48px;border:1px solid #ded3c1;border-radius:14px;margin:7px 0 14px;padding:0 14px;background:#fff"><option value="">Tất cả khách sạn</option><option th:each="h:${hotels}" th:value="${h.id}" th:selected="${selectedHotelId != null and selectedHotelId == h.id}" th:text="${h.name}">Khách sạn</option></select><label>Ngày đến</label><input type="date" name="checkin" th:value="${checkin}"><label>Ngày đi</label><input type="date" name="checkout" th:value="${checkout}"><label>Giá tối thiểu</label><input type="number" name="minPrice" th:value="${minPrice}" placeholder="VD: 500000"><label>Giá tối đa</label><input type="number" name="maxPrice" th:value="${maxPrice}" placeholder="VD: 3000000"><label>Số khách</label><input type="number" name="capacity" th:value="${capacity}" min="1"><label>Loại giường</label><input type="text" name="bed" th:value="${bed}" placeholder="Queen, King..."><div th:if="${roomAmenityOptions != null and !#lists.isEmpty(roomAmenityOptions)}"><label style="margin-top:4px">Tiện ích</label><label class="check" th:each="amenity:${roomAmenityOptions}"><input type="checkbox" name="amenityIds" th:value="${amenity.id}" th:checked="${amenityIds != null and #lists.contains(amenityIds, amenity.id)}"> <span th:text="${amenity.name}">Tiện ích</span></label></div><button class="btn-primary" type="submit" style="width:100%;margin-top:12px">Lọc phòng</button><a class="btn-outline" href="/home" style="width:100%;margin-top:10px">Xóa lọc</a></form></aside>
+                <div><div class="result-bar" th:text="|${#lists.size(rooms)} loại phòng phù hợp|">0 loại phòng phù hợp</div><div class="room-grid" th:if="${!#lists.isEmpty(rooms)}"><article class="room-card gsap-item" th:each="room:${rooms}"><div class="room-img"><img th:src="${room.image}" th:alt="${room.name}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80'"><span class="pill" th:text="|Còn ${room.availableRooms}/${room.totalRooms} phòng|">Còn phòng</span><span class="promo promo-flag" th:if="${room.hasPromotion}" th:text="|-${room.discountPercent}%|">-10%</span><div class="promo-countdown js-promo-countdown" th:if="${room.hasPromotion and room.promotionEndAt != null}" th:data-promo-end="${room.promotionEndAt}"><i class="bi bi-clock-history"></i><span>Đang tính...</span></div></div><div class="room-body"><div class="kicker" th:text="${room.hotelName}">FeelHome Hotel</div><h3 th:text="${room.name}">Tên phòng</h3><p th:text="${room.description}">Mô tả phòng</p><div class="chips"><span class="chip"><i class="bi bi-people"></i> <span th:text="|${room.capacity} khách|"></span></span><span class="chip" th:if="${room.bed != null and !room.bed.isBlank()}"><i class="bi bi-moon-stars"></i> <span th:text="${room.bed}"></span></span><span class="chip" th:each="amenityName:${room.amenityNames}" th:text="${amenityName}">Tiện ích</span></div><div class="price"><del th:if="${room.hasPromotion}" th:text="${#numbers.formatDecimal(room.originalPrice,0,'COMMA',0,'POINT')} + ' đ'"></del><strong th:text="${#numbers.formatDecimal(room.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'"></strong><small> / đêm</small></div><div class="promo-ribbon js-promo-countdown" th:if="${room.hasPromotion and room.promotionEndAt != null}" th:data-promo-end="${room.promotionEndAt}"><i class="bi bi-lightning-charge-fill"></i><span>Ưu đãi còn...</span></div><div class="actions"><a class="detail" th:href="${room.detailUrl}">Chi tiết</a><a class="book" th:href="${room.bookingUrl}">Đặt ngay</a></div></div></article></div><div class="empty" th:if="${#lists.isEmpty(rooms)}">Không có phòng phù hợp. Vui lòng đổi ngày hoặc điều kiện lọc.</div></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="about-section"><div class="wrap story-grid"><div class="panel gsap-item"><div class="eyebrow">Về khách sạn</div><h3 th:text="${siteAboutTitle}">Không gian nghỉ dưỡng có thể thay đổi hình ảnh linh động từ admin</h3><p th:text="${siteAboutText}">Logo, slideshow, ảnh phòng, ảnh dịch vụ và hình ảnh thư viện đều đi qua phần Quản lý hình ảnh.</p><p>Chi nhánh đang xem: <strong th:text="${activeHotelName}">FeelHome Hotel</strong>. Nội dung, logo và slideshow có thể quản lý riêng từng khách sạn trong Upload Photo.</p></div><div class="photo-grid gsap-item"><img th:each="img,iter:${galleryImages}" th:if="${iter.index < 4}" th:src="${img}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80'"></div></div></section>
+
+
+    <section class="section" id="gallery-section">
+        <div class="wrap">
+            <div class="section-head">
+                <div><div class="eyebrow">Album ảnh</div><h2 th:text="${siteGalleryTitle}">Album hình ảnh nổi bật</h2></div>
+                <p th:text="${siteGalleryText}">Nút Xem hình ảnh sẽ cuộn xuống album này. Ảnh được quản lý trong Upload Photo.</p>
+            </div>
+            <div class="photo-grid" style="grid-template-columns:repeat(4,1fr)">
+                <img class="gsap-item" th:each="img,iter:${galleryImages}" th:if="${iter.index < 8}" th:src="${img}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80'">
+            </div>
+        </div>
+    </section>
+    <section class="section"><div class="wrap"><div class="section-head"><div><div class="eyebrow">Điểm nổi bật</div><h2>Trải nghiệm quản lý đồng bộ</h2></div><p>Các khối này giúp trang không còn ngắn, đồng thời trình bày được luồng đặt phòng và khả năng quản trị hình ảnh/nội dung.</p></div><div class="feature-grid"><div class="feature gsap-item"><i class="bi bi-images"></i><h4>Ảnh quản lý tập trung</h4><p>Lấy từ thư viện ảnh và ảnh loại phòng, hạn chế hard-code hình.</p></div><div class="feature gsap-item"><i class="bi bi-calendar-check"></i><h4>Giữ ngày đặt</h4><p>Khách chọn ngày ở home, sang booking/payment không phải chọn lại.</p></div><div class="feature gsap-item"><i class="bi bi-cash-coin"></i><h4>Dịch vụ đồng nhất</h4><p>Payment chỉ hiện dịch vụ tính phí, không lẫn tiện ích miễn phí.</p></div><div class="feature gsap-item"><i class="bi bi-magic"></i><h4>GSAP animation</h4><p>Hiệu ứng mượt nhưng dữ liệu vẫn render bằng Controller + Thymeleaf.</p></div></div></div></section>
+
+    <section class="wrap"><div class="cta gsap-item"><div><h3 th:text="${siteCtaTitle}">Sẵn sàng đặt kỳ nghỉ tiếp theo?</h3><p th:text="${siteCtaText}">Khách có thể lọc phòng, xem chi tiết, đặt loại phòng và chọn dịch vụ cộng bill ở trang thanh toán.</p></div><a class="btn-primary" href="#rooms-section">Đặt phòng ngay</a></div></section>
+</main>
+<footer class="footer"><div class="wrap" style="text-align:center;margin-bottom:24px"><img th:if="${siteLogo != null and !siteLogo.isBlank()}" class="footer-logo" th:src="${siteLogo}" alt="Logo"><span th:if="${siteLogo == null or siteLogo.isBlank()}" class="footer-logo" style="display:flex;align-items:center;justify-content:center;background:#fff;color:#bd6c3c;font-weight:900">FH</span><h3 th:text="${siteName}" style="font-family:'Cormorant Garamond',serif;color:#fff;font-size:38px;margin:0">FEELHOME HOTEL</h3></div><div class="wrap footer-grid"><div><p th:text="${siteWelcomeText}">Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn. Hình ảnh và nội dung có thể quản lý linh động từ hệ thống admin.</p></div><div><h4>Liên kết</h4><p><a href="/home">Trang chủ</a><br><a href="/offers">Ưu đãi</a><br><a href="/favorites">Yêu thích</a></p></div><div><h4>Thông tin</h4><p>Hotline: 0283838383<br>Email: feelhome@example.com<br>Địa chỉ: TP.HCM</p></div></div><div class="wrap footer-bottom">© 2026 FeelHome Hotel. All rights reserved.</div></footer>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script><script>document.addEventListener('DOMContentLoaded',()=>{if(window.gsap){gsap.from('.hero-copy > *',{y:26,opacity:0,duration:.75,stagger:.1,ease:'power3.out'});gsap.from('.hero-card,.hero-phone,.stat-card',{scale:.92,opacity:0,duration:.8,stagger:.08,ease:'power3.out',delay:.15});document.querySelectorAll('.gsap-item').forEach(el=>{el.style.opacity='1';});}})</script>
+
+<script>
+(function(){
+  function pad(v){return String(v).padStart(2,'0')}
+  function render(el){
+    const endRaw=el.getAttribute('data-promo-end');
+    if(!endRaw) return;
+    const end=new Date(endRaw);
+    const span=el.querySelector('span')||el;
+    if(isNaN(end.getTime())) return;
+    const diff=end.getTime()-Date.now();
+    if(diff<=0){span.textContent='Ưu đãi vừa hết hạn';el.classList.add('expired');return;}
+    const d=Math.floor(diff/86400000);
+    const h=Math.floor(diff%86400000/3600000);
+    const m=Math.floor(diff%3600000/60000);
+    const s=Math.floor(diff%60000/1000);
+    span.textContent=(d>0?d+' ngày ':'')+pad(h)+':'+pad(m)+':'+pad(s);
+  }
+  function tick(){document.querySelectorAll('.js-promo-countdown').forEach(render)}
+  tick();setInterval(tick,1000);
+})();
+</script>
+</body>
+</html>

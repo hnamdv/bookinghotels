@@ -1,5 +1,6 @@
 package org.example.bookinghotels.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;  // ← THÊM IMPORT
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.bookinghotels.listener.ActivityLogListener;
@@ -16,8 +17,10 @@ public class Room {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // ✅ THÊM @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_type_id")
+    @JsonIgnore
     private RoomType roomType;
 
     @Column(unique = true)

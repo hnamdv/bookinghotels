@@ -3,18 +3,19 @@ package org.example.bookinghotels.entity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.bookinghotels.listener.ActivityLogListener;
 
+import java.util.Collections;
 import java.util.Map;
 
 @Entity
 @Table(name = "fwb")
-
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class FwB {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
@@ -28,56 +29,22 @@ public class FwB {
     @Column(length = 50)
     private String status;
 
-    // Sửa hàm lấy tên dịch vụ: Chống crash khi dữ liệu không phải JSON
     public String getName() {
-        if (this.description == null || this.description.trim().isEmpty()) {
-            return "Dịch vụ phòng khách sạn";
-        }
-
-        String trimmed = this.description.trim();
-        // Kiểm tra xem chuỗi có dạng JSON hợp lệ hay không (bắt đầu bằng { )
-        if (trimmed.startsWith("{")) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> data = mapper.readValue(trimmed, Map.class);
-                if (data != null && data.containsKey("name")) {
-                    return data.get("name").toString();
-                }
-            } catch (Exception e) {
-                // Nếu parse JSON lỗi thì fallback xuống xử lý như chuỗi thường bên dưới
-            }
-        }
-
-        // Nếu không phải JSON (Ví dụ chuỗi: "Ăn cơm", "Nước uống"), trả về chính nó luôn
-        return trimmed;
+        Object value = getJsonValue("name");
+        if (value != null && !value.toString().isBlank()) return value.toString();
+        if (description == null || description.trim().isBlank()) return "Dịch vụ phòng khách sạn";
+        String trimmed = description.trim();
+        return trimmed.startsWith("{") ? "Dịch vụ phòng khách sạn" : trimmed;
     }
 
-    // Sửa hàm lấy giá: Tránh sập luồng khi dữ liệu là text thường
     public double getPrice() {
-        if (this.description == null || this.description.trim().isEmpty()) {
-            return 0.0;
+        Object value = getJsonValue("price");
+        if (value instanceof Number number) return number.doubleValue();
+        if (value != null) {
+            try { return Double.parseDouble(value.toString()); } catch (Exception ignored) {}
         }
-
-        String trimmed = this.description.trim();
-        if (trimmed.startsWith("{")) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> data = mapper.readValue(trimmed, Map.class);
-                if (data != null && data.containsKey("price")) {
-                    Object priceObj = data.get("price");
-                    if (priceObj instanceof Number) {
-                        return ((Number) priceObj).doubleValue();
-                    }
-                }
-            } catch (Exception e) {
-                // Bỏ qua lỗi để hệ thống tiếp tục chạy mượt mà
-            }
-        }
-
-        // Mặc định trả về 0 nếu trường text không chứa cấu trúc giá JSON
         return 0.0;
     }
-
 
     public String getUnit() {
         Object value = getJsonValue("unit");
@@ -95,20 +62,19 @@ public class FwB {
     }
 
     private Object getJsonValue(String key) {
-        if (this.description == null || this.description.trim().isEmpty()) {
-            return null;
-        }
-        String trimmed = this.description.trim();
-        if (!trimmed.startsWith("{")) {
-            return null;
-        }
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> data = mapper.readValue(trimmed, Map.class);
-            return data == null ? null : data.get(key);
-        } catch (Exception e) {
-            return null;
-        }
+        Map<String, Object> map = readJsonMap();
+        return map.get(key);
     }
 
+    @Transient
+    private Map<String, Object> readJsonMap() {
+        if (description == null || description.trim().isEmpty()) return Collections.emptyMap();
+        String trimmed = description.trim();
+        if (!trimmed.startsWith("{")) return Collections.emptyMap();
+        try {
+            return MAPPER.readValue(trimmed, Map.class);
+        } catch (Exception e) {
+            return Collections.emptyMap();
+        }
+    }
 }

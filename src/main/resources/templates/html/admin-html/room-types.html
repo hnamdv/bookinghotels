@@ -32,24 +32,14 @@
                 <div class="col-md-6"><label class="form-label">Tùy chọn giường / nôi / giường phụ</label><input class="form-control" name="bedOptions" placeholder="VD: Có thể thêm 1 nôi trẻ em hoặc 1 giường phụ, phụ thu theo dịch vụ phòng" th:value="${editRoomType != null ? editRoomType.bedOptions : ''}"></div>
                 <div class="col-12"><label class="form-label">Mô tả</label><textarea class="form-control" rows="3" name="description" th:text="${editRoomType != null ? editRoomType.description : ''}"></textarea></div>
                 <div class="col-12">
-                    <div class="text-muted small mb-2">
-                        Tiện nghi cố định mặc định có trong RoomType:
-                    </div>
-                    <div class="d-flex gap-4 flex-wrap mb-3">
-                        <label><input type="checkbox" name="hasWifi" value="true" th:checked="${editRoomType != null and editRoomType.hasWifi}"> Wi-Fi</label>
-                        <label><input type="checkbox" name="hasTv" value="true" th:checked="${editRoomType != null and editRoomType.hasTv}"> TV</label>
-                        <label><input type="checkbox" name="hasBathtub" value="true" th:checked="${editRoomType != null and editRoomType.hasBathtub}"> Bồn tắm</label>
-                        <label><input type="checkbox" name="hasBalcony" value="true" th:checked="${editRoomType != null and editRoomType.hasBalcony}"> Ban công</label>
-                    </div>
-
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <div>
-                            <b>Tiện ích mở rộng từ Quản lý tiện ích phòng</b>
+                            <b>Tiện ích của loại phòng</b>
                             <div class="text-muted small">
-                                Tạo tiện ích giá 0đ ở mục Quản lý tiện ích phòng, sau đó tick vào loại phòng tại đây. Các mục có giá lớn hơn 0 vẫn dùng để khách chọn thêm khi đặt phòng.
+                                Toàn bộ tiện ích lấy động từ mục <b>Quản lý tiện ích</b>. Giá 0đ = tiện ích miễn phí để tick tại đây; giá &gt; 0đ = dịch vụ/phụ thu hiện ở thanh toán/POS. Không còn tiện ích code tĩnh trên form.
                             </div>
                         </div>
-                        <a class="btn btn-outline-secondary btn-sm" th:href="@{/staff/fwb/amenities}">Quản lý tiện ích</a>
+                        <a class="btn btn-outline-secondary btn-sm" th:href="@{/staff/fwb/management}">Quản lý tiện ích</a>
                     </div>
 
                     <div class="amenity-pick" th:if="${roomAmenityOptions != null and !#lists.isEmpty(roomAmenityOptions)}">
@@ -60,7 +50,7 @@
                         </label>
                     </div>
                     <div class="empty-amenities" th:if="${roomAmenityOptions == null or #lists.isEmpty(roomAmenityOptions)}">
-                        Chưa có tiện ích mở rộng. Hãy vào Quản lý tiện ích phòng, tạo Sofa/Phòng tắm/Máy lạnh với giá 0đ để tick cho loại phòng.
+                        Chưa có tiện ích miễn phí. Hãy vào Quản lý tiện ích, tạo Wi-Fi/Sofa/Máy lạnh với giá 0đ để tick cho loại phòng.
                     </div>
                 </div>
                 <div class="col-md-6"><label class="form-label">Áp chương trình ưu đãi</label><select class="form-select" name="promotionId"><option value="">Không áp ưu đãi</option><option th:each="p:${promotions}" th:value="${p.id}" th:text="|${p.promotionName} - ${p.discountPercent}%|" th:selected="${selectedPromotionIds!=null and #lists.contains(selectedPromotionIds,p.id)}"></option></select></div>
