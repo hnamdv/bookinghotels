@@ -16,16 +16,22 @@ public interface RoomRepository extends JpaRepository<Room, Integer> {
     @Query("SELECT r FROM Room r WHERE r.roomType.id = :roomTypeId ORDER BY r.roomNumber")
     List<Room> findByRoomTypeId(@Param("roomTypeId") Integer roomTypeId);
 
-    @Query("SELECT r FROM Room r " +
-            "WHERE r.roomType.id = :roomTypeId " +
-            "AND r.id NOT IN (" +
-            "   SELECT bd.room.id FROM BookingDetail bd " +
-            "   JOIN bd.booking b " +
-            "   WHERE bd.room IS NOT NULL " +
-            "   AND (UPPER(COALESCE(bd.status, 'PENDING')) = 'CHECKED_IN' " +
-            "        OR (UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED') " +
-            "            AND b.checkinDate < :checkoutDate AND b.checkoutDate > :checkinDate))" +
-            ") ORDER BY r.roomNumber")
+    @Query("""
+            SELECT r FROM Room r
+            WHERE r.roomType.id = :roomTypeId
+              AND (r.deleteAt = false OR r.deleteAt IS NULL)
+              AND r.id NOT IN (
+                    SELECT bd.room.id
+                    FROM BookingDetail bd
+                    JOIN bd.booking b
+                    WHERE bd.room IS NOT NULL
+                      AND (bd.deleteAt = false OR bd.deleteAt IS NULL)
+                      AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED','CHECKED_IN')
+                      AND b.checkinDate < :checkoutDate
+                      AND b.checkoutDate > :checkinDate
+              )
+            ORDER BY r.roomNumber
+            """)
     List<Room> findAvailableRooms(@Param("roomTypeId") Integer roomTypeId,
                                   @Param("checkinDate") LocalDate checkinDate,
                                   @Param("checkoutDate") LocalDate checkoutDate);

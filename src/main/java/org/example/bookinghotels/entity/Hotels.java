@@ -1,6 +1,6 @@
 package org.example.bookinghotels.entity;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnore;  // ← THÊM IMPORT
 import jakarta.persistence.*;
 import lombok.*;
 import org.example.bookinghotels.listener.ActivityLogListener;
@@ -14,7 +14,6 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-
 public class Hotels {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,7 +39,8 @@ public class Hotels {
 
     private String thumbnail;
 
+    // ✅ THÊM @JsonIgnore
     @OneToMany(mappedBy = "hotels", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<RoomType> roomTypes;
-
 }

@@ -162,10 +162,6 @@ public class AdminRoomTypeController {
                         || "ACTIVE".equalsIgnoreCase(item.getStatus())
                         || "SHOW".equalsIgnoreCase(item.getStatus()))
                 .filter(item -> item.getPrice() <= 0D)
-                .filter(item -> {
-                    String category = item.getCategory() == null ? "" : item.getCategory().toLowerCase(Locale.ROOT);
-                    return category.contains("tiện ích") || category.contains("tien ich") || category.contains("amenity");
-                })
                 .sorted(Comparator.comparing(FwB::getName, String.CASE_INSENSITIVE_ORDER))
                 .toList();
     }

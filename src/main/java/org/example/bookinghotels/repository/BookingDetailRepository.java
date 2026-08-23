@@ -14,21 +14,31 @@ import java.util.List;
 @Repository
 public interface BookingDetailRepository extends JpaRepository<BookingDetail, Integer> {
 
-    @Query("SELECT COUNT(bd) > 0 FROM BookingDetail bd " +
-            "JOIN bd.booking b " +
-            "WHERE bd.room.id = :roomId " +
-            "AND b.checkinDate < :checkoutDate " +
-            "AND b.checkoutDate > :checkinDate")
+    @Query("""
+            SELECT COUNT(bd) > 0
+            FROM BookingDetail bd
+            JOIN bd.booking b
+            WHERE bd.room.id = :roomId
+              AND (bd.deleteAt = false OR bd.deleteAt IS NULL)
+              AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED','CHECKED_IN')
+              AND b.checkinDate < :checkoutDate
+              AND b.checkoutDate > :checkinDate
+            """)
     boolean existsOverlappingBooking(
             @Param("roomId") Integer roomId,
             @Param("checkinDate") LocalDate checkinDate,
             @Param("checkoutDate") LocalDate checkoutDate);
 
-    @Query("SELECT bd FROM BookingDetail bd " +
-            "JOIN bd.booking b " +
-            "WHERE bd.room.id IN :roomIds " +
-            "AND b.checkinDate < :checkoutDate " +
-            "AND b.checkoutDate > :checkinDate")
+    @Query("""
+            SELECT bd
+            FROM BookingDetail bd
+            JOIN bd.booking b
+            WHERE bd.room.id IN :roomIds
+              AND (bd.deleteAt = false OR bd.deleteAt IS NULL)
+              AND UPPER(COALESCE(bd.status, 'PENDING')) IN ('PENDING','APPROVED','CONFIRMED','CHECKED_IN')
+              AND b.checkinDate < :checkoutDate
+              AND b.checkoutDate > :checkinDate
+            """)
     List<BookingDetail> findOverlappingBookings(
             @Param("roomIds") List<Integer> roomIds,
             @Param("checkinDate") LocalDate checkinDate,
