@@ -53,11 +53,14 @@ public class AuthController {
     }
     @GetMapping("/login")
     public String loginPage() {
-        // Nếu đã có Authentication trong SecurityContext, đẩy thẳng vào admin
         var auth = SecurityContextHolder.getContext().getAuthentication();
+
+        // Nếu ĐÃ đăng nhập (không phải null và không phải anonymous) -> Đẩy thẳng vào trang quản trị / trang chính
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            return "redirect:/admin/users";
+            return "redirect:/admin/users"; // Hoặc đường dẫn trang admin/homeadmin của nhóm bạn
         }
-        return "login"; // Trả về file login.html
+
+        // Nếu CHƯA đăng nhập -> Cho hiển thị giao diện login.html bình thường
+        return "login";
     }
 }

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -199,54 +201,49 @@
             <!-- PHÂN KHU 1: CHỨC NĂNG CỦA NHÂN VIÊN -->
             <div class="menu-section-title">Nghiệp Vụ Nhân Viên</div>
             <div class="sidebar-menu">
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_BOOKING')">
                     <a th:href="@{/admin/bookings}"><i class="fa-solid fa-calendar-check"></i>Quản lý đơn đặt phòng</a>
                 </li>
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_ROOM')">
                     <a th:href="@{/admin/rooms}"><i class="fa-solid fa-door-open"></i>Quản lý phòng & trạng thái</a>
                 </li>
-                <li>
-                    <a href="#"><i class="fa-solid fa-users"></i>Quản lý khách hàng</a>
-                </li>
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_BOOKING')">
                     <a th:href="@{/admin/invoice-list}"><i class="fa-solid fa-file-invoice"></i>Xuất hóa đơn</a>
                 </li>
-
             </div>
 
             <!-- PHÂN KHU 2: CHỨC NĂNG DÀNH RIÊNG CHO QUẢN LÝ / ADMIN -->
             <div class="menu-section-title">Hệ Thống Quản Lý</div>
             <div class="sidebar-menu">
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_ROOM')">
                     <a th:href="@{/admin/room-types}"><i class="fa-solid fa-layer-group"></i>Quản lý loại phòng</a>
                 </li>
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_HOTEL')">
                     <a th:href="@{/admin/hotels}"><i class="fa-solid fa-hotel"></i>Quản lý khách sạn</a>
                 </li>
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_USER')">
                     <a th:href="@{/admin/users}"><i class="fa-solid fa-user-gear"></i>Quản lý nhân sự</a>
                 </li>
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_PROMOTION')">
                     <a th:href="@{/staff/promotions}"><i class="fa-solid fa-tags"></i>Quản lý khuyến mãi</a>
                 </li>
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_FWB')">
                     <a th:href="@{/staff/fwb/management}" class="sidebar-link"><i class="fa-solid fa-list-check"></i><span>Quản lý tiện ích</span></a>
                 </li>
-                <li>
+                <li sec:authorize="hasAuthority('ROLE_IMG')">
                     <a th:href="@{/admin/media}"><i class="fa-solid fa-images"></i>Upload photo</a>
                 </li>
-                <li>
+                <li sec:authorize="hasAnyAuthority('ROLE_HOTEL', 'ROLE_BOOKING', 'ROLE_ROOM')">
                     <a th:href="@{/admin/thongke}"><i class="fa-solid fa-chart-pie"></i>Doanh thu khách sạn</a>
                 </li>
-                <li>
+                <li sec:authorize="hasAnyAuthority('ROLE_HOTEL', 'ROLE_ROOM')">
                     <a th:href="@{/admin/logs}"><i class="fa-solid fa-database"></i>Sao lưu dữ liệu</a>
                 </li>
-                <li>
+                <li sec:authorize="hasAnyAuthority('ROLE_HOTEL', 'ROLE_ROOM')">
                     <a th:href="@{/admin/trash}"><i class="fa-solid fa-trash-can"></i>Khôi phục dữ liệu</a>
                 </li>
             </div>
-
-        </div>
+            </div>
         <div class="sidebar-user-footer d-flex align-items-center p-3 border-top">
             <img th:src="@{'https://i.pravatar.cc/150?u=' + ${session.fullName}}"
                  alt="Avatar" class="rounded-circle me-2" style="width: 40px; height: 40px;">
