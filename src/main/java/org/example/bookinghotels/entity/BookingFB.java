@@ -19,11 +19,13 @@ public class BookingFB {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "booking_detail_id")
-    @JsonIgnore // Ngắt vòng lặp ngược về BookingDetail khi Jackson serialize JSON
+    @JsonIgnore
     private BookingDetail bookingDetail;
 
+    // ✅ THÊM @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "fwb_id")
+    @JsonIgnore
     private FwB fwb;
 
     private Integer quantity = 1;

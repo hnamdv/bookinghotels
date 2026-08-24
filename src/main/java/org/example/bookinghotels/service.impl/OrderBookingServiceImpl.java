@@ -149,16 +149,14 @@ public class OrderBookingServiceImpl implements OrderBookingService {
         RoomType roomType = roomTypeRepository.findById(roomTypeId)
                 .orElseThrow(() -> new IllegalArgumentException("Loại phòng không tồn tại"));
 
-        List<Room> availableRooms = roomRepository.findAvailableRooms(
+        Room assignedRoom = findFirstAvailableRoomByType(
                 roomTypeId,
                 booking.getCheckinDate(),
                 booking.getCheckoutDate()
         );
-        if (availableRooms.isEmpty()) {
+        if (assignedRoom == null) {
             throw new IllegalStateException("Loại phòng này đã hết phòng trong khoảng ngày đã chọn");
         }
-
-        Room assignedRoom = availableRooms.get(0);
         detail.setRoom(assignedRoom);
         detail.setRoomType(roomType);
         detail.setRoomQuantity(1);
@@ -175,7 +173,16 @@ public class OrderBookingServiceImpl implements OrderBookingService {
 
     @Override
     public List<FwB> getAllAvailableFoods() {
-        return fwbRepository.findAll();
+        // Chỉ hiển thị các dịch vụ/phụ thu có tính phí ở trang thanh toán.
+        // Tiện ích miễn phí dùng để tick vào loại phòng, không hiện ở payment để tránh lệch với admin.
+        return fwbRepository.findAll().stream()
+                .filter(f -> f != null)
+                .filter(f -> f.getStatus() == null
+                        || f.getStatus().isBlank()
+                        || "ACTIVE".equalsIgnoreCase(f.getStatus())
+                        || "SHOW".equalsIgnoreCase(f.getStatus()))
+                .filter(f -> f.getPrice() > 0D)
+                .toList();
     }
 
     @Override
@@ -184,10 +191,11 @@ public class OrderBookingServiceImpl implements OrderBookingService {
             LocalDate checkinDate,
             LocalDate checkoutDate
     ) {
+        LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
         return !bookingDetailRepository.existsOverlappingBooking(
                 roomId,
-                checkinDate,
-                checkoutDate
+                range[0],
+                range[1]
         );
     }
 
@@ -201,18 +209,17 @@ public class OrderBookingServiceImpl implements OrderBookingService {
         if (allRoomIds == null || allRoomIds.isEmpty()) {
             return List.of();
         }
-        if (checkoutDate == null || checkinDate == null || !checkoutDate.isAfter(checkinDate)) {
-            checkoutDate = checkinDate == null ? LocalDate.now().plusDays(1) : checkinDate.plusDays(1);
-        }
+        LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
 
         List<BookingDetail> overlappingBookings =
                 bookingDetailRepository.findOverlappingBookings(
                         allRoomIds,
-                        checkinDate,
-                        checkoutDate
+                        range[0],
+                        range[1]
                 );
 
         List<Integer> occupiedRoomIds = overlappingBookings.stream()
+                .filter(bd -> bd.getRoom() != null && bd.getRoom().getId() != null)
                 .map(bd -> bd.getRoom().getId())
                 .distinct()
                 .toList();
@@ -223,23 +230,37 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     }
 
     @Override
+    public Room findFirstAvailableRoomByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate) {
+        if (roomTypeId == null) return null;
+        LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
+        List<Room> availableRooms = roomRepository.findAvailableRooms(roomTypeId, range[0], range[1]);
+        return availableRooms.isEmpty() ? null : availableRooms.get(0);
+    }
+
+    @Override
+    public long countAvailableRoomsByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate) {
+        if (roomTypeId == null) return 0L;
+        LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
+        return roomRepository.findAvailableRooms(roomTypeId, range[0], range[1]).size();
+    }
+
+    private LocalDate[] normalizeDateRange(LocalDate checkinDate, LocalDate checkoutDate) {
+        LocalDate start = checkinDate == null ? LocalDate.now() : checkinDate;
+        LocalDate end = checkoutDate == null ? start.plusDays(1) : checkoutDate;
+        if (!end.isAfter(start)) end = start.plusDays(1);
+        return new LocalDate[]{start, end};
+    }
+
+    @Override
     public void validateBooking(
             Integer roomId,
             LocalDate checkinDate,
             LocalDate checkoutDate
     ) {
 
-        if (checkinDate == null || checkoutDate == null) {
-            throw new IllegalArgumentException(
-                    "Ngày check-in và check-out không được để trống"
-            );
-        }
-
-        if (!checkinDate.isBefore(checkoutDate)) {
-            throw new IllegalArgumentException(
-                    "Ngày check-in phải trước ngày check-out"
-            );
-        }
+        LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
+        checkinDate = range[0];
+        checkoutDate = range[1];
 
         if (checkinDate.isBefore(LocalDate.now())) {
             throw new IllegalArgumentException(

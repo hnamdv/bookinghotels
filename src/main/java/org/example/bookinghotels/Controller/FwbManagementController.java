@@ -20,19 +20,12 @@ public class FwbManagementController {
         this.mediaRepository = mediaRepository;
     }
 
-    @GetMapping("/management")
+    @GetMapping({"/management", "/amenities"})
     public String management(@RequestParam(required = false) Integer editId, Model model) {
         fillCommon(model, editId);
-        model.addAttribute("mode", "services");
-        model.addAttribute("services", fwBService.getChargeableServices());
-        return "html/admin-html/fwb-management";
-    }
-
-    @GetMapping("/amenities")
-    public String amenities(@RequestParam(required = false) Integer editId, Model model) {
-        fillCommon(model, editId);
-        model.addAttribute("mode", "amenities");
-        model.addAttribute("services", fwBService.getRoomAmenityOptions());
+        model.addAttribute("amenities", fwBService.getRoomAmenityOptions());
+        model.addAttribute("chargeableServices", fwBService.getChargeableServices());
+        model.addAttribute("allItems", fwBService.getAll());
         return "html/admin-html/fwb-management";
     }
 
@@ -55,20 +48,15 @@ public class FwbManagementController {
                        @RequestParam(required = false, defaultValue = "services") String mode,
                        RedirectAttributes ra) {
         String resolvedImage = resolveImage(mediaId, image);
-        String resolvedCategory = normalizeCategory(category, mode);
-        Double resolvedPrice = price == null ? 0D : price;
+        Double resolvedPrice = price == null ? 0D : Math.max(0D, price);
+        String resolvedCategory = normalizeCategory(category, resolvedPrice);
+        String resolvedUnit = unit == null || unit.isBlank() ? (resolvedPrice <= 0D ? "mục" : "lượt") : unit.trim();
 
-        if ("amenities".equals(mode)) {
-            resolvedPrice = 0D;
-            unit = "mục";
-        } else if (resolvedPrice <= 0D) {
-            ra.addFlashAttribute("error", "Phụ thu / dịch vụ có giá phải lớn hơn 0. Nếu muốn tạo tiện ích miễn phí, hãy chuyển sang tab Tiện ích phòng miễn phí.");
-            return "redirect:" + basePath(mode);
-        }
-
-        fwBService.saveService(id, name, resolvedPrice, unit, resolvedImage, resolvedCategory, status);
-        ra.addFlashAttribute("success", "Đã lưu " + ("amenities".equals(mode) ? "tiện ích phòng." : "phụ thu / dịch vụ."));
-        return "redirect:" + basePath(mode);
+        fwBService.saveService(id, name, resolvedPrice, resolvedUnit, resolvedImage, resolvedCategory, status);
+        ra.addFlashAttribute("success", resolvedPrice <= 0D
+                ? "Đã lưu tiện ích miễn phí để tick vào loại phòng."
+                : "Đã lưu dịch vụ/phụ thu có giá để khách chọn ở thanh toán/POS.");
+        return "redirect:/staff/fwb/management";
     }
 
     @PostMapping("/{id}/hide")
@@ -77,7 +65,7 @@ public class FwbManagementController {
                        RedirectAttributes ra) {
         fwBService.hide(id);
         ra.addFlashAttribute("success", "Đã ẩn khỏi danh sách.");
-        return "redirect:" + basePath(mode);
+        return "redirect:/staff/fwb/management";
     }
 
     private String resolveImage(Integer mediaId, String image) {
@@ -87,14 +75,8 @@ public class FwbManagementController {
         return image == null ? "" : image.trim();
     }
 
-    private String normalizeCategory(String category, String mode) {
-        if ("amenities".equals(mode)) {
-            return "Tiện ích phòng";
-        }
-        return category == null || category.isBlank() ? "Phụ thu / dịch vụ" : category.trim();
-    }
-
-    private String basePath(String mode) {
-        return "amenities".equals(mode) ? "/staff/fwb/amenities" : "/staff/fwb/management";
+    private String normalizeCategory(String category, Double price) {
+        if (category != null && !category.isBlank()) return category.trim();
+        return price == null || price <= 0D ? "Tiện ích phòng" : "Phụ thu / dịch vụ";
     }
 }

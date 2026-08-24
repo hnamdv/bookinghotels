@@ -13,6 +13,8 @@ public interface OrderBookingService {
     // Bao//
     boolean isRoomAvailable(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate);
     List<Integer> getAvailableRooms(List<Integer> allRoomIds, LocalDate checkinDate, LocalDate checkoutDate);
+    Room findFirstAvailableRoomByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate);
+    long countAvailableRoomsByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate);
     void validateBooking(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate);
 
     // --- CÁC HÀM XỬ LÝ THANH TOÁN & TRẠNG THÁI ---

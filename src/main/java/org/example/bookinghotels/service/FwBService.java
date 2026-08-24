@@ -29,7 +29,6 @@ public class FwBService {
 
     public List<Map<String, Object>> getRoomAmenityOptions() {
         return getAll().stream()
-                .filter(item -> isRoomAmenity(item))
                 .filter(item -> Number.class.isInstance(item.get("price")) ? ((Number) item.get("price")).doubleValue() <= 0D : true)
                 .filter(item -> isVisible(item))
                 .toList();
@@ -37,16 +36,9 @@ public class FwBService {
 
     public List<Map<String, Object>> getChargeableServices() {
         return getAll().stream()
-                .filter(item -> !isRoomAmenity(item))
                 .filter(item -> Number.class.isInstance(item.get("price")) && ((Number) item.get("price")).doubleValue() > 0D)
                 .filter(item -> isVisible(item))
                 .toList();
-    }
-
-    public boolean isRoomAmenity(Map<String, Object> item) {
-        Object category = item.get("category");
-        String raw = category == null ? "" : category.toString().toLowerCase(Locale.ROOT);
-        return raw.contains("tiện ích") || raw.contains("tien ich") || raw.contains("amenity");
     }
 
     private boolean isVisible(Map<String, Object> item) {

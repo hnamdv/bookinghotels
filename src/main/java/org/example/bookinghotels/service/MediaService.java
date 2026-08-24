@@ -16,27 +16,37 @@ public class MediaService {
     private final MediaRepository mediaRepository;
     private final DatabaseSequenceService sequenceService;
     private final Path uploadDirectory;
+    private final Path staticUploadDirectory;
 
     public MediaService(MediaRepository mediaRepository,
                         DatabaseSequenceService sequenceService,
-                        @Value("${app.upload-dir:uploads}") String uploadDir) {
+                        @Value("${app.upload-dir:uploadsx}") String uploadDir) {
         this.mediaRepository = mediaRepository;
         this.sequenceService = sequenceService;
         this.uploadDirectory = Paths.get(uploadDir).toAbsolutePath().normalize();
+        this.staticUploadDirectory = Paths.get("src/main/resources/static/uploads").toAbsolutePath().normalize();
     }
 
     public Media uploadToLocal(MultipartFile file) throws IOException {
         validate(file);
         Files.createDirectories(uploadDirectory);
+        Files.createDirectories(staticUploadDirectory);
 
         String original = file.getOriginalFilename() == null ? "image" : file.getOriginalFilename();
         String extension = original.contains(".") ? original.substring(original.lastIndexOf('.')).toLowerCase(Locale.ROOT) : "";
         String safeName = UUID.randomUUID() + extension;
+
         Path target = uploadDirectory.resolve(safeName).normalize();
         if (!target.startsWith(uploadDirectory)) {
             throw new IOException("Đường dẫn tệp không hợp lệ");
         }
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+
+        // Mirror ảnh vào static/uploads để khi push/pull source, máy khác vẫn có file ảnh nếu thư mục này được commit.
+        Path staticTarget = staticUploadDirectory.resolve(safeName).normalize();
+        if (staticTarget.startsWith(staticUploadDirectory)) {
+            Files.copy(target, staticTarget, StandardCopyOption.REPLACE_EXISTING);
+        }
 
         sequenceService.synchronize("media");
         Media media = new Media();
@@ -48,11 +58,13 @@ public class MediaService {
     }
 
     public void deletePhysicalFile(Media media) {
-        if (media == null || media.getUploadPath() == null) return;
+        if (media == null || media.getFileName() == null) return;
         try {
-            Files.deleteIfExists(Paths.get(media.getUploadPath()));
-        } catch (IOException ignored) {
-        }
+            if (media.getUploadPath() != null) Files.deleteIfExists(Paths.get(media.getUploadPath()));
+        } catch (IOException ignored) {}
+        try {
+            Files.deleteIfExists(staticUploadDirectory.resolve(media.getFileName()).normalize());
+        } catch (IOException ignored) {}
     }
 
     private void validate(MultipartFile file) {

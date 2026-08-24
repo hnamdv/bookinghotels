@@ -18,6 +18,9 @@
         .image-option{position:relative;border:2px solid transparent;border-radius:13px;overflow:hidden;background:#f4f6f8;cursor:pointer;min-height:90px}.image-option img{width:100%;height:90px;object-fit:cover;display:block}
         .image-option input{position:absolute;top:7px;right:7px;width:19px;height:19px;z-index:2}.image-option:has(input:checked){border-color:#bd6c3c;box-shadow:0 0 0 2px rgba(189,108,60,.14)}
         .logo-picker .image-option img{height:98px;border-radius:50%;width:98px;margin:auto;padding:6px;object-fit:cover}.logo-picker .image-option{background:#fff;text-align:center;padding:5px}
+
+        .content-config{background:#fffaf2;border:1px solid #efd9b5;border-radius:14px;padding:16px;margin-top:16px}
+        .content-config textarea{min-height:92px}
         .selected-help{font-size:.85rem;color:#6b7280}.section-label{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:#ad6338;font-weight:800}
         .folder-upload{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:250px;border:1px dashed #d7c4ae;border-radius:18px;background:linear-gradient(180deg,#fffdf9,#fff7ec);cursor:pointer;overflow:hidden}
         .folder-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:8}
@@ -36,7 +39,22 @@
 
         .folder-caption{font-weight:800;color:#25324a}.folder-file-name{font-size:.86rem;color:#7b8492;margin-top:5px;text-align:center;max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         @media(max-width:767px){.page-card{padding:16px}.brand-summary{padding:13px}.branch-logo{width:48px;height:48px}.image-picker{grid-template-columns:repeat(3,minmax(0,1fr))}}
-    </style>
+    
+        .media-workspace{display:grid;grid-template-columns:280px 1fr;gap:22px;align-items:start}
+        .media-navbox{position:sticky;top:18px;background:#fff;border:1px solid #eadfce;border-radius:18px;padding:16px;box-shadow:0 14px 34px rgba(17,24,39,.05)}
+        .media-navbox a{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:12px;color:#1f2937;text-decoration:none;font-weight:750}
+        .media-navbox a:hover{background:#fff4e8;color:#bd6c3c}
+        .media-navbox .mini{font-size:12px;color:#7a8493;line-height:1.55;margin:8px 0 12px}
+        .scope-tip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+        .scope-tip .tip{background:linear-gradient(180deg,#fff,#fff8ef);border:1px solid #ead7bd;border-radius:16px;padding:14px}
+        .scope-tip b{display:block;color:#bd6c3c;margin-bottom:4px}.scope-tip span{font-size:12px;color:#6b7280}
+        @media(max-width:1100px){.media-workspace{grid-template-columns:1fr}.media-navbox{position:static}.scope-tip{grid-template-columns:1fr 1fr}}
+        @media(max-width:700px){.scope-tip{grid-template-columns:1fr}}
+
+        .album-picker{max-height:360px;overflow:auto;padding:10px;background:#fff;border:1px dashed #e4c89b;border-radius:16px}
+        .album-picker .image-option{width:132px;height:112px}
+        .album-picker .image-option img{height:90px}
+</style>
 
 <style>
 .upload-library-form--vertical{display:flex;flex-direction:column;align-items:center;gap:22px}
@@ -60,7 +78,25 @@
     <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
     <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
 
-    <div class="page-card mb-4">
+    <div class="scope-tip">
+        <div class="tip"><b>1. Tải ảnh</b><span>Upload một lần vào thư viện, ảnh dùng lại cho logo, slideshow, album, phòng và dịch vụ.</span></div>
+        <div class="tip"><b>2. Chọn phạm vi</b><span>Mặc định toàn hệ thống hoặc từng khách sạn/chi nhánh riêng.</span></div>
+        <div class="tip"><b>3. Chọn album</b><span>Tick nhiều ảnh cho album Home; có thể tải thêm ảnh rồi chọn lại ngay.</span></div>
+        <div class="tip"><b>4. Đồng bộ trang</b><span>Home, detail, booking, payment dùng cùng logo/tên theo chi nhánh.</span></div>
+    </div>
+
+    <div class="media-workspace">
+    <aside class="media-navbox">
+        <h6 class="fw-bold mb-1">Quản lý nhanh</h6>
+        <p class="mini">Dùng các mục dưới để thao tác như WordPress: ảnh, logo, nội dung và chi nhánh nằm chung một nơi.</p>
+        <a href="#brand-section"><i class="fa-solid fa-building"></i> Nội dung & chi nhánh</a>
+        <a href="#upload-section"><i class="fa-solid fa-cloud-arrow-up"></i> Tải ảnh vào thư viện</a>
+        <a href="#library-section"><i class="fa-solid fa-images"></i> Thư viện ảnh</a>
+        <a href="/admin/hotels"><i class="fa-solid fa-hotel"></i> Quản lý khách sạn</a>
+    </aside>
+    <div>
+
+    <div class="page-card mb-4" id="brand-section">
         <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
             <div><h5 class="fw-bold mb-1">Nhận diện từng khách sạn / chi nhánh</h5><p class="text-muted mb-0">Logo đều hiển thị dạng tròn. Mỗi khách sạn được tạo ở mục Quản lý hotels sẽ tự xuất hiện thành một card bên dưới.</p></div>
             <span class="badge rounded-pill text-bg-light border" th:text="|${#lists.size(hotels)} khách sạn|">0 khách sạn</span>
@@ -88,6 +124,23 @@
                                 </div>
                                 <small class="text-muted d-block mt-2">Dòng chữ sẽ hiển thị lớn bên dưới logo tròn ở slideshow trang chủ.</small>
                             </div>
+
+                            <div class="col-12">
+                                <div class="content-config">
+                                    <div class="picker-title mb-3">Nội dung trang Home mặc định</div>
+                                    <div class="row g-3">
+                                        <div class="col-md-4"><label class="form-label fw-semibold">Nhãn hero</label><input class="form-control" name="siteHeroBadge" th:value="${siteHeroBadge}" placeholder="Khách sạn nghỉ dưỡng"></div>
+                                        <div class="col-md-4"><label class="form-label fw-semibold">Từ nhấn màu cam</label><input class="form-control" name="siteHeroAccent" th:value="${siteHeroAccent}" placeholder="FeelHome"></div>
+                                        <div class="col-md-4"><label class="form-label fw-semibold">Tiêu đề hero</label><input class="form-control" name="siteHeroTitle" th:value="${siteHeroTitle}" placeholder="đặt phòng nhanh, trải nghiệm bền vững"></div>
+                                        <div class="col-md-6"><label class="form-label fw-semibold">Tiêu đề giới thiệu</label><input class="form-control" name="siteAboutTitle" th:value="${siteAboutTitle}" placeholder="Không gian nghỉ dưỡng linh động"></div>
+                                        <div class="col-md-6"><label class="form-label fw-semibold">Tiêu đề album ảnh</label><input class="form-control" name="siteGalleryTitle" th:value="${siteGalleryTitle}" placeholder="Album hình ảnh nổi bật"></div>
+                                        <div class="col-12"><label class="form-label fw-semibold">Nội dung giới thiệu</label><textarea class="form-control" name="siteAboutText" th:text="${siteAboutText}" placeholder="Mô tả thương hiệu / khách sạn hiển thị trên trang Home"></textarea></div>
+                                        <div class="col-12"><label class="form-label fw-semibold">Nội dung album ảnh</label><textarea class="form-control" name="siteGalleryText" th:text="${siteGalleryText}" placeholder="Mô tả album ảnh"></textarea></div>
+                                        <div class="col-md-5"><label class="form-label fw-semibold">Tiêu đề CTA cuối trang</label><input class="form-control" name="siteCtaTitle" th:value="${siteCtaTitle}" placeholder="Sẵn sàng đặt kỳ nghỉ tiếp theo?"></div>
+                                        <div class="col-md-7"><label class="form-label fw-semibold">Nội dung CTA cuối trang</label><input class="form-control" name="siteCtaText" th:value="${siteCtaText}" placeholder="Nội dung kêu gọi đặt phòng"></div>
+                                    </div>
+                                </div>
+                            </div>
                             <div class="col-12">
                                 <div class="picker-title">1. Chọn một logo tròn từ thư viện</div>
                                 <div class="image-picker logo-picker">
@@ -96,13 +149,32 @@
                                 <div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="clearSiteLogo" value="true" id="clearSiteLogo"><label class="form-check-label" for="clearSiteLogo">Bỏ logo hiện tại và dùng chữ FEELHOME</label></div>
                             </div>
                             <div class="col-12">
-                                <div class="picker-title">2. Tick các ảnh dùng cho slideshow</div>
-                                <div class="selected-help mb-2">Các ảnh đang tick là toàn bộ slideshow hiện tại. Tick thêm ảnh mới không tạo bản sao ảnh cũ.</div>
+                                <div class="picker-title">2. Tick các ảnh dùng cho slideshow / hero</div>
+                                <div class="selected-help mb-2">Slideshow dùng cho ảnh lớn trên đầu trang Home. Tick thêm ảnh mới không tạo bản sao ảnh cũ.</div>
                                 <div class="image-picker">
                                     <label class="image-option" th:each="m:${mediaList}"><img th:src="${m.fileUrl}" alt="Slide"><input type="checkbox" name="siteSlideMediaIds" th:value="${m.id}" th:checked="${#lists.contains(siteSlides,m.fileUrl)}"></label>
                                 </div>
                                 <div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="clearSiteSlides" value="true" id="clearSiteSlides"><label class="form-check-label" for="clearSiteSlides">Xóa toàn bộ slideshow mặc định</label></div>
                             </div>
+
+                            <div class="col-12">
+                                <div class="picker-title">3. Tick các ảnh dùng cho album Home</div>
+                                <div class="selected-help mb-2">
+                                    Ảnh album là phần người dùng xem khi bấm <b>Xem album ảnh</b> ở trang Home. Có thể chọn nhiều ảnh; ảnh lấy từ thư viện upload bên dưới.
+                                    <a href="#upload-section" class="ms-2">Tải thêm ảnh</a>
+                                </div>
+                                <div class="image-picker album-picker">
+                                    <label class="image-option" th:each="m:${mediaList}">
+                                        <img th:src="${m.fileUrl}" alt="Album">
+                                        <input type="checkbox" name="siteAlbumMediaIds" th:value="${m.id}" th:checked="${#lists.contains(siteAlbum,m.fileUrl)}">
+                                    </label>
+                                </div>
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="clearSiteAlbum" value="true" id="clearSiteAlbum">
+                                    <label class="form-check-label" for="clearSiteAlbum">Xóa album mặc định</label>
+                                </div>
+                            </div>
+
                         </div>
                         <button class="brand-btn mt-3" type="submit"><i class="fa-solid fa-floppy-disk me-2"></i>Lưu cấu hình mặc định</button>
                     </form>
@@ -132,11 +204,42 @@
                         </div>
                         <div class="form-check mt-2"><input class="form-check-input" type="checkbox" name="clearHotelSlides" value="true" th:id="|clearHotelSlides-${h.id}|"><label class="form-check-label" th:for="|clearHotelSlides-${h.id}|">Xóa slideshow riêng, dùng slideshow mặc định</label></div>
                         
-                        <div class="picker-title mt-4">3. Dòng chữ chào mừng của khách sạn</div>
+
+                        <div class="picker-title mt-4">3. Album ảnh riêng của khách sạn</div>
+                        <div class="selected-help mb-2">
+                            Album này hiển thị ở phần album Home khi khách đang xem chi nhánh này.
+                            <a href="#upload-section" class="ms-2">Tải thêm ảnh</a>
+                        </div>
+                        <div class="image-picker album-picker">
+                            <label class="image-option" th:each="m:${mediaList}">
+                                <img th:src="${m.fileUrl}" alt="Album">
+                                <input type="checkbox" name="hotelAlbumMediaIds" th:value="${m.id}" th:checked="${#lists.contains(hotelAlbums[h.id],m.fileUrl)}">
+                            </label>
+                        </div>
+                        <div class="form-check mt-2 mb-4">
+                            <input class="form-check-input" type="checkbox" name="clearHotelAlbum" value="true" th:id="|clearHotelAlbum-${h.id}|">
+                            <label class="form-check-label" th:for="|clearHotelAlbum-${h.id}|">Xóa album riêng, dùng album mặc định</label>
+                        </div>
+                        <div class="picker-title mt-4">4. Dòng chữ chào mừng của khách sạn</div>
                         <div class="row g-3 align-items-end mb-3">
                             <div class="col-lg-6"><label class="form-label fw-semibold">Nội dung</label><input class="form-control" name="hotelWelcomeText" maxlength="100" th:value="${hotelWelcomeTexts[h.id]}" th:placeholder="|Chào mừng đến ${h.name}|"></div>
                             <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Màu chữ</label><input class="form-control form-control-color w-100" type="color" name="hotelWelcomeColor" th:value="${hotelWelcomeColors[h.id]}"></div>
                             <div class="col-sm-6 col-lg-3"><label class="form-label fw-semibold">Hiệu ứng hover</label><select class="form-select" name="hotelWelcomeEffect"><option value="shine" th:selected="${hotelWelcomeEffects[h.id] == 'shine'}">Lấp lánh chéo màu cam</option><option value="glow" th:selected="${hotelWelcomeEffects[h.id] == 'glow'}">Phát sáng vàng</option><option value="none" th:selected="${hotelWelcomeEffects[h.id] == 'none'}">Không hiệu ứng</option></select></div>
+                        </div>
+
+                        <div class="content-config">
+                            <div class="picker-title mb-3">5. Nội dung Home riêng của khách sạn</div>
+                            <div class="row g-3">
+                                <div class="col-md-4"><label class="form-label fw-semibold">Nhãn hero</label><input class="form-control" name="hotelHeroBadge" th:value="${hotelContent.get(h.id).get('heroBadge')}" placeholder="Khách sạn nghỉ dưỡng"></div>
+                                <div class="col-md-4"><label class="form-label fw-semibold">Từ nhấn màu cam</label><input class="form-control" name="hotelHeroAccent" th:value="${hotelContent.get(h.id).get('heroAccent')}" th:placeholder="${h.name}"></div>
+                                <div class="col-md-4"><label class="form-label fw-semibold">Tiêu đề hero</label><input class="form-control" name="hotelHeroTitle" th:value="${hotelContent.get(h.id).get('heroTitle')}" placeholder="đặt phòng nhanh, trải nghiệm bền vững"></div>
+                                <div class="col-md-6"><label class="form-label fw-semibold">Tiêu đề giới thiệu</label><input class="form-control" name="hotelAboutTitle" th:value="${hotelContent.get(h.id).get('aboutTitle')}" placeholder="Không gian nghỉ dưỡng của chi nhánh"></div>
+                                <div class="col-md-6"><label class="form-label fw-semibold">Tiêu đề album ảnh</label><input class="form-control" name="hotelGalleryTitle" th:value="${hotelContent.get(h.id).get('galleryTitle')}" placeholder="Album ảnh chi nhánh"></div>
+                                <div class="col-12"><label class="form-label fw-semibold">Nội dung giới thiệu</label><textarea class="form-control" name="hotelAboutText" th:text="${hotelContent.get(h.id).get('aboutText')}"></textarea></div>
+                                <div class="col-12"><label class="form-label fw-semibold">Nội dung album ảnh</label><textarea class="form-control" name="hotelGalleryText" th:text="${hotelContent.get(h.id).get('galleryText')}"></textarea></div>
+                                <div class="col-md-5"><label class="form-label fw-semibold">Tiêu đề CTA cuối trang</label><input class="form-control" name="hotelCtaTitle" th:value="${hotelContent.get(h.id).get('ctaTitle')}"></div>
+                                <div class="col-md-7"><label class="form-label fw-semibold">Nội dung CTA cuối trang</label><input class="form-control" name="hotelCtaText" th:value="${hotelContent.get(h.id).get('ctaText')}"></div>
+                            </div>
                         </div>
                         <button class="brand-btn mt-3" type="submit"><i class="fa-solid fa-floppy-disk me-2"></i>Lưu cho <span th:text="${h.name}"></span></button>
                     </form>
@@ -145,13 +248,13 @@
         </div>
     </div>
 
-    <div class="page-card mb-4">
-        <h5 class="fw-bold mb-2">Tải ảnh mới vào thư viện</h5>
+    <div class="page-card mb-4" id="upload-section">
+        <h5 class="fw-bold mb-2">Tải thêm ảnh vào thư viện dùng cho logo / slideshow / album</h5>
         <p class="text-muted">Mỗi ảnh tối đa 10 MB. Chỉ tải một lần; sau đó ảnh sẽ xuất hiện trong tất cả bộ chọn phía trên và ở trang Quản lý loại phòng.</p>
         <form th:action="@{/admin/media/upload}" method="post" enctype="multipart/form-data" class="upload-library-form upload-library-form--vertical">
             <div class="upload-library-top">
                 <label class="folder-upload folder-upload--center" for="libraryImageInput">
-                    <input class="image-input" id="libraryImageInput" type="file" name="file" accept="image/jpeg,image/png,image/webp,image/gif" required>
+                    <input class="image-input" id="libraryImageInput" type="file" name="file" multiple accept="image/jpeg,image/png,image/webp,image/gif" required>
                     <span class="folder-stage" aria-hidden="true"><span class="folder-back"></span><span class="folder-sheet s1"></span><span class="folder-sheet s2"></span><span class="folder-sheet s3"></span><span class="folder-front"></span></span>
                     <span class="folder-caption"><i class="fa-solid fa-folder-open me-2"></i>Chọn ảnh đưa vào thư viện</span>
                     <span class="folder-file-name" id="libraryImageName">Chưa chọn ảnh · tối đa 10 MB</span>
@@ -170,7 +273,7 @@
         </form>
     </div>
 
-    <div class="page-card">
+    <div class="page-card" id="library-section">
         <div class="d-flex justify-content-between align-items-center mb-3"><h5 class="fw-bold m-0">Thư viện ảnh dùng chung</h5><span class="badge bg-light text-dark border" th:text="|${#lists.size(mediaList)} ảnh|"></span></div>
         <div class="media-grid">
             <div class="media-card" th:each="m:${mediaList}">
@@ -186,6 +289,8 @@
                 </div>
             </div>
         </div>
+    </div>
+    </div>
     </div>
     <script>
         (() => {

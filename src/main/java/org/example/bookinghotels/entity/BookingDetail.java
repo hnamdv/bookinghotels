@@ -4,14 +4,12 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
-import org.example.bookinghotels.listener.ActivityLogListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "booking_detail")
-@EntityListeners(ActivityLogListener.class)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -29,46 +27,29 @@ public class BookingDetail {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_type_id")
+    @JsonIgnore  // ✅ THÊM VÀO
     private RoomType roomType;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "room_id", nullable = true)
+    @JsonIgnore  // ✅ THÊM VÀO
     private Room room;
 
-    @Column(nullable = false)
     private Double price;
-
-    @Column(name = "discount_amount")
     private Double discountAmount = 0.0;
-
-    @Column(name = "room_quantity")
     private Integer roomQuantity = 1;
-
-    @Column(name = "adult_count")
     private Integer adultCount = 1;
-
-    @Column(name = "child_count")
     private Integer childCount = 0;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
-    @JsonIgnore
+    @JsonIgnore  // ✅ THÊM VÀO
     private User user;
 
-    @Column(nullable = false, length = 20)
     private String status = "PENDING";
-
-    @Column(name = "delete_at")
-    private Boolean deleteAt = false; // Thêm trường xóa mềm
+    private Boolean deleteAt = false;
 
     @OneToMany(mappedBy = "bookingDetail", fetch = FetchType.LAZY)
+    @JsonIgnore  // ✅ THÊM VÀO
     private List<BookingFB> bookingFBs = new ArrayList<>();
-
-    public boolean hasRoom() {
-        return room != null;
-    }
-
-    public String getRoomNumber() {
-        return room != null ? room.getRoomNumber() : "Null";
-    }
 }
