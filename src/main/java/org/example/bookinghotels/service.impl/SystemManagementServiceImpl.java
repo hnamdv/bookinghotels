@@ -8,11 +8,7 @@ import org.example.bookinghotels.entity.PromotionRoomType;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.SystemManagementService;
-import org.example.bookinghotels.specification.ActivityLogSpecification; // << MỚI
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;               // << MỚI
-import org.springframework.data.domain.Pageable;             // << MỚI
-import org.springframework.data.jpa.domain.Specification;    // << MỚI
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -199,15 +195,6 @@ public class SystemManagementServiceImpl implements SystemManagementService {
     public List<ActivityLog> getAllLogs() {
         return activityLogRepository.findAll();
     }
-
-    // ==== MỚI: dùng cho trang Activity Logs (filter + sort + phân trang) ====
-    @Override
-    public Page<ActivityLog> searchLogs(String keyword, String action, String module,
-                                        String fromDate, String toDate, Pageable pageable) {
-        Specification<ActivityLog> spec = ActivityLogSpecification.filter(keyword, action, module, fromDate, toDate);
-        return activityLogRepository.findAll(spec, pageable);
-    }
-    // ==========================================================================
 
     private void validatePromotion(Promotion promotion) {
         if (promotion.getPromotionName() == null || promotion.getPromotionName().trim().isEmpty()) {

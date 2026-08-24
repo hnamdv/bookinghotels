@@ -41,12 +41,31 @@
         .status-badge.cancelled{background:#FEE2E2;color:#DC2626}
         .status-badge.checked{background:#D1FAE5;color:#059669}
         .status-badge.paid{background:#DBEAFE;color:#1E40AF}
-        .action-buttons{display:flex;gap:4px;flex-wrap:wrap}
-        .btn-food{padding:4px 8px;border-radius:14px;border:none;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap;background:#3B82F6;color:#fff}
-        .btn-approve,.btn-reject,.btn-paid{padding:4px 8px;border-radius:14px;border:none;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
-        .btn-approve{background:#10B981;color:#fff}
-        .btn-reject{background:#EF4444;color:#fff}
-        .btn-paid{background:#059669;color:#fff}
+
+        /* ===== ACTION BUTTONS ===== */
+        .action-buttons{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+        .btn-inline{padding:4px 10px;border-radius:14px;border:none;font-size:10px;font-weight:600;cursor:pointer;white-space:nowrap}
+        .btn-inline.btn-food-inline{background:#3B82F6;color:#fff}
+        .btn-inline.btn-approve-inline{background:#10B981;color:#fff}
+        .btn-inline.btn-paid-inline{background:#059669;color:#fff}
+        .btn-inline.btn-checkout-inline{background:#8B5CF6;color:#fff}
+        .btn-inline.btn-reject-inline{background:#EF4444;color:#fff}
+
+        /* ===== DROPDOWN ===== */
+        .action-dropdown{position:relative;display:inline-block}
+        .action-dropdown .dropdown-toggle{background:#F3F4F6;border:none;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:14px;color:#4B5563;transition:all .2s;min-width:32px;text-align:center}
+        .action-dropdown .dropdown-toggle:hover{background:#E5E7EB}
+        .action-dropdown .dropdown-menu{display:none;position:absolute;right:0;top:100%;background:#fff;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,0.15);padding:6px;min-width:150px;z-index:1000;border:1px solid #EDF2F7;margin-top:4px}
+        .action-dropdown .dropdown-menu.show{display:block}
+        .action-dropdown .dropdown-menu button{display:flex;align-items:center;gap:8px;padding:8px 12px;border:none;border-radius:8px;background:transparent;font-size:12px;font-weight:500;cursor:pointer;width:100%;color:#1F2C48;transition:background .2s}
+        .action-dropdown .dropdown-menu button:hover{background:#F3F4F6}
+        .action-dropdown .dropdown-menu button i{font-size:13px;width:18px;text-align:center}
+        .action-dropdown .dropdown-menu button.btn-food-menu i{color:#3B82F6}
+        .action-dropdown .dropdown-menu button.btn-approve-menu i{color:#10B981}
+        .action-dropdown .dropdown-menu button.btn-paid-menu i{color:#059669}
+        .action-dropdown .dropdown-menu button.btn-checkout-menu i{color:#8B5CF6}
+        .action-dropdown .dropdown-menu button.btn-reject-menu i{color:#EF4444}
+
         .room-null{color:#F59E0B;font-weight:600;cursor:pointer;font-size:12px;display:inline-block;padding:4px 8px;border:1px dashed #F59E0B;border-radius:6px;background:#FFF8F0}
         .room-null:hover{color:#D97706;background:#FFF0E0;border-color:#D97706}
         .room-picked{color:#1E6CD4;font-weight:600;background:#EFF5FF;padding:4px 8px;border-radius:6px;cursor:pointer}
@@ -88,6 +107,105 @@
             50% { transform: scale(1.2); opacity: 1; }
         }
         @media(max-width:780px){.stats-row{flex-direction:column}.filters-bar{flex-direction:column;align-items:stretch}}
+
+        /* ===== CONFIRM POPUP ===== */
+        .confirm-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px);
+        }
+        .confirm-overlay.active { display: flex; }
+        .confirm-box {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px 40px 28px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: popIn 0.25s ease;
+        }
+        @keyframes popIn {
+            from { transform: scale(0.85); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .confirm-box .icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+        .confirm-box .icon.warning { color: #F59E0B; }
+        .confirm-box .icon.danger { color: #EF4444; }
+        .confirm-box .icon.success { color: #10B981; }
+        .confirm-box .icon.info { color: #3B82F6; }
+        .confirm-box h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1E293B;
+            margin-bottom: 6px;
+        }
+        .confirm-box p {
+            font-size: 14px;
+            color: #64748B;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .confirm-box .btn-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .confirm-box .btn-row button {
+            padding: 10px 24px;
+            border-radius: 12px;
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .confirm-box .btn-cancel-confirm {
+            background: #F1F5F9;
+            color: #475569;
+        }
+        .confirm-box .btn-cancel-confirm:hover {
+            background: #E2E8F0;
+        }
+        .confirm-box .btn-danger-confirm {
+            background: #EF4444;
+            color: #fff;
+        }
+        .confirm-box .btn-danger-confirm:hover {
+            background: #DC2626;
+        }
+        .confirm-box .btn-success-confirm {
+            background: #10B981;
+            color: #fff;
+        }
+        .confirm-box .btn-success-confirm:hover {
+            background: #059669;
+        }
+        .confirm-box .btn-warning-confirm {
+            background: #F59E0B;
+            color: #fff;
+        }
+        .confirm-box .btn-warning-confirm:hover {
+            background: #D97706;
+        }
+        .confirm-box .btn-info-confirm {
+            background: #3B82F6;
+            color: #fff;
+        }
+        .confirm-box .btn-info-confirm:hover {
+            background: #2563EB;
+        }
     </style>
 </head>
 <div layout:fragment="content">
@@ -103,7 +221,7 @@
             <div class="stat-card"><div class="stat-title">Khách đến hôm nay</div><div class="stat-number" th:text="${arrivalsToday != null ? arrivalsToday : 0}">0</div></div>
             <div class="stat-card"><div class="stat-title">Khách đi hôm nay</div><div class="stat-number" th:text="${departuresToday != null ? departuresToday : 0}">0</div></div>
             <div class="stat-card"><div class="stat-title">Tỉ lệ lấp đầy</div><div class="stat-number" th:text="${(occupancy != null ? occupancy : 0)} + '%'">0%</div></div>
-            <div class="stat-card"><div class="stat-title">Giá TB/đêm</div><div class="stat-number" th:text="${#numbers.formatDecimal((avgDailyRate != null ? avgDailyRate : 0), 0, 'COMMA', 0, 'POINT')} + ' VND'">0 VND</div></div>
+            <div class="stat-card"><div class="stat-title">Giá TB/đêm</div><div class="stat-number" th:text="${#numbers.formatInteger((avgDailyRate != null ? avgDailyRate : 0), 0, 'COMMA') + ' VND'}">0 VND</div></div>
         </div>
 
         <form method="get" action="/admin/bookings" class="filters-bar">
@@ -171,16 +289,7 @@
 
                     <!-- TIỀN PHÒNG (WEB) -->
                     <td>
-                        <div th:text="${bd.price != null ? #numbers.formatDecimal(bd.price, 0, 'COMMA', 0, 'POINT') + ' VND' : '0 VND'}"></div>
-                        <span th:if="${bd.status == 'PAID' || bd.status == 'CHECKED_OUT'}" class="badge-paid-online" style="background:#D1FAE5; color:#059669;">
-                            <i class="fas fa-check-circle"></i> Đã thanh toán
-                        </span>
-                        <span th:unless="${bd.status == 'PAID' || bd.status == 'CHECKED_OUT' || bd.status == 'CANCELLED'}" class="badge-paid-online" style="background:#FEF3C7; color:#D97706;">
-                            <i class="fas fa-clock"></i> Thu khi Check-out
-                        </span>
-                        <span th:if="${bd.status == 'CANCELLED'}" class="badge-paid-online" style="background:#FEE2E2; color:#DC2626;">
-                            <i class="fas fa-ban"></i> Đã hủy
-                        </span>
+                        <div th:text="${bd.price != null ? #numbers.formatInteger(bd.price, 0, 'COMMA') + ' VND' : '0 VND'}"></div>
                     </td>
 
                     <!-- DANH SÁCH F&B -->
@@ -194,7 +303,7 @@
                     <!-- PHỤ THU F&B -->
                     <td>
                         <span th:with="fbTotal=${!#lists.isEmpty(bd.bookingFBs) ? #aggregates.sum(bd.bookingFBs.![priceAtOrder * quantity]) : 0}">
-                            <span th:text="${#numbers.formatDecimal((fbTotal != null ? fbTotal : 0), 0, 'COMMA', 0, 'POINT')} + ' VND'"></span>
+                            <span th:text="${#numbers.formatInteger(fbTotal, 0, 'COMMA') + ' VND'}"></span>
                         </span>
                     </td>
 
@@ -208,38 +317,70 @@
                         <span th:unless="${isCancelled}"
                               class="due-amount"
                               th:style="${extraDue > 0} ? 'color:#D97706;' : 'color:#059669;'"
-                              th:text="${#numbers.formatDecimal(extraDue, 0, 'COMMA', 0, 'POINT')} + ' VND'">
+                              th:text="${#numbers.formatInteger(extraDue, 0, 'COMMA') + ' VND'}">
                         </span>
                     </td>
 
                     <!-- TRẠNG THÁI -->
                     <td>
-    <span class="status-badge"
-          th:classappend="${bd.status == 'CONFIRMED'} ? 'confirmed' : (${bd.status == 'PENDING'} ? 'pending' : (${bd.status == 'CANCELLED'} ? 'cancelled' : (${bd.status == 'PAID'} ? 'paid' : 'checked')))"
-          th:text="${bd.status == 'PENDING' ? 'CHỜ DUYỆT' : (bd.status == 'CONFIRMED' ? 'ĐÃ DUYỆT' : (bd.status == 'PAID' ? 'ĐÃ THANH TOÁN' : (bd.status == 'CANCELLED' ? 'ĐÃ HỦY' : 'ĐÃ TRẢ PHÒNG')))}">
-    </span>
+                        <span class="status-badge"
+                              th:classappend="${bd.status == 'CONFIRMED'} ? 'confirmed' : (${bd.status == 'PENDING'} ? 'pending' : (${bd.status == 'CANCELLED'} ? 'cancelled' : (${bd.status == 'PAID'} ? 'paid' : 'checked')))"
+                              th:text="${bd.status == 'PENDING' ? 'CHỜ DUYỆT' : (bd.status == 'CONFIRMED' ? 'ĐÃ DUYỆT' : (bd.status == 'PAID' ? 'ĐÃ THANH TOÁN' : (bd.status == 'CANCELLED' ? 'ĐÃ HỦY' : 'ĐÃ TRẢ PHÒNG')))}">
+                        </span>
                     </td>
 
-                    <!-- THAO TÁC -->
+                    <!-- ===== THAO TÁC - DROPDOWN ===== -->
                     <td>
-                        <div class="action-buttons">
-                            <button class="btn-food" th:if="${bd.status != 'CANCELLED' && bd.status != 'CHECKED_OUT'}" th:onclick="'openFoodPopup(' + ${bd.id} + ')'">
-                                <i class="fas fa-utensils"></i> Gọi F&B
-                            </button>
+                        <div class="action-buttons" th:with="
+                            showFood=${bd.status == 'PENDING' || bd.status == 'CONFIRMED'},
+                            showApprove=${bd.status == 'PENDING'},
+                            showPaid=${bd.status == 'CONFIRMED'},
+                            showCheckout=${bd.status == 'PAID'},
+                            showReject=${bd.status == 'PENDING' || bd.status == 'CONFIRMED' || bd.status == 'PAID'},
+                            totalVisible=${(showFood ? 1 : 0) + (showApprove ? 1 : 0) + (showPaid ? 1 : 0) + (showCheckout ? 1 : 0) + (showReject ? 1 : 0)}">
 
-                            <button th:if="${bd.status == 'PENDING'}" class="btn-approve" th:attr="onclick='approveNow('+${bd.id}+')'">
-                                <i class="fas fa-check"></i> Duyệt
-                            </button>
+                            <!-- Nếu có 1 hoặc 2 nút => hiển thị hàng ngang -->
+                            <div th:if="${totalVisible <= 2 and totalVisible > 0}" style="display:flex; gap:4px; flex-wrap:nowrap;">
+                                <button th:if="${showFood}" class="btn-inline btn-food-inline" th:onclick="'openFoodPopup(' + ${bd.id} + ')'">
+                                    <i class="fas fa-utensils"></i> F&B
+                                </button>
+                                <button th:if="${showApprove}" class="btn-inline btn-approve-inline" th:attr="onclick='approveNow('+${bd.id}+')'">
+                                    <i class="fas fa-check"></i> Duyệt
+                                </button>
+                                <button th:if="${showPaid}" class="btn-inline btn-paid-inline" th:attr="onclick='markAsPaid('+${bd.id}+')'">
+                                    <i class="fas fa-money-bill-wave"></i> TT
+                                </button>
+                                <button th:if="${showCheckout}" class="btn-inline btn-checkout-inline" th:attr="onclick='checkOut('+${bd.id}+')'">
+                                    <i class="fas fa-door-open"></i> Trả phòng
+                                </button>
+                                <button th:if="${showReject}" class="btn-inline btn-reject-inline" th:onclick="'rejectDetail('+${bd.id}+')'">
+                                    <i class="fas fa-times"></i> Hủy
+                                </button>
+                            </div>
 
-                            <button th:if="${bd.status != 'CANCELLED' && bd.status != 'PAID' && bd.status != 'CHECKED_OUT'}"
-                                    class="btn-paid"
-                                    th:attr="onclick='markAsPaid('+${bd.id}+')'">
-                                <i class="fas fa-money-bill-wave"></i> Đã thanh toán
-                            </button>
-
-                            <button th:if="${bd.status != 'CANCELLED' && bd.status != 'CHECKED_OUT'}" class="btn-reject" th:onclick="'rejectDetail('+${bd.id}+')'">
-                                <i class="fas fa-times"></i> Hủy
-                            </button>
+                            <!-- Nếu có >= 3 nút => dùng dropdown -->
+                            <div th:if="${totalVisible > 2}" class="action-dropdown">
+                                <button class="dropdown-toggle" onclick="toggleDropdown(event, this)">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                                <div class="dropdown-menu">
+                                    <button th:if="${showFood}" class="btn-food-menu" th:onclick="'openFoodPopup(' + ${bd.id} + '); closeDropdown(this);'">
+                                        <i class="fas fa-utensils"></i> Gọi F&B
+                                    </button>
+                                    <button th:if="${showApprove}" class="btn-approve-menu" th:attr="onclick='approveNow('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-check-circle"></i> Duyệt
+                                    </button>
+                                    <button th:if="${showPaid}" class="btn-paid-menu" th:attr="onclick='markAsPaid('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-money-bill-wave"></i> Đã thanh toán
+                                    </button>
+                                    <button th:if="${showCheckout}" class="btn-checkout-menu" th:attr="onclick='checkOut('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-door-open"></i> Trả phòng
+                                    </button>
+                                    <button th:if="${showReject}" class="btn-reject-menu" th:onclick="'rejectDetail('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-times-circle"></i> Hủy
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -261,7 +402,20 @@
 
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- POPUP ĐẶT PHÒNG TẠI QUẦY (WALK-IN) - ĐÃ CẬP NHẬT CHỌN LOẠI PHÒNG -->
+    <!-- ===== CONFIRM POPUP ===== -->
+    <div id="confirmPopup" class="confirm-overlay">
+        <div class="confirm-box">
+            <div class="icon" id="confirmIcon">⚠️</div>
+            <h3 id="confirmTitle">Xác nhận</h3>
+            <p id="confirmMessage">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+            <div class="btn-row">
+                <button class="btn-cancel-confirm" onclick="closeConfirmPopup()">Hủy bỏ</button>
+                <button id="confirmActionBtn" class="btn-success-confirm">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUPS -->
     <div id="walkInModal" class="popup-overlay">
         <div class="popup-box" style="width: 550px;">
             <h3><i class="fas fa-concierge-bell"></i> Lập đơn đặt phòng tại quầy (Walk-in)</h3>
@@ -321,16 +475,13 @@
         </div>
     </div>
 
-    <!-- POPUP HIỂN THỊ MÃ QR THANH TOÁN TẠI QUẦY -->
     <div id="walkInQrModal" class="popup-overlay">
         <div class="popup-box" style="text-align: center; width: 480px; background: #fdfbf7; border-radius: 0px; border: 1px solid #e8e4dc; padding: 30px;">
             <h3 style="font-family: 'Cormorant Garamond', serif; font-size: 1.8rem; font-weight: 600; margin-bottom: 5px;">Thanh Toán QR Tại Quầy</h3>
             <p style="font-size: 0.85rem; color: #666; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 20px;">Vui lòng quét mã QR dưới đây để hoàn tất thanh toán</p>
-
             <div style="background: #ffffff; border: 1px solid #e8e4dc; padding: 15px; display: inline-block; margin-bottom: 15px; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,.075);">
                 <img id="dynamicQrImg" src="" alt="Mã QR Chuyển Khoản FeelHome" style="width: 240px; height: 240px; object-fit: contain;">
             </div>
-
             <div style="background-color: #f9f6f0; border-left: 3px solid #c5a880; padding: 12px; text-align: left; margin-bottom: 20px;">
                 <div style="font-size: 0.75rem; color: #6c757d; margin-bottom: 4px;">NỘI DUNG CHUYỂN KHOẢN CHUẨN XÁC:</div>
                 <div style="display: flex; align-items: center; justify-content: space-between;">
@@ -338,12 +489,10 @@
                     <span style="background: #1e1e24; color: #fff; font-size: 0.75rem; padding: 3px 8px;"><i class="fas fa-barcode me-1"></i> Tự động quét</span>
                 </div>
             </div>
-
             <div style="display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; color: #666; margin-bottom: 20px;">
                 <div style="width: 8px; height: 8px; background-color: #c5a880; border-radius: 50%; animation: pulse-animation 1.5s infinite ease-in-out;"></div>
                 <span>Hệ thống đang chờ giao dịch thực tế từ SePay...</span>
             </div>
-
             <div class="btn-row" style="justify-content: center;">
                 <button type="button" class="btn-cancel" onclick="cancelWalkInQrModal()" style="background: transparent; color: #888; border: 1px solid #e8e4dc; padding: 10px 20px; text-transform: uppercase; font-size: 0.85rem; width: 100%;">
                     <i class="fas fa-times-circle me-1"></i> Đóng / Hủy giao dịch
@@ -352,10 +501,8 @@
         </div>
     </div>
 
-    <!-- POPUP CHỌN PHÒNG -->
     <div id="pickRoomPopup" class="popup-overlay"><div class="popup-box"><h3><i class="fas fa-bed"></i> Chọn phòng</h3><div class="room-card-grid" id="pickRoomCardGrid"><p style="color:#999;text-align:center;grid-column:1/-1;padding:20px">Đang tải...</p></div></div></div>
 
-    <!-- POPUP SỬA THÔNG TIN -->
     <div id="editPopup" class="popup-overlay">
         <div class="popup-box">
             <h3 id="editPopupTitle"><i class="fas fa-edit"></i> Sửa thông tin</h3>
@@ -367,7 +514,6 @@
         </div>
     </div>
 
-    <!-- POPUP ĐỒ ĂN & DỊCH VỤ -->
     <div id="foodPopup" class="popup-overlay">
         <div class="popup-box">
             <h3><i class="fas fa-utensils"></i> Thêm Đồ ăn & Dịch vụ (Phụ thu)</h3>
@@ -381,296 +527,13 @@
     </div>
 
     <script th:inline="javascript">var forecastDays=/*[[${forecastDays}]]*/[];var forecastData=/*[[${forecastData}]]*/[];</script>
-    <script>
-        function showToast(m,t){const c=document.getElementById('toastContainer');if(!c)return;const icons={success:'fa-check-circle',error:'fa-times-circle',warning:'fa-exclamation-triangle'};const toast=document.createElement('div');toast.className='toast '+t;toast.innerHTML='<i class="fas '+icons[t]+'"></i> '+m;c.appendChild(toast);setTimeout(()=>{toast.style.opacity='0';toast.style.transition='opacity .3s';setTimeout(()=>toast.remove(),300)},3000)}
-        if(forecastDays && forecastDays.length>0){var ctx=document.getElementById('lineChart');if(ctx)new Chart(ctx.getContext('2d'),{type:'line',data:{labels:forecastDays,datasets:[{label:'Tỉ lệ (%)',data:forecastData,borderColor:'#1E6CD4',backgroundColor:'rgba(30,108,212,0.05)',borderWidth:2,pointRadius:4,tension:.3,fill:!0}]},options:{responsive:!0,maintainAspectRatio:!1,plugins:{legend:{display:!1}},scales:{y:{beginAtZero:!0,max:100}}}}
-        )}
-        const ROWS=10;let cp=1,tr=0;
-        function iP(){const r=document.querySelectorAll('#tableBody tr[data-detail-id]');tr=r.length;document.getElementById('totalPages').textContent=Math.ceil(tr/ROWS)||1;sP(1)}
-        function sP(p){const r=document.querySelectorAll('#tableBody tr[data-detail-id]');const tp=Math.ceil(r.length/ROWS)||1;if(p<1)p=1;if(p>tp)p=tp;cp=p;r.forEach((row,i)=>{row.style.display=(i>=(p-1)*ROWS&&i<p*ROWS)?'':'none'});document.getElementById('currentPage').textContent=cp}
-        function goToPage(a){const tp=Math.ceil(tr/ROWS)||1;if(a==='first')sP(1);else if(a==='prev')sP(cp-1);else if(a==='next')sP(cp+1);else if(a==='last')sP(tp)}
-        let pickedRooms={};
+    <script th:src="@{/js/admin-js/booking-utils.js}"></script>
+    <script th:src="@{/js/admin-js/booking-api.js}"></script>
+    <script th:src="@{/js/admin-js/booking-popups.js}"></script>
+    <script th:src="@{/js/admin-js/booking-events.js}"></script>
+    <script th:src="@{/js/admin-js/booking-chart.js}"></script>
+    <script th:src="@{/js/admin-js/booking-option.js}"></script>
 
-        // ===== LOGIC ĐẶT PHÒNG TẠI QUẦY (WALK-IN) THEO LOẠI PHÒNG =====
-        function openWalkInModal() {
-            document.getElementById('walkInModal').classList.add('active');
-            const today = new Date().toISOString().split('T')[0];
-            let tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-            document.getElementById('wCheckin').value = today;
-            document.getElementById('wCheckout').value = tomorrowStr;
-        }
-
-        function closeWalkInModal() {
-            document.getElementById('walkInModal').classList.remove('active');
-        }
-
-        function submitWalkInForm(event) {
-            event.preventDefault();
-            const paymentMethod = document.getElementById('wPaymentMethod').value;
-
-            const data = {
-                roomTypeId: document.getElementById('wRoomTypeId').value,
-                customerName: document.getElementById('wName').value,
-                customerPhone: document.getElementById('wPhone').value,
-                customerEmail: document.getElementById('wEmail').value,
-                adultCount: document.getElementById('wAdult').value,
-                childCount: document.getElementById('wChild').value,
-                checkinDate: document.getElementById('wCheckin').value,
-                checkoutDate: document.getElementById('wCheckout').value,
-                paymentMethod: paymentMethod
-            };
-
-            fetch('/booking/admin/walk-in', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(data)
-            })
-            .then(res => res.json())
-            .then(result => {
-                if(result.success) {
-                    closeWalkInModal();
-
-                    if(paymentMethod === 'CHUYEN_KHOAN') {
-                        createdBookingIdForQr = result.bookingId;
-                        const amount = Math.round(parseFloat(result.totalAmount || 0));
-                        const content = "FEELHOMEBK" + result.bookingId;
-
-                        document.getElementById('qrContentText').innerText = content;
-                        const qrUrl = `https://qr.sepay.vn/img?bank=MBBank&acc=0855587468&template=compact&showinfo=true&holder=NGUYEN%20DUC%20PHAT&amount=${amount}&des=${content}`;
-                        document.getElementById('dynamicQrImg').src = qrUrl;
-
-                        document.getElementById('walkInQrModal').classList.add('active');
-                        startWalkInPaymentChecking(result.bookingId);
-                    } else {
-                        showToast("✅ " + result.message, "success");
-                        setTimeout(() => location.reload(), 1000);
-                    }
-                } else {
-                    showToast("❌ " + result.message, "error");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showToast("❌ Lỗi kết nối máy chủ!", "error");
-            });
-        }
-
-        let createdBookingIdForQr = null;
-        let walkInPaymentInterval = null;
-        let isWalkInProcessing = false;
-
-        function startWalkInPaymentChecking(bookingId) {
-            if (walkInPaymentInterval) clearInterval(walkInPaymentInterval);
-
-            walkInPaymentInterval = setInterval(function() {
-                if (isWalkInProcessing) return;
-                isWalkInProcessing = true;
-
-                fetch('/booking/api/invoice-status/' + bookingId)
-                    .then(response => {
-                        if (!response.ok) throw new Error('Network error');
-                        return response.json();
-                    })
-                    .then(data => {
-                        isWalkInProcessing = false;
-                        let currentStatus = data.status || data.paymentStatus;
-
-                        if (currentStatus === 'PAID') {
-                            clearInterval(walkInPaymentInterval);
-                            showToast("🎉 Hệ thống đã nhận được tiền thanh toán qua QR!", "success");
-
-                            setTimeout(() => {
-                                document.getElementById('walkInQrModal').classList.remove('active');
-                                location.reload();
-                            }, 1500);
-                        } else if (currentStatus === 'CANCELLED') {
-                            clearInterval(walkInPaymentInterval);
-                        }
-                    })
-                    .catch(error => {
-                        isWalkInProcessing = false;
-                        console.warn('Đang giữ kết nối an toàn với máy chủ...');
-                    });
-            }, 3000);
-        }
-
-        function cancelWalkInQrModal() {
-            if (walkInPaymentInterval) clearInterval(walkInPaymentInterval);
-            document.getElementById('walkInQrModal').classList.remove('active');
-            location.reload();
-        }
-
-        document.getElementById('walkInModal')?.addEventListener('click', function(e) {
-            if(e.target === this) closeWalkInModal();
-        });
-
-        function markAsPaid(detailId) {
-            if (!confirm("Xác nhận khách đã thanh toán tiền phòng cho đơn này?")) return;
-            fetch('/admin/api/booking-details/' + detailId + '/mark-paid', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' }
-            })
-            .then(r => r.json())
-            .then(res => {
-                if (res.success) {
-                    showToast("✅ Đã cập nhật trạng thái thanh toán!", "success");
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showToast("❌ " + res.message, "error");
-                }
-            })
-            .catch(err => { console.error(err); showToast("❌ Lỗi kết nối tới máy chủ!", "error"); });
-        }
-
-        // ===== POPUP F&B =====
-        let currentFoodBookingDetailId = null;
-        function openFoodPopup(detailId){
-            currentFoodBookingDetailId = detailId;
-            const popup = document.getElementById("foodPopup");
-            if(popup) popup.classList.add("active");
-
-            const foodListEl = document.getElementById("foodList");
-            foodListEl.innerHTML = '<p style="text-align:center;padding:25px;color:#888;"><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách menu...</p>';
-
-            fetch("/admin/api/booking-details/" + detailId + "/foods")
-                .then(r => { if (!r.ok) throw new Error("Lỗi tải menu"); return r.json(); })
-                .then(menuList => {
-                    if (!menuList || menuList.length === 0) {
-                        foodListEl.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">Không có danh sách dịch vụ nào.</p>';
-                        return;
-                    }
-
-                    let html = "";
-                    menuList.forEach(item => {
-                        const qty = item.quantity || 0;
-                        html += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #EFF2F7; padding-bottom:8px;">
-                            <div>
-                                <b style="font-size:13px; color:#1F2C48;">${item.name}</b><br>
-                                <span style="font-size:12px; color:#1E6CD4; font-weight:600;">${Number(item.price || 0).toLocaleString('vi-VN')} VND</span>
-                            </div>
-                            <input type="number" min="0" value="${qty}" data-fwb-id="${item.id}" class="food-qty-input" style="width:70px; padding:6px; border:1px solid #CBD5E1; border-radius:6px; text-align:center; font-weight:600;">
-                        </div>`;
-                    });
-                    foodListEl.innerHTML = html;
-                })
-                .catch(err => { console.error(err); foodListEl.innerHTML = '<p style="text-align:center;color:#EF4444;padding:20px;">❌ Lỗi kết nối tới máy chủ!</p>'; });
-        }
-
-        function closeFoodPopup(){
-            const popup = document.getElementById("foodPopup");
-            if(popup) popup.classList.remove("active");
-            currentFoodBookingDetailId = null;
-        }
-
-        function saveFoodOrder(){
-            if(!currentFoodBookingDetailId) return;
-            const inputs = document.querySelectorAll("#foodList .food-qty-input");
-
-            let items = [];
-            inputs.forEach(input => {
-                const qty = parseInt(input.value) || 0;
-                const fwbId = parseInt(input.getAttribute("data-fwb-id"));
-                if (fwbId) {
-                    items.push({ fwbId: fwbId, quantity: qty });
-                }
-            });
-
-            fetch("/admin/api/booking-details/" + currentFoodBookingDetailId + "/foods", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(items)
-            })
-            .then(r => r.json())
-            .then(res => {
-                if(res.success) {
-                    showToast("✅ Đã cập nhật phụ thu thành công!", "success");
-                    closeFoodPopup();
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    showToast("❌ " + res.message, "error");
-                }
-            })
-            .catch(err => { console.error(err); showToast("❌ Lỗi kết nối tới máy chủ!", "error"); });
-        }
-        document.getElementById('foodPopup')?.addEventListener('click', function(e){ if(e.target === this) closeFoodPopup(); });
-
-        // ===== POPUP CHỌN PHÒNG =====
-        function openPickRoomPopup(did,rtid){
-            document.getElementById('pickRoomCardGrid').innerHTML='<p style="color:#999;text-align:center;grid-column:1/-1;padding:20px">Đang tải...</p>';
-            document.getElementById('pickRoomPopup').classList.add('active');
-            fetch('/admin/api/booking-details/'+did+'/available-rooms')
-            .then(r=>r.json())
-            .then(d=>{
-                const g=document.getElementById('pickRoomCardGrid');
-                if(d.success&&d.rooms&&d.rooms.length>0){
-                    g.innerHTML=d.rooms.map(r=>'<div class="room-card" onclick="pickRoom('+did+','+r.id+',\''+r.roomNumber+'\')"><div class="room-number">'+r.roomNumber+'</div></div>').join('')
-                } else {
-                    g.innerHTML='<p style="color:#EF4444;text-align:center;grid-column:1/-1;padding:20px">❌ Hết phòng trống (còn '+(d.availableCount||0)+'/'+(d.totalRooms||0)+' phòng)</p>'
-                }
-            }).catch(e => {
-                document.getElementById('pickRoomCardGrid').innerHTML='<p style="color:#EF4444;text-align:center;grid-column:1/-1;padding:20px">❌ Lỗi kết nối máy chủ</p>';
-            });
-        }
-        function pickRoom(did,rid,rn){pickedRooms[did]={roomId:rid,roomNumber:rn};const row=document.querySelector('tr[data-detail-id="'+did+'"]');if(row)row.cells[3].innerHTML='<span class="room-picked" onclick="openPickRoomPopup('+did+',0)"><i class="fas fa-bed"></i> '+rn+'</span>';document.getElementById('pickRoomPopup').classList.remove('active');showToast('✅ Đã chọn phòng '+rn+' (bấm Duyệt để lưu)','success')}
-        document.getElementById('pickRoomPopup')?.addEventListener('click',function(e){if(e.target===this)this.classList.remove('active')});
-
-        // ===== POPUP SỬA THÔNG TIN =====
-        let editDetailId=null,editField=null;
-        function openEditPopup(did,field,val){
-            editDetailId=did;editField=field;
-            const t=document.getElementById('editPopupTitle');
-            const c=document.getElementById('editPopupContent');
-            if(field==='name'){t.innerHTML='<i class="fas fa-user-edit"></i> Sửa tên khách';c.innerHTML='<div class="form-group"><label>Tên khách</label><input id="editVal" class="form-control" value="'+val+'"></div>'}
-            else if(field==='phone'){t.innerHTML='<i class="fas fa-phone"></i> Sửa SĐT';c.innerHTML='<div class="form-group"><label>Số điện thoại</label><input id="editVal" class="form-control" value="'+val+'"></div>'}
-            else if(field==='bookingDate'||field==='checkinDate'||field==='checkoutDate'){t.innerHTML='<i class="fas fa-calendar"></i> Sửa ngày';c.innerHTML='<div class="form-group"><label>Ngày</label><input type="date" id="editVal" class="form-control" value="'+val+'"></div>'}
-            else if(field==='guests'){const parts=val.split(',');t.innerHTML='<i class="fas fa-users"></i> Sửa số khách';c.innerHTML='<div class="form-group"><label>Người lớn</label><input type="number" id="editAdult" class="form-control" value="'+parts[0]+'" min="1"></div><div class="form-group"><label>Trẻ em</label><input type="number" id="editChild" class="form-control" value="'+(parts[1]||0)+'" min="0"></div>'}
-            document.getElementById('editPopup').classList.add('active');
-        }
-        function closeEditPopup(){document.getElementById('editPopup').classList.remove('active');editDetailId=null;editField=null;}
-        function saveEditPopup(){
-            if(!editDetailId||!editField)return;
-            let val="";
-            if(editField==='guests'){const a=document.getElementById('editAdult').value;const ch=document.getElementById('editChild').value;val=a+','+ch;}
-            else{val=document.getElementById('editVal').value;}
-            fetch('/admin/api/booking-details/'+editDetailId+'/update-field?field='+editField+'&value='+encodeURIComponent(val),{method:'PUT'})
-            .then(r=>r.json()).then(res=>{
-                if(res.success){showToast("✅ Cập nhật thành công!","success");closeEditPopup();setTimeout(()=>location.reload(),1000);}
-                else{showToast("❌ "+res.message,"error");}
-            }).catch(e=>{showToast("❌ Lỗi kết nối!","error");});
-        }
-        document.getElementById('editPopup')?.addEventListener('click',function(e){if(e.target===this)closeEditPopup();});
-
-        function approveNow(did){
-            const p=pickedRooms[did];
-            let url='/admin/api/booking-details/'+did+'/approve';
-            if(p&&p.roomId){url+='?roomId='+p.roomId;}
-            else{
-                const row=document.querySelector('tr[data-detail-id="'+did+'"]');
-                showToast("⚠️ Vui lòng bấm vào 'Chọn phòng' để gán phòng trước khi duyệt!","warning");
-                return;
-            }
-            fetch(url,{method:'PUT'}).then(r=>r.json()).then(res=>{
-                if(res.success){showToast("✅ Đã duyệt đơn và gán phòng thành công!","success");setTimeout(()=>location.reload(),1000);}
-                else{showToast("❌ "+res.message,"error");}
-            }).catch(e=>{showToast("❌ Lỗi kết nối!","error");});
-        }
-
-        function rejectDetail(did){
-            if(!confirm("Bạn có chắc chắn muốn hủy đơn này không?"))return;
-            fetch('/admin/api/booking-details/'+did+'/reject',{method:'PUT'})
-            .then(r=>r.json())
-            .then(res=>{
-                if(res.success){showToast("✅ Đã hủy đơn thành công!","success");setTimeout(()=>location.reload(),1000);}
-                else{showToast("❌ "+res.message,"error");}
-            })
-            .catch(e=>{showToast("❌ Lỗi kết nối!","error");});
-        }
-
-        document.addEventListener("DOMContentLoaded",()=>{iP();});
-    </script>
 </div>
 </html>
