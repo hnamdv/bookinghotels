@@ -22,7 +22,6 @@ public class ActivityLogController {
 
         var logs = systemManagementService.getAllLogs();
 
-        // Sắp xếp theo thời gian tăng dần: cũ nhất -> mới nhất
         logs.sort(Comparator.comparing(log -> log.getCreatedAt()));
 
         System.out.println("SO LOG = " + logs.size());
