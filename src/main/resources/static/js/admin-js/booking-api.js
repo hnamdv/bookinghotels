@@ -1,20 +1,19 @@
-// ========================================
-// booking-api.js - Tất cả API Calls
-// ========================================
-
 const API = {
-    // ===== WALK-IN =====
+    // ===== WALK-IN (Sửa URL: bỏ /booking) =====
     walkIn: async (data) => {
         try {
-            const response = await fetch('/booking/admin/walk-in', {
+            const response = await fetch('/admin/walk-in', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: new URLSearchParams(data)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
             });
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
             return await response.json();
         } catch (error) {
             console.error('Walk-in API error:', error);
-            return { success: false, message: 'Lỗi kết nối server' };
+            return { success: false, message: 'Lỗi kết nối server: ' + error.message };
         }
     },
 
@@ -41,12 +40,11 @@ const API = {
         }
     },
 
-    // ===== APPROVE BOOKING (PENDING → APPROVED) =====
+    // ===== APPROVE BOOKING =====
     approve: async (detailId, roomId = null) => {
         try {
             let url = '/admin/api/booking-details/' + detailId + '/approve';
             if (roomId) url += '?roomId=' + roomId;
-
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' }
@@ -58,7 +56,7 @@ const API = {
         }
     },
 
-    // ===== MARK AS PAID (APPROVED → PAID) =====
+    // ===== MARK AS PAID =====
     markAsPaid: async (detailId) => {
         try {
             const response = await fetch('/admin/api/booking-details/' + detailId + '/mark-paid', {
@@ -72,7 +70,7 @@ const API = {
         }
     },
 
-    // ===== CHECKOUT (PAID → CHECKED_OUT) =====
+    // ===== CHECKOUT =====
     checkout: async (detailId) => {
         try {
             const response = await fetch('/admin/api/booking-details/' + detailId + '/check-out', {
@@ -86,12 +84,11 @@ const API = {
         }
     },
 
-    // ===== CANCEL BOOKING (→ CANCELLED) =====
+    // ===== CANCEL BOOKING =====
     cancel: async (detailId, reason = '') => {
         try {
             let url = '/admin/api/booking-details/' + detailId + '/reject';
             if (reason) url += '?reason=' + encodeURIComponent(reason);
-
             const response = await fetch(url, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' }
@@ -103,36 +100,17 @@ const API = {
         }
     },
 
-    // ===== ASSIGN ROOM (Chỉ gán phòng, không đổi status) =====
-    assignRoom: async (detailId, roomId) => {
-        try {
-            const response = await fetch('/admin/api/booking-details/' + detailId + '/assign-room?roomId=' + roomId, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Assign room API error:', error);
-            return { success: false, message: 'Lỗi kết nối server' };
-        }
-    },
-
     // ===== GET FOOD LIST =====
     getFoodList: async (detailId) => {
         try {
             const response = await fetch('/admin/api/booking-details/' + detailId + '/foods');
-            if (!response.ok) {
-                throw new Error('HTTP ' + response.status);
-            }
+            if (!response.ok) throw new Error('HTTP ' + response.status);
             const data = await response.json();
-
-            // Xử lý response để trả về array
             if (data && data.success && Array.isArray(data.foods)) {
                 return data.foods;
             } else if (Array.isArray(data)) {
                 return data;
             } else {
-                console.warn('Unexpected food list format:', data);
                 return [];
             }
         } catch (error) {
@@ -179,25 +157,7 @@ const API = {
             console.error('Update field API error:', error);
             return { success: false, message: 'Lỗi kết nối server' };
         }
-    },
-
-    // ===== REJECT BOOKING (Tương đương CANCEL) =====
-    reject: async (detailId, reason = '') => {
-        try {
-            let url = '/admin/api/booking-details/' + detailId + '/reject';
-            if (reason) url += '?reason=' + encodeURIComponent(reason);
-
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('Reject API error:', error);
-            return { success: false, message: 'Lỗi kết nối server' };
-        }
     }
 };
 
-// Export API object
 window.API = API;

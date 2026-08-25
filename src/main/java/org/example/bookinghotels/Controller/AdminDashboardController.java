@@ -8,9 +8,12 @@ import org.example.bookinghotels.entity.Room;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.BookingDetailRepository;
 import org.example.bookinghotels.repository.BookingFBRepository;
+import org.example.bookinghotels.repository.BookingRepository;
 import org.example.bookinghotels.repository.FwbRepository;
+import org.example.bookinghotels.repository.InvoicesRepository;
 import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
+import org.example.bookinghotels.entity.Invoices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +35,9 @@ public class AdminDashboardController {
     private BookingDetailRepository bookingDetailRepository;
 
     @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
     private RoomTypeRepository roomTypeRepository;
 
     @Autowired
@@ -41,6 +48,9 @@ public class AdminDashboardController {
 
     @Autowired
     private BookingFBRepository bookingFBRepository;
+
+    @Autowired
+    private InvoicesRepository invoicesRepository;
 
     @GetMapping("/bookings")
     public String bookingManagement(Model model,
@@ -137,6 +147,128 @@ public class AdminDashboardController {
     }
 
     // =========================================================
+    // API TẠO BOOKING TẠI QUẦY (WALK-IN)
+    // =========================================================
+    @PostMapping("/walk-in")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createWalkInBooking(@RequestBody Map<String, Object> data) {
+        Map<String, Object> res = new HashMap<>();
+
+        try {
+            Integer roomTypeId = getInteger(data.get("roomTypeId"));
+            String customerName = (String) data.get("customerName");
+            String customerPhone = (String) data.get("customerPhone");
+            String customerEmail = data.get("customerEmail") != null ? data.get("customerEmail").toString() : "";
+            Integer adultCount = getInteger(data.get("adultCount"));
+            Integer childCount = getInteger(data.get("childCount"));
+            String checkinStr = (String) data.get("checkinDate");
+            String checkoutStr = (String) data.get("checkoutDate");
+            String paymentMethod = data.get("paymentMethod") != null ? data.get("paymentMethod").toString() : "TIEN_MAT";
+
+            // Validate
+            if (roomTypeId == null) {
+                res.put("success", false);
+                res.put("message", "Vui lòng chọn loại phòng");
+                return ResponseEntity.badRequest().body(res);
+            }
+            if (customerName == null || customerName.isBlank()) {
+                res.put("success", false);
+                res.put("message", "Vui lòng nhập tên khách hàng");
+                return ResponseEntity.badRequest().body(res);
+            }
+            if (customerPhone == null || customerPhone.isBlank()) {
+                res.put("success", false);
+                res.put("message", "Vui lòng nhập số điện thoại");
+                return ResponseEntity.badRequest().body(res);
+            }
+            if (checkinStr == null || checkoutStr == null) {
+                res.put("success", false);
+                res.put("message", "Vui lòng chọn ngày nhận và trả phòng");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            LocalDate checkinDate = LocalDate.parse(checkinStr);
+            LocalDate checkoutDate = LocalDate.parse(checkoutStr);
+
+            if (!checkoutDate.isAfter(checkinDate)) {
+                res.put("success", false);
+                res.put("message", "Ngày trả phòng phải sau ngày nhận phòng");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            RoomType roomType = roomTypeRepository.findById(roomTypeId).orElse(null);
+            if (roomType == null) {
+                res.put("success", false);
+                res.put("message", "Loại phòng không tồn tại");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            // Tìm phòng trống
+            List<Room> availableRooms = roomRepository.findAvailableRooms(roomTypeId, checkinDate, checkoutDate);
+
+            // Tạo Booking
+            Booking booking = new Booking();
+            booking.setName(customerName);
+            booking.setPhone(customerPhone);
+            booking.setEmail(customerEmail);
+            booking.setCheckinDate(checkinDate);
+            booking.setCheckoutDate(checkoutDate);
+            booking.setBookingDate(LocalDateTime.now());
+            booking.setDeleteAt(false);
+
+            Booking savedBooking = bookingRepository.save(booking);
+
+            // Tạo BookingDetail
+            BookingDetail detail = new BookingDetail();
+            detail.setBooking(savedBooking);
+            detail.setRoomType(roomType);
+            detail.setAdultCount(adultCount != null ? adultCount : 1);
+            detail.setChildCount(childCount != null ? childCount : 0);
+            detail.setRoomQuantity(1);
+            detail.setPrice(roomType.getPrice());
+            detail.setDiscountAmount(0.0);
+            detail.setStatus("PENDING");
+            detail.setDeleteAt(false);
+
+            // Gán phòng nếu có
+            if (!availableRooms.isEmpty()) {
+                detail.setRoom(availableRooms.get(0));
+            }
+
+            BookingDetail savedDetail = bookingDetailRepository.save(detail);
+
+            // Tính tổng tiền
+            double totalAmount = roomType.getPrice() != null ? roomType.getPrice() : 0;
+
+            // Tạo Invoice
+            if (paymentMethod != null && !paymentMethod.isBlank()) {
+                Invoices invoice = new Invoices();
+                invoice.setBooking(savedBooking);
+                invoice.setTotalAmount(totalAmount);
+                invoice.setPaymentMethod(paymentMethod);
+                invoice.setPaymentStatus("PENDING");
+                invoice.setUser(detail.getUser());
+                invoicesRepository.save(invoice);
+            }
+
+            res.put("success", true);
+            res.put("message", "Tạo đơn đặt phòng thành công!");
+            res.put("bookingId", savedBooking.getId());
+            res.put("bookingDetailId", savedDetail.getId());
+            res.put("totalAmount", totalAmount);
+            res.put("assignedRoom", detail.getRoom() != null ? detail.getRoom().getRoomNumber() : null);
+
+            return ResponseEntity.ok(res);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "Lỗi: " + e.getMessage());
+            return ResponseEntity.status(500).body(res);
+        }
+    }
+
+    // =========================================================
     // CÁC API AJAX XỬ LÝ THAO TÁC TRÊN GIAO DIỆN QUẢN LÝ ĐẶT PHÒNG
     // =========================================================
 
@@ -191,7 +323,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 1. Cập nhật trạng thái đã thanh toán
+    // API cập nhật trạng thái đã thanh toán
     @PutMapping("/api/booking-details/{id}/mark-paid")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> markPaid(@PathVariable Integer id) {
@@ -215,7 +347,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 2. Duyệt đơn đặt phòng & gán phòng
+    // API duyệt đơn đặt phòng & gán phòng
     @PutMapping("/api/booking-details/{id}/approve")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> approveBooking(@PathVariable Integer id, @RequestParam(required = false) Integer roomId) {
@@ -243,7 +375,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 3. Hủy đơn đặt phòng
+    // API hủy đơn đặt phòng
     @PutMapping("/api/booking-details/{id}/reject")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> rejectBooking(@PathVariable Integer id) {
@@ -267,7 +399,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 4. Sửa thông tin trực tiếp (Tên, SĐT, số khách)
+    // API sửa thông tin trực tiếp
     @PutMapping("/api/booking-details/{id}/update-field")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateField(@PathVariable Integer id, @RequestParam String field, @RequestParam String value) {
@@ -302,7 +434,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 5. Lấy danh sách phòng trống để gán cho đơn
+    // API lấy danh sách phòng trống
     @GetMapping("/api/booking-details/{id}/available-rooms")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getAvailableRoomsForDetail(@PathVariable Integer id) {
@@ -342,7 +474,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 6. Lấy danh sách F&B cho popup
+    // API lấy danh sách F&B
     @GetMapping("/api/booking-details/{id}/foods")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getFoodsForDetail(@PathVariable Integer id) {
@@ -383,7 +515,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 7. Lưu F&B phụ thu
+    // API lưu F&B phụ thu
     @PostMapping("/api/booking-details/{id}/foods")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveFoodsForDetail(@PathVariable Integer id, @RequestBody List<Map<String, Object>> items) {
@@ -440,7 +572,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 8. API check-out
+    // API check-out
     @PutMapping("/api/booking-details/{id}/check-out")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> checkOutBooking(@PathVariable Integer id) {
@@ -462,5 +594,19 @@ public class AdminDashboardController {
             res.put("message", e.getMessage());
             return ResponseEntity.status(500).body(res);
         }
+    }
+
+    // Helper method
+    private Integer getInteger(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof Number) return ((Number) obj).intValue();
+        if (obj instanceof String) {
+            try {
+                return Integer.parseInt((String) obj);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 }
