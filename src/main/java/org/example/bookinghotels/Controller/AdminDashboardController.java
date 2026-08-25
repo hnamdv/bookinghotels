@@ -8,9 +8,12 @@ import org.example.bookinghotels.entity.Room;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.BookingDetailRepository;
 import org.example.bookinghotels.repository.BookingFBRepository;
+import org.example.bookinghotels.repository.BookingRepository;
 import org.example.bookinghotels.repository.FwbRepository;
+import org.example.bookinghotels.repository.InvoicesRepository;
 import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
+import org.example.bookinghotels.entity.Invoices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -31,6 +35,9 @@ public class AdminDashboardController {
     private BookingDetailRepository bookingDetailRepository;
 
     @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
     private RoomTypeRepository roomTypeRepository;
 
     @Autowired
@@ -41,6 +48,9 @@ public class AdminDashboardController {
 
     @Autowired
     private BookingFBRepository bookingFBRepository;
+
+    @Autowired
+    private InvoicesRepository invoicesRepository;
 
     @GetMapping("/bookings")
     public String bookingManagement(Model model,
@@ -64,34 +74,54 @@ public class AdminDashboardController {
 
         List<BookingDetail> allDetails = bookingDetailRepository.findAllWithDetails();
 
+        // ===== THỐNG KÊ =====
         long arrivalsToday = allDetails.stream()
-                .filter(bd -> bd.getBooking().getCheckinDate().equals(today)).count();
+                .filter(bd -> bd.getBooking() != null && bd.getBooking().getCheckinDate() != null)
+                .filter(bd -> bd.getBooking().getCheckinDate().equals(today))
+                .count();
+
         long departuresToday = allDetails.stream()
-                .filter(bd -> bd.getBooking().getCheckoutDate().equals(today)).count();
-        long totalRooms = roomTypeRepository.count();
+                .filter(bd -> bd.getBooking() != null && bd.getBooking().getCheckoutDate() != null)
+                .filter(bd -> bd.getBooking().getCheckoutDate().equals(today))
+                .count();
+
+        long totalRooms = roomRepository.count();
+
         long occupiedRooms = allDetails.stream()
+                .filter(bd -> bd.getStatus() != null && !"CANCELLED".equals(bd.getStatus()) && !"CHECKED_OUT".equals(bd.getStatus()))
+                .filter(bd -> bd.getBooking() != null && bd.getBooking().getCheckinDate() != null && bd.getBooking().getCheckoutDate() != null)
                 .filter(bd -> !bd.getBooking().getCheckinDate().isAfter(today) && bd.getBooking().getCheckoutDate().isAfter(today))
                 .count();
+
         int occupancy = totalRooms == 0 ? 0 : (int) (occupiedRooms * 100 / totalRooms);
+
         double avgDailyRate = allDetails.stream()
+                .filter(bd -> bd.getRoomType() != null && bd.getRoomType().getPrice() != null)
                 .mapToDouble(bd -> bd.getRoomType().getPrice())
                 .average()
                 .orElse(0.0);
 
         List<BookingDetail> recentLogs = filteredDetails.stream()
+                .filter(bd -> bd.getBooking() != null && bd.getBooking().getBookingDate() != null)
                 .sorted(Comparator.comparing(bd -> bd.getBooking().getBookingDate(), Comparator.reverseOrder()))
                 .limit(5)
                 .collect(Collectors.toList());
 
+        // ===== DỰ BÁO LẤP ĐẦY 7 NGÀY =====
         List<String> forecastDays = new ArrayList<>();
         List<Integer> forecastData = new ArrayList<>();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
+
         for (int i = 0; i < 7; i++) {
             LocalDate date = today.plusDays(i);
             forecastDays.add(date.format(formatter));
+
             long occ = allDetails.stream()
+                    .filter(bd -> bd.getStatus() != null && !"CANCELLED".equals(bd.getStatus()) && !"CHECKED_OUT".equals(bd.getStatus()))
+                    .filter(bd -> bd.getBooking() != null && bd.getBooking().getCheckinDate() != null && bd.getBooking().getCheckoutDate() != null)
                     .filter(bd -> !bd.getBooking().getCheckinDate().isAfter(date) && bd.getBooking().getCheckoutDate().isAfter(date))
                     .count();
+
             int per = totalRooms == 0 ? 0 : (int) (occ * 100 / totalRooms);
             forecastData.add(per);
         }
@@ -117,10 +147,183 @@ public class AdminDashboardController {
     }
 
     // =========================================================
+    // API TẠO BOOKING TẠI QUẦY (WALK-IN)
+    // =========================================================
+    @PostMapping("/walk-in")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> createWalkInBooking(@RequestBody Map<String, Object> data) {
+        Map<String, Object> res = new HashMap<>();
+
+        try {
+            Integer roomTypeId = getInteger(data.get("roomTypeId"));
+            String customerName = (String) data.get("customerName");
+            String customerPhone = (String) data.get("customerPhone");
+            String customerEmail = data.get("customerEmail") != null ? data.get("customerEmail").toString() : "";
+            Integer adultCount = getInteger(data.get("adultCount"));
+            Integer childCount = getInteger(data.get("childCount"));
+            String checkinStr = (String) data.get("checkinDate");
+            String checkoutStr = (String) data.get("checkoutDate");
+            String paymentMethod = data.get("paymentMethod") != null ? data.get("paymentMethod").toString() : "TIEN_MAT";
+
+            // Validate
+            if (roomTypeId == null) {
+                res.put("success", false);
+                res.put("message", "Vui lòng chọn loại phòng");
+                return ResponseEntity.badRequest().body(res);
+            }
+            if (customerName == null || customerName.isBlank()) {
+                res.put("success", false);
+                res.put("message", "Vui lòng nhập tên khách hàng");
+                return ResponseEntity.badRequest().body(res);
+            }
+            if (customerPhone == null || customerPhone.isBlank()) {
+                res.put("success", false);
+                res.put("message", "Vui lòng nhập số điện thoại");
+                return ResponseEntity.badRequest().body(res);
+            }
+            if (checkinStr == null || checkoutStr == null) {
+                res.put("success", false);
+                res.put("message", "Vui lòng chọn ngày nhận và trả phòng");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            LocalDate checkinDate = LocalDate.parse(checkinStr);
+            LocalDate checkoutDate = LocalDate.parse(checkoutStr);
+
+            if (!checkoutDate.isAfter(checkinDate)) {
+                res.put("success", false);
+                res.put("message", "Ngày trả phòng phải sau ngày nhận phòng");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            RoomType roomType = roomTypeRepository.findById(roomTypeId).orElse(null);
+            if (roomType == null) {
+                res.put("success", false);
+                res.put("message", "Loại phòng không tồn tại");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            // Tìm phòng trống
+            List<Room> availableRooms = roomRepository.findAvailableRooms(roomTypeId, checkinDate, checkoutDate);
+
+            // Tạo Booking
+            Booking booking = new Booking();
+            booking.setName(customerName);
+            booking.setPhone(customerPhone);
+            booking.setEmail(customerEmail);
+            booking.setCheckinDate(checkinDate);
+            booking.setCheckoutDate(checkoutDate);
+            booking.setBookingDate(LocalDateTime.now());
+            booking.setDeleteAt(false);
+
+            Booking savedBooking = bookingRepository.save(booking);
+
+            // Tạo BookingDetail
+            BookingDetail detail = new BookingDetail();
+            detail.setBooking(savedBooking);
+            detail.setRoomType(roomType);
+            detail.setAdultCount(adultCount != null ? adultCount : 1);
+            detail.setChildCount(childCount != null ? childCount : 0);
+            detail.setRoomQuantity(1);
+            detail.setPrice(roomType.getPrice());
+            detail.setDiscountAmount(0.0);
+            detail.setStatus("PENDING");
+            detail.setDeleteAt(false);
+
+            // Gán phòng nếu có
+            if (!availableRooms.isEmpty()) {
+                detail.setRoom(availableRooms.get(0));
+            }
+
+            BookingDetail savedDetail = bookingDetailRepository.save(detail);
+
+            // Tính tổng tiền
+            double totalAmount = roomType.getPrice() != null ? roomType.getPrice() : 0;
+
+            // Tạo Invoice
+            if (paymentMethod != null && !paymentMethod.isBlank()) {
+                Invoices invoice = new Invoices();
+                invoice.setBooking(savedBooking);
+                invoice.setTotalAmount(totalAmount);
+                invoice.setPaymentMethod(paymentMethod);
+                invoice.setPaymentStatus("PENDING");
+                invoice.setUser(detail.getUser());
+                invoicesRepository.save(invoice);
+            }
+
+            res.put("success", true);
+            res.put("message", "Tạo đơn đặt phòng thành công!");
+            res.put("bookingId", savedBooking.getId());
+            res.put("bookingDetailId", savedDetail.getId());
+            res.put("totalAmount", totalAmount);
+            res.put("assignedRoom", detail.getRoom() != null ? detail.getRoom().getRoomNumber() : null);
+
+            return ResponseEntity.ok(res);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            res.put("success", false);
+            res.put("message", "Lỗi: " + e.getMessage());
+            return ResponseEntity.status(500).body(res);
+        }
+    }
+
+    // =========================================================
     // CÁC API AJAX XỬ LÝ THAO TÁC TRÊN GIAO DIỆN QUẢN LÝ ĐẶT PHÒNG
     // =========================================================
 
-    // 1. Cập nhật trạng thái đã thanh toán
+    // API lấy thông tin chi tiết booking
+    @GetMapping("/api/booking-details/{id}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getBookingDetail(@PathVariable Integer id) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            BookingDetail detail = bookingDetailRepository.findById(id).orElse(null);
+            if (detail == null) {
+                res.put("success", false);
+                res.put("message", "Không tìm thấy booking detail");
+                return ResponseEntity.badRequest().body(res);
+            }
+
+            res.put("success", true);
+            res.put("id", detail.getId());
+            res.put("status", detail.getStatus());
+            res.put("bookingId", detail.getBooking() != null ? detail.getBooking().getId() : null);
+            res.put("customerName", detail.getBooking() != null ? detail.getBooking().getName() : null);
+            res.put("customerPhone", detail.getBooking() != null ? detail.getBooking().getPhone() : null);
+            res.put("customerEmail", detail.getBooking() != null ? detail.getBooking().getEmail() : null);
+
+            if (detail.getRoom() != null) {
+                res.put("roomId", detail.getRoom().getId());
+                res.put("roomNumber", detail.getRoom().getRoomNumber());
+            } else {
+                res.put("roomId", null);
+                res.put("roomNumber", null);
+            }
+
+            if (detail.getRoomType() != null) {
+                res.put("roomTypeId", detail.getRoomType().getId());
+                res.put("roomTypeName", detail.getRoomType().getNameType());
+            }
+
+            if (detail.getBooking() != null) {
+                res.put("checkinDate", detail.getBooking().getCheckinDate() != null ? detail.getBooking().getCheckinDate().toString() : null);
+                res.put("checkoutDate", detail.getBooking().getCheckoutDate() != null ? detail.getBooking().getCheckoutDate().toString() : null);
+            }
+
+            res.put("adultCount", detail.getAdultCount());
+            res.put("childCount", detail.getChildCount());
+            res.put("price", detail.getPrice());
+
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(res);
+        }
+    }
+
+    // API cập nhật trạng thái đã thanh toán
     @PutMapping("/api/booking-details/{id}/mark-paid")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> markPaid(@PathVariable Integer id) {
@@ -144,7 +347,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 2. Duyệt đơn đặt phòng & gán phòng
+    // API duyệt đơn đặt phòng & gán phòng
     @PutMapping("/api/booking-details/{id}/approve")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> approveBooking(@PathVariable Integer id, @RequestParam(required = false) Integer roomId) {
@@ -152,7 +355,7 @@ public class AdminDashboardController {
         try {
             BookingDetail detail = bookingDetailRepository.findById(id).orElse(null);
             if (detail != null) {
-                detail.setStatus("CONFIRMED");
+                detail.setStatus("APPROVED");
                 if (roomId != null) {
                     Room room = roomRepository.findById(roomId).orElse(null);
                     detail.setRoom(room);
@@ -172,7 +375,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 3. Hủy đơn đặt phòng
+    // API hủy đơn đặt phòng
     @PutMapping("/api/booking-details/{id}/reject")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> rejectBooking(@PathVariable Integer id) {
@@ -196,7 +399,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 4. Sửa thông tin trực tiếp (Tên, SĐT, số khách)
+    // API sửa thông tin trực tiếp
     @PutMapping("/api/booking-details/{id}/update-field")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> updateField(@PathVariable Integer id, @RequestParam String field, @RequestParam String value) {
@@ -205,12 +408,16 @@ public class AdminDashboardController {
             BookingDetail detail = bookingDetailRepository.findById(id).orElse(null);
             if (detail != null && detail.getBooking() != null) {
                 Booking b = detail.getBooking();
-                if ("name".equals(field)) b.setName(value);
-                else if ("phone".equals(field)) b.setPhone(value);
-                else if ("guests".equals(field)) {
+                if ("name".equals(field)) {
+                    b.setName(value);
+                } else if ("phone".equals(field)) {
+                    b.setPhone(value);
+                } else if ("guests".equals(field)) {
                     String[] parts = value.split(",");
                     detail.setAdultCount(Integer.parseInt(parts[0]));
-                    if (parts.length > 1) detail.setChildCount(Integer.parseInt(parts[1]));
+                    if (parts.length > 1) {
+                        detail.setChildCount(Integer.parseInt(parts[1]));
+                    }
                 }
                 bookingDetailRepository.save(detail);
                 res.put("success", true);
@@ -227,7 +434,7 @@ public class AdminDashboardController {
         }
     }
 
-    // 5. Lấy danh sách phòng trống để gán cho đơn
+    // API lấy danh sách phòng trống
     @GetMapping("/api/booking-details/{id}/available-rooms")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> getAvailableRoomsForDetail(@PathVariable Integer id) {
@@ -240,11 +447,25 @@ public class AdminDashboardController {
                 return ResponseEntity.ok(res);
             }
             Integer roomTypeId = detail.getRoomType().getId();
-            List<Room> rooms = roomRepository.findByRoomTypeId(roomTypeId);
+            List<Room> rooms = roomRepository.findAvailableRooms(
+                    roomTypeId,
+                    detail.getBooking().getCheckinDate(),
+                    detail.getBooking().getCheckoutDate()
+            );
+
+            List<Map<String, Object>> roomList = rooms.stream().map(r -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", r.getId());
+                map.put("roomNumber", r.getRoomNumber());
+                map.put("slug", r.getSlug());
+                map.put("thumbnail", r.getThumbnail());
+                return map;
+            }).toList();
+
             res.put("success", true);
-            res.put("rooms", rooms);
-            res.put("totalRooms", rooms.size());
-            res.put("availableCount", rooms.size());
+            res.put("rooms", roomList);
+            res.put("totalRooms", roomList.size());
+            res.put("availableCount", roomList.size());
             return ResponseEntity.ok(res);
         } catch (Exception e) {
             res.put("success", false);
@@ -253,12 +474,18 @@ public class AdminDashboardController {
         }
     }
 
-    // 6. Lấy danh sách F&B cho popup
+    // API lấy danh sách F&B
     @GetMapping("/api/booking-details/{id}/foods")
     @ResponseBody
-    public ResponseEntity<List<Map<String, Object>>> getFoodsForDetail(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, Object>> getFoodsForDetail(@PathVariable Integer id) {
+        Map<String, Object> res = new HashMap<>();
         try {
-            List<FwB> allFwb = fwbRepository.findAll();
+            List<FwB> allFwb = fwbRepository.findAll().stream()
+                    .filter(f -> f != null)
+                    .filter(f -> f.getStatus() == null || f.getStatus().isBlank() || "ACTIVE".equalsIgnoreCase(f.getStatus()))
+                    .filter(f -> f.getPrice() > 0D)
+                    .toList();
+
             List<BookingFB> ordered = bookingFBRepository.findByBookingDetailId(id);
             Map<Integer, Integer> orderedMap = new HashMap<>();
             for (BookingFB fb : ordered) {
@@ -266,22 +493,29 @@ public class AdminDashboardController {
                     orderedMap.put(fb.getFwb().getId(), fb.getQuantity());
                 }
             }
+
             List<Map<String, Object>> result = new ArrayList<>();
             for (FwB fwb : allFwb) {
                 Map<String, Object> item = new HashMap<>();
                 item.put("id", fwb.getId());
                 item.put("name", fwb.getName() != null ? fwb.getName() : fwb.getDescription());
+                item.put("description", fwb.getDescription());
                 item.put("price", fwb.getPrice());
                 item.put("quantity", orderedMap.getOrDefault(fwb.getId(), 0));
                 result.add(item);
             }
-            return ResponseEntity.ok(result);
+
+            res.put("success", true);
+            res.put("foods", result);
+            return ResponseEntity.ok(res);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body(Collections.emptyList());
+            res.put("success", false);
+            res.put("foods", Collections.emptyList());
+            return ResponseEntity.ok(res);
         }
     }
 
-    // 7. Lưu F&B phụ thu
+    // API lưu F&B phụ thu
     @PostMapping("/api/booking-details/{id}/foods")
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveFoodsForDetail(@PathVariable Integer id, @RequestBody List<Map<String, Object>> items) {
@@ -298,8 +532,24 @@ public class AdminDashboardController {
             bookingFBRepository.deleteAll(existing);
 
             for (Map<String, Object> map : items) {
-                Integer fwbId = (Integer) map.get("fwbId");
-                Integer qty = (Integer) map.get("quantity");
+                Integer fwbId = null;
+                Integer qty = null;
+
+                Object fwbIdObj = map.get("fwbId");
+                Object qtyObj = map.get("quantity");
+
+                if (fwbIdObj instanceof Number) {
+                    fwbId = ((Number) fwbIdObj).intValue();
+                } else if (fwbIdObj instanceof String) {
+                    try { fwbId = Integer.parseInt((String) fwbIdObj); } catch (NumberFormatException e) {}
+                }
+
+                if (qtyObj instanceof Number) {
+                    qty = ((Number) qtyObj).intValue();
+                } else if (qtyObj instanceof String) {
+                    try { qty = Integer.parseInt((String) qtyObj); } catch (NumberFormatException e) {}
+                }
+
                 if (fwbId != null && qty != null && qty > 0) {
                     FwB fwb = fwbRepository.findById(fwbId).orElse(null);
                     if (fwb != null) {
@@ -320,5 +570,43 @@ public class AdminDashboardController {
             res.put("message", e.getMessage());
             return ResponseEntity.status(500).body(res);
         }
+    }
+
+    // API check-out
+    @PutMapping("/api/booking-details/{id}/check-out")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkOutBooking(@PathVariable Integer id) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            BookingDetail detail = bookingDetailRepository.findById(id).orElse(null);
+            if (detail != null) {
+                detail.setStatus("CHECKED_OUT");
+                bookingDetailRepository.save(detail);
+                res.put("success", true);
+                res.put("message", "Đã trả phòng thành công!");
+                return ResponseEntity.ok(res);
+            }
+            res.put("success", false);
+            res.put("message", "Không tìm thấy đơn đặt phòng");
+            return ResponseEntity.badRequest().body(res);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(res);
+        }
+    }
+
+    // Helper method
+    private Integer getInteger(Object obj) {
+        if (obj == null) return null;
+        if (obj instanceof Number) return ((Number) obj).intValue();
+        if (obj instanceof String) {
+            try {
+                return Integer.parseInt((String) obj);
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        return null;
     }
 }

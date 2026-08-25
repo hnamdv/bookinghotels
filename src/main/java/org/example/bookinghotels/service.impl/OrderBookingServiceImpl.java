@@ -233,6 +233,7 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     public Room findFirstAvailableRoomByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate) {
         if (roomTypeId == null) return null;
         LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
+        // Sử dụng repository đã check status = APPROVED
         List<Room> availableRooms = roomRepository.findAvailableRooms(roomTypeId, range[0], range[1]);
         return availableRooms.isEmpty() ? null : availableRooms.get(0);
     }
@@ -241,6 +242,7 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     public long countAvailableRoomsByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate) {
         if (roomTypeId == null) return 0L;
         LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
+        // Sử dụng repository đã check status = APPROVED
         return roomRepository.findAvailableRooms(roomTypeId, range[0], range[1]).size();
     }
 

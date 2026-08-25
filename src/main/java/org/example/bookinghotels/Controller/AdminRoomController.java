@@ -7,12 +7,18 @@ import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.example.bookinghotels.service.RoomOperationService;
 import org.example.bookinghotels.service.RoomInventoryService;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin/rooms")
@@ -154,6 +160,39 @@ public class AdminRoomController {
             ra.addFlashAttribute("error", e.getMessage());
         }
         return roomTypeId == null ? "redirect:/admin/rooms" : "redirect:/admin/rooms?roomTypeId=" + roomTypeId;
+    }
+
+    /**
+     * Endpoint API cung cấp danh sách phòng trống dựa theo loại phòng và khoảng thời gian (Check-in/Check-out)
+     * Phục vụ cho tính năng đặt phòng tại quầy (Walk-in) trên giao diện quản lý.
+     */
+    @GetMapping("/api/rooms/available")
+    @ResponseBody
+    public ResponseEntity<List<Map<String, Object>>> getAvailableRoomsForWalkIn(
+            @RequestParam Integer roomTypeId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkin,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate checkout) {
+        try {
+            // Lấy tất cả phòng thuộc loại phòng này
+            List<Room> roomsOfType = roomRepository.findByRoomTypeId(roomTypeId);
+
+            List<Map<String, Object>> result = new ArrayList<>();
+            for (Room room : roomsOfType) {
+                // Kiểm tra xem phòng có bị trùng lịch trong khoảng thời gian checkin - checkout không
+                boolean isBooked = bookingDetailRepository.existsOverlappingBooking(room.getId(), checkin, checkout);
+
+                if (!isBooked) {
+                    Map<String, Object> roomMap = new HashMap<>();
+                    roomMap.put("id", room.getId());
+                    roomMap.put("roomNumber", room.getRoomNumber());
+                    roomMap.put("status", "Trống");
+                    result.add(roomMap);
+                }
+            }
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(List.of());
+        }
     }
 
     private String runOperation(Runnable operation, String success, RedirectAttributes ra, Integer roomTypeId) {
