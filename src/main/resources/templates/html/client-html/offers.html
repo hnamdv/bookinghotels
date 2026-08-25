@@ -1,6 +1,101 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Ưu đãi | FeelHome</title><link rel="stylesheet" href="/css/style.css?v=mvc-perf-final"><style>.wrap{max-width:1320px;margin:auto;padding:120px 24px}.hero{background:#fff;border-radius:24px;padding:42px;margin-bottom:26px}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px}.card{background:#fff;border:1px solid #eee;border-radius:22px;overflow:hidden;box-shadow:0 12px 30px rgba(15,23,42,.05)}.card img{width:100%;height:240px;object-fit:cover}.body{padding:22px}.body h3{font-family:var(--font-serif);font-size:31px}.badge{display:inline-block;background:#0c985c;color:white;border-radius:999px;padding:7px 12px;font-weight:900}.price del{color:#999;margin-right:8px}.price strong{font-size:24px;color:#bd6c3c}.countdown{margin:10px 0;background:#eafff4;color:#047044;border:1px solid #b6e9cc;border-radius:999px;padding:8px 12px;font-weight:800;display:inline-flex;gap:7px}.badge{border-radius:0 0 7px 7px!important;padding:12px 13px!important;background:linear-gradient(180deg,#12a76b,#057044)!important}</style></head>
-<body><header class="fh-header"><div class="fh-header__inner"><a href="/home" class="fh-logo"><span class="fh-logo__icon">◈</span><span class="fh-logo__text">FEELHOME</span></a><nav class="fh-nav"><a href="/home" class="fh-nav__link">Trang Chủ</a><a href="/home#rooms-section" class="fh-nav__link">Phòng Nghỉ</a><a href="/offers" class="fh-nav__link active">Ưu Đãi</a><a href="/favorites" class="fh-nav__link">Yêu Thích</a></nav></div></header>
-<main class="wrap"><section class="hero"><p>Ưu đãi FeelHome</p><h1>Kỳ nghỉ tuyệt vời, mức giá tốt hơn</h1><form method="get" th:action="@{/offers}" style="display:flex;gap:10px;flex-wrap:wrap"><input type="date" name="checkin" th:value="${checkin}"><input type="date" name="checkout" th:value="${checkout}"><button class="fh-btn-primary" type="submit">Kiểm tra ưu đãi</button><a class="fh-btn-outline" href="/home#rooms-section">Xem toàn bộ phòng</a></form></section><div><strong th:text="${#lists.size(offers)}"></strong> ưu đãi đang áp dụng</div>
-<div class="grid" th:if="${!#lists.isEmpty(offers)}"><article class="card" th:each="room:${offers}"><img th:src="${room.image}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80'"><div class="body"><span class="badge" th:text="|-${room.discountPercent}%|"></span><h3 th:text="${room.name}"></h3><p th:text="${room.promotionName}"></p><div class="countdown js-promo-countdown" th:if="${room.promotionEndAt != null}" th:data-promo-end="${room.promotionEndAt}"><span>Đang tính...</span></div><div class="price"><del th:text="${#numbers.formatDecimal(room.originalPrice,0,'COMMA',0,'POINT')} + ' đ'"></del><strong th:text="${#numbers.formatDecimal(room.effectivePrice,0,'COMMA',0,'POINT')} + ' đ/đêm'"></strong></div><p th:text="|Còn ${room.availableRooms}/${room.totalRooms} phòng|"></p><a class="fh-btn-primary" th:href="${room.detailUrl}">Xem phòng</a></div></article></div><div class="empty" th:if="${#lists.isEmpty(offers)}">Hiện chưa có ưu đãi phù hợp.</div></main><script>(function(){function p(v){return String(v).padStart(2,'0')}function t(){document.querySelectorAll('.js-promo-countdown').forEach(e=>{let end=new Date(e.dataset.promoEnd),s=e.querySelector('span')||e,d=end-Date.now();if(isNaN(end))return;if(d<=0){s.textContent='Ưu đãi vừa hết hạn';return}let days=Math.floor(d/86400000),h=Math.floor(d%86400000/3600000),m=Math.floor(d%3600000/60000),sec=Math.floor(d%60000/1000);s.textContent='Còn '+(days?days+' ngày ':'')+p(h)+':'+p(m)+':'+p(sec)})}t();setInterval(t,1000)})();</script></body></html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Ưu đãi | FeelHome</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/client-pages-premium.css?v=20260823-fav-offer-v1">
+</head>
+<body class="fh-premium-page" data-page="offers">
+<th:block th:replace="~{html/client-html/fragments/public-shell :: header('offers')}"></th:block>
+
+<main>
+    <section class="fhp-hero">
+        <div class="fhp-shell">
+            <div class="fhp-hero__panel">
+                <div class="fhp-eyebrow"><i class="bi bi-stars"></i> Ưu đãi đang hoạt động</div>
+                <h1>Ở đẹp hơn, <em>giá tốt hơn</em></h1>
+                <p>Toàn bộ mức giá bên dưới đã được tính trực tiếp từ chương trình khuyến mãi còn hiệu lực. Chọn ngày lưu trú để hệ thống kiểm tra đúng ưu đãi và số phòng còn lại.</p>
+                <div class="fhp-hero__meta">
+                    <div class="fhp-metric"><i class="bi bi-tags"></i><div><b th:text="${#lists.size(offers)}">0</b><span>ưu đãi phù hợp</span></div></div>
+                    <div class="fhp-metric"><i class="bi bi-percent"></i><div><b th:if="${!#lists.isEmpty(offers)}" th:text="|${offers[0].discountPercent}%|">10%</b><b th:if="${#lists.isEmpty(offers)}">—</b><span>mức giảm nổi bật</span></div></div>
+                    <div class="fhp-metric"><i class="bi bi-calendar2-check"></i><div><b th:text="${checkin != null ? checkin : 'Chọn ngày'}">Chọn ngày</b><span>ngày nhận phòng</span></div></div>
+                </div>
+            </div>
+
+            <form class="fhp-filter-panel" method="get" th:action="@{/offers}">
+                <div class="fhp-field"><label for="offerCheckin">Ngày nhận phòng</label><input id="offerCheckin" type="date" name="checkin" th:value="${checkin}"></div>
+                <div class="fhp-field"><label for="offerCheckout">Ngày trả phòng</label><input id="offerCheckout" type="date" name="checkout" th:value="${checkout}"></div>
+                <button class="fhp-btn fhp-btn--primary" type="submit"><i class="bi bi-search"></i> Kiểm tra ưu đãi</button>
+                <a class="fhp-btn fhp-btn--soft" href="/offers"><i class="bi bi-arrow-counterclockwise"></i> Hôm nay</a>
+            </form>
+        </div>
+    </section>
+
+    <section class="fhp-shell">
+        <div class="fhp-toolbar">
+            <div class="fhp-toolbar__title">
+                <h2>Ưu đãi dành cho bạn</h2>
+                <p><strong th:text="${#lists.size(offers)}">0</strong> loại phòng đang có giá ưu đãi trong khoảng thời gian đã chọn.</p>
+            </div>
+            <div class="fhp-toolbar__actions">
+                <a class="fhp-btn fhp-btn--soft" href="/favorites"><i class="bi bi-heart"></i> Phòng yêu thích</a>
+                <a class="fhp-btn fhp-btn--gold" href="/home#rooms-section"><i class="bi bi-grid"></i> Tất cả phòng</a>
+            </div>
+        </div>
+
+        <div class="fhp-grid" th:if="${!#lists.isEmpty(offers)}">
+            <article class="fhp-card" th:each="room:${offers}">
+                <div class="fhp-card__media">
+                    <img th:src="${room.image}" th:alt="${room.name}" loading="lazy"
+                         onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80'">
+                    <span class="fhp-stock" th:text="|Còn ${room.availableRooms}/${room.totalRooms} phòng|">Còn phòng</span>
+                    <span class="fhp-discount" th:text="|-${room.discountPercent}%|">-10%</span>
+                    <div class="fhp-offer-highlight"><i class="bi bi-lightning-charge-fill"></i><span th:text="${room.promotionName}">Ưu đãi đặc biệt</span></div>
+                    <button class="fhp-heart" type="button" th:attr="data-favorite-toggle=${room.id}" aria-label="Lưu yêu thích"><i class="bi bi-heart"></i></button>
+                </div>
+                <div class="fhp-card__body">
+                    <div class="fhp-kicker" th:text="${room.hotelName}">FeelHome Hotel</div>
+                    <div class="fhp-offer-title"><h3 th:text="${room.name}">Tên phòng</h3></div>
+                    <p class="fhp-card__desc" th:text="${room.description}">Mô tả phòng</p>
+                    <div class="fhp-chips">
+                        <span class="fhp-chip"><i class="bi bi-people"></i><span th:text="|${room.capacity} khách|">2 khách</span></span>
+                        <span class="fhp-chip" th:if="${room.bed != null and !room.bed.isBlank()}"><i class="bi bi-moon-stars"></i><span th:text="${room.bed}">Queen</span></span>
+                        <span class="fhp-chip" th:each="amenityName:${room.amenityNames}" th:text="${amenityName}">Tiện ích</span>
+                    </div>
+                    <div class="fhp-price">
+                        <del th:text="${#numbers.formatDecimal(room.originalPrice,0,'COMMA',0,'POINT')} + ' đ'">1.000.000 đ</del>
+                        <strong th:text="${#numbers.formatDecimal(room.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'">800.000 đ</strong>
+                        <small>/ đêm</small>
+                    </div>
+                    <div class="fhp-countdown js-promo-countdown" th:if="${room.promotionEndAt != null}" th:attr="data-promo-end=${room.promotionEndAt}">
+                        <i class="bi bi-clock-history"></i><span>Đang tính...</span>
+                    </div>
+                    <div class="fhp-offer-note"><i class="bi bi-info-circle"></i><span>Giá đã áp dụng khuyến mãi đang còn hiệu lực.</span></div>
+                    <div class="fhp-card__actions">
+                        <a class="fhp-btn fhp-btn--soft" th:href="${room.detailUrl}"><i class="bi bi-eye"></i> Chi tiết</a>
+                        <a class="fhp-btn fhp-btn--primary" th:href="${room.bookingUrl}"><i class="bi bi-calendar-check"></i> Đặt ưu đãi</a>
+                    </div>
+                </div>
+            </article>
+        </div>
+
+        <div class="fhp-empty" th:if="${#lists.isEmpty(offers)}">
+            <div class="fhp-empty__icon"><i class="bi bi-calendar-x"></i></div>
+            <h3>Chưa có ưu đãi phù hợp</h3>
+            <p>Không có chương trình khuyến mãi nào bao phủ toàn bộ khoảng ngày bạn chọn. Hãy đổi ngày hoặc xem tất cả phòng đang bán.</p>
+            <a class="fhp-btn fhp-btn--gold" href="/home#rooms-section"><i class="bi bi-grid"></i> Xem tất cả phòng</a>
+        </div>
+    </section>
+</main>
+
+<th:block th:replace="~{html/client-html/fragments/public-shell :: footer()}"></th:block>
+
+<div class="fhp-toast" id="favoriteToast"><i class="bi bi-check-circle-fill"></i><span></span></div>
+<script src="/js/client-favorites.js?v=20260823-fav-offer-v1"></script>
+<script src="/js/client-countdown.js?v=20260823-fav-offer-v1"></script>
+</body>
+</html>

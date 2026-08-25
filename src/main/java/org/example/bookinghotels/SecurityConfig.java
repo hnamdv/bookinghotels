@@ -28,23 +28,19 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                // 1. TẮT HOÀN TOÀN CSRF: Sửa dòng này để fix lỗi chặn đăng nhập Forbidden
                 .csrf(csrf -> csrf.disable())
-
                 .authorizeHttpRequests(auth -> auth
-                        // Cho phép truy cập các file tĩnh, API xác thực và WEBHOOK ngân hàng
                         .requestMatchers(
-                                "/", "/home", "/layout", "/layout.html", "/client-home.html",
+                                "/", "/home", "/layout", "/layout.html",
+                                "/favorites", "/favorites.html",
+                                "/offers", "/offers.html",
+                                "/roomdetail", "/roomdetail/**",
+                                "/room-detail", "/room-detail.html",
+                                "/booking/**", "/payment/**", "/booking-detail/**", "/qr-payment/**",
                                 "/login", "/error", "/favicon.ico",
                                 "/css/**", "/js/**", "/img/**", "/images/**", "/uploads/**",
-                                "/favorites.html", "/roomdetail", "/roomdetail/**", "/room-detail", "/room-detail.html", "/promo-demo.html", "/offers", "/offers.html",
-                                "/booking/**", "/invoice/qr",
-                                "/api/auth/**", "/api/public/**",
-                                "/api/webhook/**" // Mở đường cho SePay bắn tín hiệu
+                                "/api/auth/**", "/api/public/**", "/api/webhook/**"
                         ).permitAll()
-
-                        // Hỗ trợ cả role có tiền tố ROLE_ và role cũ không có tiền tố.
-                        // Tránh lỗi 403 khi dữ liệu role trong DB không đồng nhất giữa các nhánh.
                         .requestMatchers("/admin/**", "/staff/**", "/api/admin/**").hasAnyAuthority(
                                 "ROLE_ADMIN", "ADMIN",
                                 "ROLE_MANAGER", "MANAGER",
@@ -57,12 +53,9 @@ public class SecurityConfig {
                                 "ROLE_IMG", "IMG",
                                 "ROLE_ROOM", "ROOM"
                         )
-
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                )
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
                         .logoutSuccessUrl("/login")

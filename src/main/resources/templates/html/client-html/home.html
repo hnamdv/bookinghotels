@@ -7,6 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/client-pages-premium.css?v=20260823-fav-offer-v1">
     <style>
         :root{--navy:#121b2a;--gold:#d2ad5b;--cream:#f7f2ea;--card:#fff;--ink:#162033;--muted:#6b7280;--line:#eadfce;--accent:#c56f3c}
         *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font-family:Jost,sans-serif}a{text-decoration:none;color:inherit}
@@ -68,22 +69,90 @@
         .promo-countdown{position:absolute;left:16px;bottom:16px;display:inline-flex;align-items:center;gap:7px;background:rgba(18,27,42,.88);color:#fff;border:1px solid rgba(255,255,255,.16);border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;backdrop-filter:blur(8px)}
         .promo-countdown i{color:#f4c76d}
         .promo-ribbon{display:inline-flex;align-items:center;gap:8px;background:linear-gradient(90deg,#eafff4,#fff);border:1px solid #b6e9cc;color:#047044;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:800;margin-top:8px}
+
+        /* ===== upgraded room cards ===== */
+        .room-card{position:relative;height:100%;display:flex;flex-direction:column;border-radius:26px;overflow:hidden}
+        .room-card:hover{transform:translateY(-9px);box-shadow:0 28px 56px rgba(17,24,39,.12)}
+        .room-img{height:220px}
+        .room-body{display:flex;flex-direction:column;flex:1;padding:22px 20px 20px}
+        .room-body h3{min-height:74px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:29px;line-height:1.03;margin-bottom:10px}
+        .room-body p{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:50px;margin:0 0 16px}
+        .room-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px}
+        .meta-box{display:flex;align-items:center;gap:10px;padding:12px 13px;border-radius:16px;background:#fbf7ef;border:1px solid #eadfc8;color:#604d2b;min-width:0}
+        .meta-box i{font-size:18px;color:#c89a42;flex:0 0 auto}
+        .meta-box b{display:block;font-size:14px;line-height:1.2;color:#263246;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .meta-box span{display:block;font-size:11px;color:#90744a;margin-top:2px}
+        .amenity-line{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:9px}
+        .amenity-line span{font-size:12px;font-weight:700;color:#7f8590}
+        .amenity-line b{font-size:12px;color:#b77a22;background:#fff7e6;border:1px solid #ecd7ab;border-radius:999px;padding:6px 10px;white-space:nowrap}
+        .room-card .chips{min-height:0;display:flex;align-content:flex-start;align-items:flex-start;gap:8px;flex-wrap:wrap;margin:0 0 16px}
+        .room-card .chips .chip{width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;flex:0 0 auto!important;display:inline-flex!important;align-items:center;justify-content:center;gap:6px;padding:7px 11px!important;border-radius:999px!important;background:#fff9ed!important;border:1px solid #ead1a2!important;color:#7a541c!important;font-size:12.5px!important;line-height:1.15!important;white-space:nowrap;box-shadow:none!important}
+        .room-card .chips .chip--more{background:#f8fbff!important;border-style:dashed!important;border-color:#cfd7e4!important;color:#4d617f!important}
+        .room-card .chips .chip--muted{background:#f7f7f7!important;border-color:#e5e5e5!important;color:#818181!important}
+        .room-body .price{margin-top:auto;padding-top:15px;border-top:1px solid #eee4d6;display:flex;align-items:baseline;flex-wrap:wrap;gap:8px}
+        .room-body .price strong{font-size:28px}
+        .actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:15px}
+        .actions a{min-height:52px;border-radius:14px;padding:0 12px;text-align:center;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px;transition:.24s}
+        .detail{border:1px solid #d6b96a;background:#fff;color:#172033}
+        .detail:hover{border-color:#caa04f;background:#fff8e8;transform:translateY(-2px)}
+        .book{background:linear-gradient(135deg,#122035 0%,#20314a 100%);color:#fff;box-shadow:0 12px 24px rgba(18,27,42,.16)}
+        .book:hover{background:linear-gradient(135deg,#d2ad5b 0%,#efc96c 100%);color:#172033;transform:translateY(-2px)}
+        @media(max-width:1100px){.room-card .room-body h3{min-height:64px;font-size:28px}}
+        @media(max-width:700px){.room-meta{grid-template-columns:1fr 1fr}.actions{grid-template-columns:1fr 1fr}.room-img{height:205px}.room-body{padding:18px}.room-body h3{min-height:auto;font-size:27px}}
+
+
+        /* ===== HOME CARD CTA HARD FIX v3 ===== */
+        body.fh-premium-page .room-card .actions a.detail,
+        body.fh-premium-page .room-card .actions a.detail:link,
+        body.fh-premium-page .room-card .actions a.detail:visited{
+            background:#ffffff!important;
+            border:1.5px solid #d9b75d!important;
+            color:#172033!important;
+            opacity:1!important;
+            filter:none!important;
+            text-shadow:none!important;
+            box-shadow:none!important;
+        }
+        body.fh-premium-page .room-card .actions a.detail i{color:#7d6840!important}
+        body.fh-premium-page .room-card .actions a.detail:hover{
+            background:#fff8e8!important;
+            border-color:#c99d38!important;
+            color:#8a5b0e!important;
+            transform:translateY(-2px);
+            box-shadow:0 10px 20px rgba(201,157,56,.12)!important;
+        }
+        body.fh-premium-page .room-card .actions a.book,
+        body.fh-premium-page .room-card .actions a.book:link,
+        body.fh-premium-page .room-card .actions a.book:visited{
+            background:linear-gradient(135deg,#d9b451 0%,#edc96f 100%)!important;
+            border:1.5px solid #d4aa43!important;
+            color:#172033!important;
+            opacity:1!important;
+            filter:none!important;
+            text-shadow:none!important;
+            box-shadow:0 12px 25px rgba(194,147,43,.22)!important;
+        }
+        body.fh-premium-page .room-card .actions a.book i{color:#172033!important}
+        body.fh-premium-page .room-card .actions a.book:hover{
+            background:linear-gradient(135deg,#132033 0%,#243954 100%)!important;
+            border-color:#132033!important;
+            color:#ffffff!important;
+            transform:translateY(-2px);
+            box-shadow:0 14px 28px rgba(18,32,51,.22)!important;
+        }
+        body.fh-premium-page .room-card .actions a.book:hover i{color:#ffffff!important}
+        body.fh-premium-page .room-card .actions a:focus-visible{
+            outline:3px solid rgba(210,173,91,.32)!important;
+            outline-offset:3px!important;
+        }
+        body.fh-premium-page .room-card .actions a{
+            -webkit-text-fill-color:currentColor!important;
+        }
+
 </style>
 </head>
-<body>
-<header class="site-header">
-    <div class="nav-wrap">
-        <a href="/home" class="brand"><img th:if="${siteLogo != null and !siteLogo.isBlank()}" class="brand-logo" th:src="${siteLogo}" alt="Logo"><span th:if="${siteLogo == null or siteLogo.isBlank()}" class="brand-logo" style="display:inline-flex;align-items:center;justify-content:center;color:var(--gold);font-size:12px;font-family:Jost,sans-serif;letter-spacing:0">FH</span><span th:text="${siteName}">FEELHOME HOTEL</span></a>
-        <nav class="nav">
-            <a href="/home" class="active">Trang chủ</a>
-            <a href="#rooms-section">Phòng nghỉ</a>
-            <a href="#about-section">Giới thiệu</a>
-            <a href="/offers">Ưu đãi</a>
-            <a href="/favorites">Yêu thích</a>
-        </nav>
-        <a href="#rooms-section" class="book-now">Đặt Ngay</a>
-    </div>
-</header>
+<body class="fh-premium-page" data-page="home">
+<th:block th:replace="~{html/client-html/fragments/public-shell :: header('home')}"></th:block>
 <main>
     <section class="hero">
         <div class="wrap hero-grid">
@@ -109,7 +178,62 @@
             <div class="section-head"><div><div class="eyebrow">Bộ lọc & phòng trống</div><h2>Chọn phòng theo ngày bạn muốn</h2></div><p>Bộ lọc vẫn nằm bên trái, danh sách phòng nằm bên phải. Khách chọn ngày một lần rồi bấm đặt, hệ thống tự chuyển đúng thông tin sang trang booking.</p></div>
             <div class="branch-note" th:if="${selectedHotelId != null}"><i class="bi bi-building"></i> Đang xem chi nhánh: <strong th:text="${activeHotelName}">Chi nhánh</strong></div><div class="booking-area">
                 <aside class="filter gsap-item"><h3>Bộ lọc</h3><form method="get" th:action="@{/home}"><label>Khách sạn / chi nhánh</label><select name="hotelId" style="width:100%;height:48px;border:1px solid #ded3c1;border-radius:14px;margin:7px 0 14px;padding:0 14px;background:#fff"><option value="">Tất cả khách sạn</option><option th:each="h:${hotels}" th:value="${h.id}" th:selected="${selectedHotelId != null and selectedHotelId == h.id}" th:text="${h.name}">Khách sạn</option></select><label>Ngày đến</label><input type="date" name="checkin" th:value="${checkin}"><label>Ngày đi</label><input type="date" name="checkout" th:value="${checkout}"><label>Giá tối thiểu</label><input type="number" name="minPrice" th:value="${minPrice}" placeholder="VD: 500000"><label>Giá tối đa</label><input type="number" name="maxPrice" th:value="${maxPrice}" placeholder="VD: 3000000"><label>Số khách</label><input type="number" name="capacity" th:value="${capacity}" min="1"><label>Loại giường</label><input type="text" name="bed" th:value="${bed}" placeholder="Queen, King..."><div th:if="${roomAmenityOptions != null and !#lists.isEmpty(roomAmenityOptions)}"><label style="margin-top:4px">Tiện ích</label><label class="check" th:each="amenity:${roomAmenityOptions}"><input type="checkbox" name="amenityIds" th:value="${amenity.id}" th:checked="${amenityIds != null and #lists.contains(amenityIds, amenity.id)}"> <span th:text="${amenity.name}">Tiện ích</span></label></div><button class="btn-primary" type="submit" style="width:100%;margin-top:12px">Lọc phòng</button><a class="btn-outline" href="/home" style="width:100%;margin-top:10px">Xóa lọc</a></form></aside>
-                <div><div class="result-bar" th:text="|${#lists.size(rooms)} loại phòng phù hợp|">0 loại phòng phù hợp</div><div class="room-grid" th:if="${!#lists.isEmpty(rooms)}"><article class="room-card gsap-item" th:each="room:${rooms}"><div class="room-img"><img th:src="${room.image}" th:alt="${room.name}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80'"><span class="pill" th:text="|Còn ${room.availableRooms}/${room.totalRooms} phòng|">Còn phòng</span><span class="promo promo-flag" th:if="${room.hasPromotion}" th:text="|-${room.discountPercent}%|">-10%</span><div class="promo-countdown js-promo-countdown" th:if="${room.hasPromotion and room.promotionEndAt != null}" th:data-promo-end="${room.promotionEndAt}"><i class="bi bi-clock-history"></i><span>Đang tính...</span></div></div><div class="room-body"><div class="kicker" th:text="${room.hotelName}">FeelHome Hotel</div><h3 th:text="${room.name}">Tên phòng</h3><p th:text="${room.description}">Mô tả phòng</p><div class="chips"><span class="chip"><i class="bi bi-people"></i> <span th:text="|${room.capacity} khách|"></span></span><span class="chip" th:if="${room.bed != null and !room.bed.isBlank()}"><i class="bi bi-moon-stars"></i> <span th:text="${room.bed}"></span></span><span class="chip" th:each="amenityName:${room.amenityNames}" th:text="${amenityName}">Tiện ích</span></div><div class="price"><del th:if="${room.hasPromotion}" th:text="${#numbers.formatDecimal(room.originalPrice,0,'COMMA',0,'POINT')} + ' đ'"></del><strong th:text="${#numbers.formatDecimal(room.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'"></strong><small> / đêm</small></div><div class="promo-ribbon js-promo-countdown" th:if="${room.hasPromotion and room.promotionEndAt != null}" th:data-promo-end="${room.promotionEndAt}"><i class="bi bi-lightning-charge-fill"></i><span>Ưu đãi còn...</span></div><div class="actions"><a class="detail" th:href="${room.detailUrl}">Chi tiết</a><a class="book" th:href="${room.bookingUrl}">Đặt ngay</a></div></div></article></div><div class="empty" th:if="${#lists.isEmpty(rooms)}">Không có phòng phù hợp. Vui lòng đổi ngày hoặc điều kiện lọc.</div></div>
+                <div>
+                    <div class="result-bar" th:text="|${#lists.size(rooms)} loại phòng phù hợp|">0 loại phòng phù hợp</div>
+                    <div class="room-grid" th:if="${!#lists.isEmpty(rooms)}">
+                        <article class="room-card gsap-item" th:each="room:${rooms}">
+                            <div class="room-img">
+                                <img th:src="${room.image}" th:alt="${room.name}" onerror="this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=900&q=80'">
+                                <span class="pill" th:text="|Còn ${room.availableRooms}/${room.totalRooms} phòng|">Còn phòng</span>
+                                <span class="promo promo-flag" th:if="${room.hasPromotion}" th:text="|-${room.discountPercent}%|">-10%</span>
+                                <div class="promo-countdown js-promo-countdown" th:if="${room.hasPromotion and room.promotionEndAt != null}" th:data-promo-end="${room.promotionEndAt}">
+                                    <i class="bi bi-clock-history"></i><span>Đang tính...</span>
+                                </div>
+                                <button class="home-favorite-btn" type="button" th:attr="data-favorite-toggle=${room.id}" aria-label="Lưu phòng yêu thích"><i class="bi bi-heart"></i></button>
+                            </div>
+                            <div class="room-body">
+                                <div class="kicker" th:text="${room.hotelName}">FeelHome Hotel</div>
+                                <h3 th:text="${room.name}">Tên phòng</h3>
+                                <p th:text="${room.description}">Mô tả phòng</p>
+
+                                <div class="room-meta">
+                                    <div class="meta-box">
+                                        <i class="bi bi-people"></i>
+                                        <div><b th:text="|${room.capacity} khách|">2 khách</b><span>Sức chứa</span></div>
+                                    </div>
+                                    <div class="meta-box" th:if="${room.bed != null and !room.bed.isBlank()}">
+                                        <i class="bi bi-moon-stars"></i>
+                                        <div><b th:text="${room.bed}">King</b><span>Giường ngủ</span></div>
+                                    </div>
+                                </div>
+
+                                <div class="amenity-line">
+                                    <span>Tiện ích nổi bật</span>
+                                    <b th:text="|${room.amenityNames != null ? #lists.size(room.amenityNames) : 0} tiện ích|">0 tiện ích</b>
+                                </div>
+                                <div class="chips">
+                                    <th:block th:each="amenityName, amenityStat : ${room.amenityNames}">
+                                        <span class="chip" th:if="${amenityStat.index < 3}" th:text="${amenityName}">Tiện ích</span>
+                                    </th:block>
+                                    <span class="chip chip--more" th:if="${room.amenityNames != null and #lists.size(room.amenityNames) > 3}" th:text="|+${#lists.size(room.amenityNames) - 3} tiện ích khác|">+2 tiện ích khác</span>
+                                    <span class="chip chip--muted" th:if="${room.amenityNames == null or #lists.isEmpty(room.amenityNames)}">Đang cập nhật tiện ích</span>
+                                </div>
+
+                                <div class="price">
+                                    <del th:if="${room.hasPromotion}" th:text="${#numbers.formatDecimal(room.originalPrice,0,'COMMA',0,'POINT')} + ' đ'"></del>
+                                    <strong th:text="${#numbers.formatDecimal(room.effectivePrice,0,'COMMA',0,'POINT')} + ' đ'"></strong>
+                                    <small> / đêm</small>
+                                </div>
+                                <div class="promo-ribbon js-promo-countdown" th:if="${room.hasPromotion and room.promotionEndAt != null}" th:data-promo-end="${room.promotionEndAt}"><i class="bi bi-lightning-charge-fill"></i><span>Ưu đãi còn...</span></div>
+                                <div class="actions">
+                                    <a class="detail" th:href="${room.detailUrl}"><i class="bi bi-eye"></i> Chi tiết</a>
+                                    <a class="book" th:href="${room.bookingUrl}"><i class="bi bi-bag-check"></i> Đặt ngay</a>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="empty" th:if="${#lists.isEmpty(rooms)}">Không có phòng phù hợp. Vui lòng đổi ngày hoặc điều kiện lọc.</div>
+                </div>
             </div>
         </div>
     </section>
@@ -132,29 +256,13 @@
 
     <section class="wrap"><div class="cta gsap-item"><div><h3 th:text="${siteCtaTitle}">Sẵn sàng đặt kỳ nghỉ tiếp theo?</h3><p th:text="${siteCtaText}">Khách có thể lọc phòng, xem chi tiết, đặt loại phòng và chọn dịch vụ cộng bill ở trang thanh toán.</p></div><a class="btn-primary" href="#rooms-section">Đặt phòng ngay</a></div></section>
 </main>
-<footer class="footer"><div class="wrap" style="text-align:center;margin-bottom:24px"><img th:if="${siteLogo != null and !siteLogo.isBlank()}" class="footer-logo" th:src="${siteLogo}" alt="Logo"><span th:if="${siteLogo == null or siteLogo.isBlank()}" class="footer-logo" style="display:flex;align-items:center;justify-content:center;background:#fff;color:#bd6c3c;font-weight:900">FH</span><h3 th:text="${siteName}" style="font-family:'Cormorant Garamond',serif;color:#fff;font-size:38px;margin:0">FEELHOME HOTEL</h3></div><div class="wrap footer-grid"><div><p th:text="${siteWelcomeText}">Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn. Hình ảnh và nội dung có thể quản lý linh động từ hệ thống admin.</p></div><div><h4>Liên kết</h4><p><a href="/home">Trang chủ</a><br><a href="/offers">Ưu đãi</a><br><a href="/favorites">Yêu thích</a></p></div><div><h4>Thông tin</h4><p>Hotline: 0283838383<br>Email: feelhome@example.com<br>Địa chỉ: TP.HCM</p></div></div><div class="wrap footer-bottom">© 2026 FeelHome Hotel. All rights reserved.</div></footer>
+<th:block th:replace="~{html/client-html/fragments/public-shell :: footer()}"></th:block>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script><script>document.addEventListener('DOMContentLoaded',()=>{if(window.gsap){gsap.from('.hero-copy > *',{y:26,opacity:0,duration:.75,stagger:.1,ease:'power3.out'});gsap.from('.hero-card,.hero-phone,.stat-card',{scale:.92,opacity:0,duration:.8,stagger:.08,ease:'power3.out',delay:.15});document.querySelectorAll('.gsap-item').forEach(el=>{el.style.opacity='1';});}})</script>
 
-<script>
-(function(){
-  function pad(v){return String(v).padStart(2,'0')}
-  function render(el){
-    const endRaw=el.getAttribute('data-promo-end');
-    if(!endRaw) return;
-    const end=new Date(endRaw);
-    const span=el.querySelector('span')||el;
-    if(isNaN(end.getTime())) return;
-    const diff=end.getTime()-Date.now();
-    if(diff<=0){span.textContent='Ưu đãi vừa hết hạn';el.classList.add('expired');return;}
-    const d=Math.floor(diff/86400000);
-    const h=Math.floor(diff%86400000/3600000);
-    const m=Math.floor(diff%3600000/60000);
-    const s=Math.floor(diff%60000/1000);
-    span.textContent=(d>0?d+' ngày ':'')+pad(h)+':'+pad(m)+':'+pad(s);
-  }
-  function tick(){document.querySelectorAll('.js-promo-countdown').forEach(render)}
-  tick();setInterval(tick,1000);
-})();
-</script>
+
+
+<div class="fhp-toast" id="favoriteToast"><i class="bi bi-check-circle-fill"></i><span></span></div>
+<script src="/js/client-favorites.js?v=20260823-fav-offer-v1"></script>
+<script src="/js/client-countdown.js?v=20260823-fav-offer-v1"></script>
 </body>
 </html>
