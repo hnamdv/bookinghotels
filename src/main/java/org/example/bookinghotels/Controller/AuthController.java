@@ -57,7 +57,7 @@ public class AuthController {
 
         // Nếu ĐÃ đăng nhập (không phải null và không phải anonymous) -> Đẩy thẳng vào trang quản trị / trang chính
         if (auth != null && auth.isAuthenticated() && !"anonymousUser".equals(auth.getPrincipal())) {
-            return "redirect:/admin/users"; // Hoặc đường dẫn trang admin/homeadmin của nhóm bạn
+            return "redirect:/admin"; // Trang trung tâm, menu sẽ hiển thị theo quyền thực tế
         }
 
         // Nếu CHƯA đăng nhập -> Cho hiển thị giao diện login.html bình thường

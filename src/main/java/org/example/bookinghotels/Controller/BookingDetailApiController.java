@@ -1,5 +1,7 @@
 package org.example.bookinghotels.Controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.example.bookinghotels.entity.BookingDetail;
 import org.example.bookinghotels.entity.Room;
 import org.example.bookinghotels.repository.BookingDetailRepository;
@@ -15,6 +17,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin/booking-details")
+@PreAuthorize("isAuthenticated()")
 public class BookingDetailApiController {
 
     @Autowired

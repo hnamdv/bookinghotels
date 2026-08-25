@@ -3,6 +3,7 @@ package org.example.bookinghotels.Controller;
 import org.example.bookinghotels.entity.Media;
 import org.example.bookinghotels.repository.MediaRepository;
 import org.example.bookinghotels.service.FwBService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
 @RequestMapping({"/staff/fwb", "/admin/addons", "/admin/services"})
+@PreAuthorize("hasAuthority('ROLE_FWB')")
 public class FwbManagementController {
 
     private final FwBService fwBService;

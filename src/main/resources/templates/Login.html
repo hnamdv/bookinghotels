@@ -59,7 +59,7 @@
        const data = await response.json();
        if (data.success) {
            // Chuyển hướng sau khi login thành công (giữ nguyên logic cũ)
-           window.location.href = '/admin/users';
+           window.location.href = '/admin';
        } else {
            alert('Lỗi: ' + data.message);
        }

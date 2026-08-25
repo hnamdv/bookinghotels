@@ -2,6 +2,7 @@ package org.example.bookinghotels.Controller;
 
 import org.example.bookinghotels.service.TrashService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
 @RequestMapping("/admin/trash")
+@PreAuthorize("hasAnyAuthority('ROLE_HOTEL','ROLE_ROOM')")
 public class TrashController {
 
     @Autowired

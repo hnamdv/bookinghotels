@@ -76,14 +76,8 @@
                     <div class="mb-2"><label class="small">Email</label><input type="email" id="email" class="form-control"></div>
                     <div class="mb-3">
                         <label class="small d-block fw-bold mb-2">Phân quyền chức năng</label>
-                        <div class="row g-2">
-                            <div class="col-6"><input type="checkbox" class="btn-check" name="roleCheck" id="role3" value="3"><label class="btn btn-outline-primary btn-sm w-100" for="role3">Khuyến mãi</label></div>
-                            <div class="col-6"><input type="checkbox" class="btn-check" name="roleCheck" id="role4" value="4"><label class="btn btn-outline-primary btn-sm w-100" for="role4">Nhân sự</label></div>
-                            <div class="col-6"><input type="checkbox" class="btn-check" name="roleCheck" id="role5" value="5"><label class="btn btn-outline-primary btn-sm w-100" for="role5">Đặt phòng</label></div>
-                            <div class="col-6"><input type="checkbox" class="btn-check" name="roleCheck" id="role6" value="6"><label class="btn btn-outline-primary btn-sm w-100" for="role6">F&B</label></div>
-                            <div class="col-6"><input type="checkbox" class="btn-check" name="roleCheck" id="role7" value="7"><label class="btn btn-outline-primary btn-sm w-100" for="role7">Khách sạn</label></div>
-                            <div class="col-6"><input type="checkbox" class="btn-check" name="roleCheck" id="role8" value="8"><label class="btn btn-outline-primary btn-sm w-100" for="role8">Hình ảnh</label></div>
-                            <div class="col-6"><input type="checkbox" class="btn-check" name="roleCheck" id="role9" value="9"><label class="btn btn-outline-primary btn-sm w-100" for="role9">Phòng</label></div>
+                        <div class="row g-2" id="roleCheckboxes">
+                            <div class="col-12 text-muted small">Đang tải danh sách quyền...</div>
                         </div>
                     </div>
                     <div class="mb-2"><label class="small">Mật khẩu</label><input type="password" id="password" class="form-control" placeholder="Để trống nếu không đổi"></div>
@@ -101,9 +95,26 @@
     <script>
         const API_URL = '/api/admin/users';
         let allUsers = [];
+        let allRoles = [];
+        const ROLE_LABELS = {
+            ROLE_PROMOTION: 'Khuyến mãi', ROLE_USER: 'Nhân sự', ROLE_BOOKING: 'Đặt phòng',
+            ROLE_FWB: 'F&B', ROLE_HOTEL: 'Khách sạn', ROLE_IMG: 'Hình ảnh', ROLE_ROOM: 'Phòng'
+        };
         let currentPage = 1;
         let isTrashView = false; // Trạng thái xem thùng rác
         const rowsPerPage = 10;
+
+        async function loadRoles() {
+            const res = await fetch(`${API_URL}/roles`);
+            if (!res.ok) throw new Error('Không tải được danh sách quyền');
+            allRoles = await res.json();
+            document.getElementById('roleCheckboxes').innerHTML = allRoles
+                .filter(r => ROLE_LABELS[r.roleName])
+                .map(r => {
+                    const inputId = `role-${r.id}`;
+                    return `<div class="col-6"><input type="checkbox" class="btn-check" name="roleCheck" id="${inputId}" value="${r.id}"><label class="btn btn-outline-primary btn-sm w-100" for="${inputId}">${ROLE_LABELS[r.roleName]}</label></div>`;
+                }).join('');
+        }
 
         async function loadUsers() {
             try {
@@ -198,7 +209,7 @@
     const password = document.getElementById('password').value; // Lấy giá trị ô input
 
     const selectedRoles = Array.from(document.querySelectorAll('input[name="roleCheck"]:checked'))
-                               .map(cb => ({ id: cb.value }));
+                               .map(cb => ({ id: Number(cb.value) }));
 
     const data = {
         username: document.getElementById('username').value,
@@ -212,13 +223,27 @@
         data.password = password;
     }
 
-    await fetch(id ? `${API_URL}/${id}` : API_URL, {
+    const res = await fetch(id ? `${API_URL}/${id}` : API_URL, {
         method: id ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
     });
-            bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
-            loadUsers();
+
+    if (!res.ok) {
+        let message = 'Không thể lưu thông tin nhân viên.';
+        try {
+            const errorData = await res.json();
+            message = errorData.message || message;
+        } catch (_) {}
+        alert(message);
+        return;
+    }
+
+    bootstrap.Modal.getInstance(document.getElementById('userModal')).hide();
+
+    // Reload toàn trang để sidebar cập nhật ngay role vừa cấp/bỏ.
+    // DynamicRoleRefreshFilter sẽ lấy quyền mới từ DB ở request kế tiếp.
+    window.location.reload();
         }
 
         async function deleteUser(id) {
@@ -251,7 +276,10 @@
             }
         }
 
-        loadUsers();
+        Promise.all([loadRoles(), loadUsers()]).catch(err => {
+            console.error(err);
+            alert('Không thể tải dữ liệu phân quyền. Vui lòng đăng nhập lại.');
+        });
     </script>
 </th:block>
 </body>

@@ -3,6 +3,7 @@ package org.example.bookinghotels.Controller;
 import org.example.bookinghotels.entity.BookingDetail;
 import org.example.bookinghotels.repository.BookingDetailRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
+@PreAuthorize("isAuthenticated()")
 public class AdminInvoiceController {
 
     @Autowired

@@ -7,6 +7,7 @@ import org.example.bookinghotels.repository.BookingDetailRepository;
 import org.example.bookinghotels.repository.BookingRepository;
 import org.example.bookinghotels.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,6 +29,7 @@ public class InvoiceController {
     @Autowired
     private BookingDetailRepository bookingDetailRepository;
 
+    @PreAuthorize("isAuthenticated()")
     @GetMapping("/admin/invoice-list-custom")
     public String showInvoicesPage(
             @RequestParam(name = "keyword", required = false) String keyword,
@@ -54,6 +56,7 @@ public class InvoiceController {
         return "html/admin-html/invoice-list";
     }
 
+    @PreAuthorize("isAuthenticated()")
     @PostMapping("/admin/invoice/delete/{id}")
     public String deleteInvoice(@PathVariable Integer id) {
         // Thay vì deleteById (xóa cứng), ta thực hiện đánh dấu xóa mềm

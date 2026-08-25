@@ -7,6 +7,7 @@ import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.example.bookinghotels.service.RoomOperationService;
 import org.example.bookinghotels.service.RoomInventoryService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Controller
 @RequestMapping("/admin/rooms")
+@PreAuthorize("isAuthenticated()")
 public class AdminRoomController {
     private final RoomRepository roomRepository;
     private final RoomTypeRepository roomTypeRepository;
