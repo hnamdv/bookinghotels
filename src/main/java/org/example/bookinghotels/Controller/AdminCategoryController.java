@@ -20,26 +20,22 @@ public class AdminCategoryController {
         this.hotelRoomService = hotelRoomService;
     }
 
-    // Danh sách chi nhánh
     @GetMapping
     public ResponseEntity<List<Hotels>> getAllHotels() {
         return ResponseEntity.ok(hotelRoomService.getAllHotels());
     }
 
-    // Thêm chi nhánh
     @PostMapping
     public ResponseEntity<Hotels> createHotel(@RequestBody Hotels hotel) {
         return ResponseEntity.ok(hotelRoomService.createHotel(hotel));
     }
 
-    // Cập nhật chi nhánh
     @PutMapping("/{id}")
     public ResponseEntity<Hotels> updateHotel(@PathVariable Integer id,
                                               @RequestBody Hotels hotel) {
         return ResponseEntity.ok(hotelRoomService.updateHotel(id, hotel));
     }
-
-    // Xóa chi nhánh
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteHotel(@PathVariable Integer id) {
 

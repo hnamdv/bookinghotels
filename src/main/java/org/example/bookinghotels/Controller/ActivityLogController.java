@@ -21,7 +21,18 @@ public class ActivityLogController {
 
         var logs = systemManagementService.getAllLogs();
 
+<<<<<<< HEAD
+        Page<ActivityLog> result = systemManagementService.searchLogs(
+                keyword,
+                action,
+                module,
+                fromDate,
+                toDate,
+                pageable
+        );
+=======
         System.out.println("SO LOG = " + logs.size());
+>>>>>>> f39808f342c6a3f7c62a202f763f3e18dc5d14d9
 
         model.addAttribute("logs", logs);
 

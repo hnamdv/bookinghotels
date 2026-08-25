@@ -143,7 +143,7 @@ public class HomeController {
         return "html/client-html/home";
     }
 
-    @GetMapping("/offers")
+    @GetMapping({"/offers", "/offers.html"})
     public String offers(@RequestParam(required = false) LocalDate checkin,
                          @RequestParam(required = false) LocalDate checkout,
                          Model model) {
@@ -152,6 +152,7 @@ public class HomeController {
                 .filter(RoomCard::hasPromotion)
                 .sorted(Comparator.comparing(RoomCard::discountPercent).reversed())
                 .toList();
+        addPublicBranding(model);
         model.addAttribute("offers", offers);
         model.addAttribute("checkin", range.checkin());
         model.addAttribute("checkout", range.checkout());
@@ -159,9 +160,25 @@ public class HomeController {
     }
 
     @GetMapping({"/favorites", "/favorites.html"})
-    public String favorites(Model model) {
-        model.addAttribute("rooms", buildRoomCards(null, null));
+    public String favorites(@RequestParam(required = false) LocalDate checkin,
+                            @RequestParam(required = false) LocalDate checkout,
+                            Model model) {
+        DateRange range = normalizeRange(checkin, checkout);
+        addPublicBranding(model);
+        model.addAttribute("rooms", buildRoomCards(range.checkin(), range.checkout()));
+        model.addAttribute("checkin", range.checkin());
+        model.addAttribute("checkout", range.checkout());
         return "html/client-html/favorites";
+    }
+
+    private void addPublicBranding(Model model) {
+        String siteName = brandingService.get("site.name", "FEELHOME HOTEL");
+        String siteLogo = brandingService.get("site.logo",
+                brandingService.get("site.circleLogo", brandingService.get("site.headerLogo", "")));
+        model.addAttribute("siteName", siteName);
+        model.addAttribute("siteLogo", siteLogo);
+        model.addAttribute("siteWelcomeText", brandingService.get("site.welcomeText",
+                "Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn"));
     }
 
     @GetMapping("/roomdetail/{id}")
@@ -189,14 +206,20 @@ public class HomeController {
         String detailLogo = detailHotel == null
                 ? brandingService.get("site.logo", brandingService.get("site.circleLogo", brandingService.get("site.headerLogo", "")))
                 : brandingService.get(detailPrefix + "logo", detailHotel.getLogo() == null ? "" : detailHotel.getLogo());
+        String detailWelcome = brandingService.get(detailPrefix + "welcomeText",
+                brandingService.get("site.welcomeText", "Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn"));
+        AmenityData amenityData = parseAmenityData(roomType.getBedOptions());
+        long nightCount = (range.checkin() != null && range.checkout() != null) ? java.time.temporal.ChronoUnit.DAYS.between(range.checkin(), range.checkout()) : 0L;
 
         model.addAttribute("siteName", detailName);
         model.addAttribute("siteLogo", detailLogo);
+        model.addAttribute("siteWelcomeText", detailWelcome);
         model.addAttribute("room", roomType);
         model.addAttribute("hotel", detailHotel);
         model.addAttribute("images", images);
         model.addAttribute("mainImage", images.get(0));
         model.addAttribute("bedOptionChips", parseBedOptions(roomType.getBedOptions()));
+        model.addAttribute("amenityNames", amenityData.names());
         model.addAttribute("promotion", promotion);
         model.addAttribute("hasPromotion", promotion != null && discountPercent > 0);
         model.addAttribute("originalPrice", originalPrice);
@@ -207,6 +230,7 @@ public class HomeController {
         model.addAttribute("checkout", range.checkout());
         model.addAttribute("totalRooms", count.total());
         model.addAttribute("availableRooms", count.available());
+        model.addAttribute("nightCount", nightCount);
         model.addAttribute("bookingUrl", buildBookingUrl(roomType.getId(), range.checkin(), range.checkout()));
         return "html/client-html/roomdetail";
     }
