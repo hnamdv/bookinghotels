@@ -6,6 +6,8 @@
     <title>Thanh toán - FeelHome Hotel</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google reCAPTCHA Script -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         :root{--navy:#121b2a;--gold:#d2ad5b;--cream:#f7f2ea;--card:#fff;--line:#eadfce;--muted:#6b7280;--ink:#172033}
         *{box-sizing:border-box}body{margin:0;background:var(--cream);font-family:Jost,sans-serif;color:var(--ink)}a{text-decoration:none;color:inherit}.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
@@ -15,28 +17,311 @@
         .service-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.service-card{border:1px solid var(--line);border-radius:22px;overflow:hidden;background:#fff;box-shadow:0 12px 30px rgba(17,24,39,.04)}.service-card__img{height:160px;background:#f0eae0}.service-card__img img{width:100%;height:100%;object-fit:cover}.service-card__body{padding:16px;text-align:center}.service-card h4{text-transform:uppercase;font-size:14px;letter-spacing:.04em;margin:0 0 8px}.service-price{color:#bd6c3e;font-weight:800;margin-bottom:12px}.qty{display:flex;align-items:center;justify-content:center;gap:12px}.qty button{width:34px;height:34px;border:1px solid #1f2937;background:#fff;border-radius:8px;cursor:pointer}.qty span{font-weight:800;min-width:22px}.empty{padding:28px;border:1px dashed #c9a75d;border-radius:20px;text-align:center;color:#777;background:#fffdf8}
         .invoice{position:sticky;top:96px;padding:28px}.invoice h3{font-family:'Cormorant Garamond',serif;font-size:34px;margin:0 0 18px}.line{display:flex;justify-content:space-between;gap:18px;border-bottom:1px dashed #dfd2bf;padding:13px 0;color:#4b5563}.line strong{color:#111827;text-align:right}.total{background:#f7f0e2;border:1px solid #e7d4aa;border-radius:20px;padding:22px;text-align:center;margin:22px 0}.total span{display:block;text-transform:uppercase;font-size:12px;letter-spacing:.08em;color:#6b7280;font-weight:800}.total strong{font-size:34px;color:#b78945}.btn-primary{width:100%;height:54px;border:0;border-radius:16px;background:#121b2a;color:#fff;font-weight:900;text-transform:uppercase;letter-spacing:.07em;cursor:pointer;transition:.28s}.btn-primary:hover{background:#d2ad5b;color:#111827}.security{text-align:center;color:#6b7280;font-size:13px;margin-top:14px}.modal-mask{display:none;position:fixed;inset:0;background:rgba(17,24,39,.52);z-index:99;align-items:center;justify-content:center}.modal-card{background:#fff;border-radius:24px;padding:34px;max-width:460px;width:92%;text-align:center;box-shadow:0 24px 70px rgba(0,0,0,.22)}.modal-card i{font-size:54px;color:#16a34a}.modal-card h3{font-family:'Cormorant Garamond',serif;font-size:34px;margin:12px 0}.footer{background:#111827;color:#d1d5db;padding:46px 0 22px}.footer-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:28px}.footer h3{font-family:'Cormorant Garamond',serif;color:#fff;font-size:32px}.footer p,.footer a{color:#cbd5e1;line-height:1.8}.footer-bottom{border-top:1px solid rgba(255,255,255,.1);margin-top:26px;padding-top:17px;text-align:center;color:#94a3b8}
         @media(max-width:1050px){.pay-layout,.hero-box{grid-template-columns:1fr}.invoice{position:static}.service-grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.nav{display:none}.wrap{padding:0 16px}.hero-box h1{font-size:38px}.form-grid,.service-grid,.footer-grid{grid-template-columns:1fr}.panel,.invoice,.hero-box{padding:22px}}
-    
         .discount-banner{display:flex;align-items:center;gap:12px;margin:0 0 16px;padding:16px;border-radius:20px;background:linear-gradient(135deg,#eafff4,#fff8e8);border:1px solid #b6e9cc;color:#064e32;box-shadow:0 12px 30px rgba(5,112,68,.08)}.discount-banner .leaf{position:relative;background:linear-gradient(180deg,#12a76b,#057044);color:#fff;font-weight:950;font-size:18px;padding:13px 12px 18px;border-radius:0 0 8px 8px;min-width:58px;text-align:center}.discount-banner .leaf:after{content:"";position:absolute;left:0;right:0;bottom:-11px;border-left:29px solid transparent;border-right:29px solid transparent;border-top:11px solid #057044}.discount-banner b{display:block;color:#064e32}.discount-countdown{display:inline-flex;align-items:center;gap:7px;margin-top:6px;background:#0d2b1e;color:#fff;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:800}.discount-countdown i{color:#f7c760}.line.discount-line strong{color:#047044}.room-price-stack{display:flex;flex-direction:column;align-items:flex-end}.room-price-stack del{color:#9ca3af;font-size:13px}.room-price-stack strong{color:#111827}
-</style>
+    </style>
 </head>
 <body>
-<header class="site-header"><div class="wrap nav-wrap"><a href="/home" class="brand"><img th:if="${siteLogo != null and !siteLogo.isBlank()}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid rgba(210,173,91,.6);background:#fff" th:src="${siteLogo}" alt="Logo"><span th:if="${siteLogo == null or siteLogo.isBlank()}" style="width:42px;height:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:2px solid rgba(210,173,91,.6);background:#fff;color:#bd6c3c;font-family:Jost,sans-serif;font-size:12px;letter-spacing:0">FH</span><span th:text="${siteName}">FEELHOME HOTEL</span></a><nav class="nav"><a href="/home">Trang chủ</a><a href="/home#rooms-section">Phòng nghỉ</a><a href="/offers">Ưu đãi</a><a href="/favorites">Yêu thích</a></nav><a class="book-now" href="/home#rooms-section">Đặt ngay</a></div></header>
-<section class="payment-hero"><div class="wrap"><div class="hero-box"><div><div style="color:#d2ad5b;text-transform:uppercase;letter-spacing:.15em;font-weight:800;font-size:12px;margin-bottom:12px">Chuẩn bị thanh toán</div><h1>Hoàn tất thông tin và chọn dịch vụ đi kèm</h1><p>Trang thanh toán đã đồng bộ lại: chỉ hiện dịch vụ/phụ thu có giá từ Quản lý tiện ích, ảnh lấy từ dữ liệu admin, có header và footer đầy đủ.</p></div><div class="hero-info"><div><span>Hạng phòng</span><strong th:text="${booking.roomName}">Suite</strong></div><div><span>Thời gian</span><strong><span th:text="${booking.checkinDate}"></span> → <span th:text="${booking.checkoutDate}"></span></strong></div><div><span>Số đêm</span><strong th:text="|${booking.days} đêm|">1 đêm</strong></div></div></div></div></section>
-<main class="wrap">
-<form id="bookingPaymentForm" th:action="@{/booking/confirm-payment}" method="post">
-    <input type="hidden" name="roomId" th:value="${booking.roomId}"><input type="hidden" name="roomTypeId" th:value="${booking.roomTypeId}"><input type="hidden" id="selectedServicesJson" name="selectedServicesJson" value="[]"><input type="hidden" id="calculatedTotalAmount" name="calculatedTotalAmount" th:value="${booking.totalAmount}"><input type="hidden" id="calculatedDays" name="calculatedDays" th:value="${booking.days}">
-    <div class="pay-layout"><div>
-        <section class="panel"><h2 class="panel-title">Thông tin đặt phòng</h2><div class="availability-note"><i class="bi bi-check-circle"></i> Hệ thống đang giữ logic theo <b>loại phòng</b>. Khi xác nhận, hệ thống tự xếp 1 phòng trống trong <span th:text="${booking.availableCount}">0</span> phòng còn trống cho khoảng ngày đã chọn.</div><div class="form-grid"><div class="field"><label>Ngày check-in</label><input type="date" id="checkinDate" name="checkinDate" th:value="${booking.checkinDate}" required></div><div class="field"><label>Ngày check-out</label><input type="date" id="checkoutDate" name="checkoutDate" th:value="${booking.checkoutDate}" required></div><div class="field full"><label>Họ và tên khách hàng</label><input type="text" id="customerName" name="customerName" required placeholder="Nhập đầy đủ họ tên"></div><div class="field"><label>Số điện thoại</label><input type="tel" id="customerPhone" name="customerPhone" required placeholder="0901234567"></div><div class="field"><label>Email</label><input type="email" id="customerEmail" name="customerEmail" required placeholder="hoten@gmail.com"></div><div class="field"><label>Người lớn</label><input type="number" name="adultCount" value="1" min="1"></div><div class="field"><label>Trẻ em</label><input type="number" name="childCount" value="0" min="0"></div><div class="field full"><label>Phương thức thanh toán</label><select name="paymentMethod" id="paymentMethod"><option value="CHUYỂN KHOẢN">Chuyển khoản trực tuyến qua mã QR</option><option value="PAY_AT_HOTEL">Thanh toán tại khách sạn khi check-out</option></select></div></div></section>
-        <section class="panel"><h2 class="panel-title">Dịch vụ / phụ thu có giá</h2><p style="color:#6b7280;margin-top:-10px;margin-bottom:20px">Các mục bên dưới lấy đồng nhất từ Quản lý tiện ích tab dịch vụ tính phí. Tiện ích miễn phí không hiện ở đây để tránh lệch với admin.</p><div class="service-grid" th:if="${foodMenu != null and !#lists.isEmpty(foodMenu)}"><article class="service-card" th:each="food:${foodMenu}"><div class="service-card__img"><img th:src="${food.image != null and !food.image.isBlank() ? food.image : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'}" alt="Service" onerror="this.src='https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'"></div><div class="service-card__body"><h4 th:text="${food.name}">Dịch vụ</h4><div class="service-price"><span th:text="${#numbers.formatDecimal(food.price,0,'COMMA',0,'POINT')} + ' đ'"></span><small th:text="| / ${food.unit}|">/ lượt</small></div><div class="qty"><button type="button" class="btn-qty-minus" th:data-id="${food.id}" th:data-price="${food.price}">-</button><span th:id="'qty-' + ${food.id}">0</span><button type="button" class="btn-qty-plus" th:data-id="${food.id}" th:data-price="${food.price}">+</button></div></div></article></div><div class="empty" th:if="${foodMenu == null or #lists.isEmpty(foodMenu)}">Chưa có dịch vụ tính phí. Vào Quản lý tiện ích → Dịch vụ tính phí để tạo nôi em bé, giường phụ, ăn sáng...</div></section>
-    </div><aside class="invoice"><h3>Chi tiết hóa đơn</h3><div class="discount-banner" th:if="${booking.hasPromotion}"><div class="leaf" th:text="|-${booking.discountPercent}%|">-25%</div><div><b th:text="${booking.promotionName}">Ưu đãi</b><span th:text="|Giá phòng đã giảm trực tiếp từ ${#numbers.formatDecimal(booking.originalRoomPrice,0,'COMMA',0,'POINT')} còn ${#numbers.formatDecimal(booking.roomPrice,0,'COMMA',0,'POINT')} VND/đêm|">Giá đã giảm</span><div class="discount-countdown js-promo-countdown" th:if="${booking.promotionEndAt != null}" th:data-promo-end="${booking.promotionEndAt}"><i class="bi bi-clock-history"></i><span>Đang tính...</span></div></div></div><div style="margin-bottom:16px"><span style="text-transform:uppercase;color:#6b7280;font-size:12px;font-weight:800">Hạng phòng đã chọn</span><strong style="display:block;font-family:'Cormorant Garamond',serif;font-size:28px;margin-top:5px" th:text="${booking.roomName}">Tên phòng</strong></div><div class="line"><span>Thời gian lưu trú</span><strong><span id="lblCheckin" th:text="${booking.checkinDate}"></span><br>đến <span id="lblCheckout" th:text="${booking.checkoutDate}"></span></strong></div><div class="line"><span>Tổng số đêm</span><strong><span id="lblDays" th:text="${booking.days}">1</span> đêm</strong></div><div class="line"><span>Giá mỗi đêm</span><span class="room-price-stack"><del th:if="${booking.hasPromotion}" th:text="${#numbers.formatDecimal(booking.originalRoomPrice,0,'COMMA',0,'POINT')} + ' VND'"></del><strong id="roomPriceVal" th:data-price="${booking.roomPrice}" th:text="${#numbers.formatDecimal(booking.roomPrice,0,'COMMA',0,'POINT')} + ' VND'">0 VND</strong></span></div><div class="line discount-line" th:if="${booking.hasPromotion}"><span>Đã giảm giá phòng</span><strong th:text="'-' + ${#numbers.formatDecimal(booking.discountAmount,0,'COMMA',0,'POINT')} + ' VND'">-0 VND</strong></div><div class="line"><span>Dịch vụ thêm</span><strong id="serviceTotalVal">0 VND</strong></div><div class="total"><span>Tổng cộng chi phí</span><strong id="totalAmountVal" th:text="${#numbers.formatDecimal(booking.totalAmount,0,'COMMA',0,'POINT')} + ' VND'">0 VND</strong></div><button type="button" id="btnSubmitBooking" class="btn-primary">Xác nhận đặt phòng</button><div class="security"><i class="bi bi-shield-check"></i> Bảo mật thông tin khách hàng tuyệt đối.</div></aside></div>
-</form>
-</main>
-<div class="modal-mask" id="postPaySuccessModal"><div class="modal-card"><i class="bi bi-check-circle-fill"></i><h3>Đặt phòng thành công</h3><p>Yêu cầu đặt phòng đã được ghi nhận.</p><p><strong id="modalCustomerName">---</strong></p><p>Tổng tiền: <strong id="modalTotalAmount">---</strong></p><button class="btn-primary" onclick="window.location.href='/home'">Hoàn tất</button></div></div>
-<footer class="footer"><div class="wrap footer-grid"><div><span th:if="${siteLogo != null and !siteLogo.isBlank()}" style="display:block;text-align:center"><img th:src="${siteLogo}" alt="Logo" style="width:82px;height:82px;border-radius:50%;object-fit:cover;border:3px solid rgba(210,173,91,.65);background:#fff;margin-bottom:12px"></span><h3 th:text="${siteName}">FEELHOME HOTEL</h3><p>Trang thanh toán đồng bộ dịch vụ, hình ảnh, header và footer với toàn bộ giao diện khách hàng.</p></div><div><h4>Liên kết</h4><p><a href="/home">Trang chủ</a><br><a href="/offers">Ưu đãi</a><br><a href="/favorites">Yêu thích</a></p></div><div><h4>Liên hệ</h4><p>Hotline: 0283838383<br>Email: feelhome@example.com<br>TP.HCM</p></div></div><div class="wrap footer-bottom">© 2026 FeelHome Hotel. All rights reserved.</div></footer>
-<script>
-const txtCheckin=document.getElementById('checkinDate'),txtCheckout=document.getElementById('checkoutDate'),lblCheckin=document.getElementById('lblCheckin'),lblCheckout=document.getElementById('lblCheckout'),lblDays=document.getElementById('lblDays'),roomPriceVal=document.getElementById('roomPriceVal'),totalAmountVal=document.getElementById('totalAmountVal'),serviceTotalVal=document.getElementById('serviceTotalVal');const roomPrice=parseFloat(roomPriceVal.getAttribute('data-price'))||0;let cartServices={};function formatMoney(v){return (v||0).toLocaleString('en-US')+' VND'}function recalculateInvoice(){const d1=new Date(txtCheckin.value),d2=new Date(txtCheckout.value);let days=1;if(!isNaN(d1)&&!isNaN(d2)){lblCheckin.innerText=txtCheckin.value;lblCheckout.innerText=txtCheckout.value;days=Math.ceil((d2.getTime()-d1.getTime())/(1000*3600*24));if(days<=0)days=1;lblDays.innerText=days;document.getElementById('calculatedDays').value=days}let serviceTotal=0,serviceList=[];for(let key in cartServices){serviceTotal+=cartServices[key].quantity*cartServices[key].price;serviceList.push({fwbId:cartServices[key].fwbId,quantity:cartServices[key].quantity})}serviceTotalVal.innerText=formatMoney(serviceTotal);document.getElementById('selectedServicesJson').value=JSON.stringify(serviceList);const totalFinal=(roomPrice*days)+serviceTotal;totalAmountVal.innerText=formatMoney(totalFinal);document.getElementById('calculatedTotalAmount').value=totalFinal}document.querySelectorAll('.btn-qty-plus').forEach(btn=>btn.addEventListener('click',function(){const id=this.dataset.id,price=parseFloat(this.dataset.price)||0;if(!cartServices[id])cartServices[id]={fwbId:parseInt(id),quantity:0,price};cartServices[id].quantity++;document.getElementById('qty-'+id).innerText=cartServices[id].quantity;recalculateInvoice()}));document.querySelectorAll('.btn-qty-minus').forEach(btn=>btn.addEventListener('click',function(){const id=this.dataset.id;if(cartServices[id]&&cartServices[id].quantity>0){cartServices[id].quantity--;document.getElementById('qty-'+id).innerText=cartServices[id].quantity;if(cartServices[id].quantity===0)delete cartServices[id];recalculateInvoice()}}));function reloadPaymentForNewDates(){const rt=document.querySelector('input[name="roomTypeId"]')?.value;if(rt&&txtCheckin.value&&txtCheckout.value){window.location.href='/booking/payment?roomTypeId='+encodeURIComponent(rt)+'&checkin='+encodeURIComponent(txtCheckin.value)+'&checkout='+encodeURIComponent(txtCheckout.value);}else recalculateInvoice()}txtCheckin?.addEventListener('change',reloadPaymentForNewDates);txtCheckout?.addEventListener('change',reloadPaymentForNewDates);document.getElementById('btnSubmitBooking')?.addEventListener('click',function(){const form=document.getElementById('bookingPaymentForm');if(!form.checkValidity()){form.reportValidity();return}if(document.getElementById('paymentMethod').value==='CHUYỂN KHOẢN'){form.submit()}else{const fd=new FormData(form);fetch('/booking/confirm-payment-ajax',{method:'POST',body:fd}).then(r=>r.json()).then(data=>{if(data.success){document.getElementById('modalCustomerName').innerText=data.customerName||'';document.getElementById('modalTotalAmount').innerText=data.totalAmount||totalAmountVal.innerText;document.getElementById('postPaySuccessModal').style.display='flex'}else alert('Lỗi: '+data.message)}).catch(()=>alert('Có lỗi xảy ra trong quá trình đặt phòng!'))}});
+<header class="site-header">
+    <div class="wrap nav-wrap">
+        <a href="/home" class="brand">
+            <img th:if="${siteLogo != null and !siteLogo.isBlank()}" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid rgba(210,173,91,.6);background:#fff" th:src="${siteLogo}" alt="Logo">
+            <span th:if="${siteLogo == null or siteLogo.isBlank()}" style="width:42px;height:42px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;border:2px solid rgba(210,173,91,.6);background:#fff;color:#bd6c3c;font-family:Jost,sans-serif;font-size:12px;letter-spacing:0">FH</span>
+            <span th:text="${siteName}">FEELHOME HOTEL</span>
+        </a>
+        <nav class="nav">
+            <a href="/home">Trang chủ</a>
+            <a href="/home#rooms-section">Phòng nghỉ</a>
+            <a href="/offers">Ưu đãi</a>
+            <a href="/favorites">Yêu thích</a>
+        </nav>
+        <a class="book-now" href="/home#rooms-section">Đặt ngay</a>
+    </div>
+</header>
 
-(function(){function pad(v){return String(v).padStart(2,'0')}function tickPromo(){document.querySelectorAll('.js-promo-countdown').forEach(el=>{const end=new Date(el.dataset.promoEnd);const span=el.querySelector('span')||el;if(isNaN(end.getTime()))return;const diff=end.getTime()-Date.now();if(diff<=0){span.textContent='Ưu đãi vừa hết hạn';return;}const d=Math.floor(diff/86400000),h=Math.floor(diff%86400000/3600000),m=Math.floor(diff%3600000/60000),s=Math.floor(diff%60000/1000);span.textContent='Còn '+(d?d+' ngày ':'')+pad(h)+':'+pad(m)+':'+pad(s);});}tickPromo();setInterval(tickPromo,1000);})();
+<section class="payment-hero">
+    <div class="wrap">
+        <div class="hero-box">
+            <div>
+                <div style="color:#d2ad5b;text-transform:uppercase;letter-spacing:.15em;font-weight:800;font-size:12px;margin-bottom:12px">Chuẩn bị thanh toán</div>
+                <h1>Hoàn tất thông tin và chọn dịch vụ đi kèm</h1>
+                <p>Trang thanh toán đã đồng bộ lại: chỉ hiện dịch vụ/phụ thu có giá từ Quản lý tiện ích, ảnh lấy từ dữ liệu admin, có header và footer đầy đủ.</p>
+            </div>
+            <div class="hero-info">
+                <div><span>Hạng phòng</span><strong th:text="${booking.roomName}">Suite</strong></div>
+                <div><span>Thời gian</span><strong><span th:text="${booking.checkinDate}"></span> → <span th:text="${booking.checkoutDate}"></span></strong></div>
+                <div><span>Số đêm</span><strong th:text="|${booking.days} đêm|">1 đêm</strong></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<main class="wrap">
+    <form id="bookingPaymentForm" th:action="@{/booking/confirm-payment}" method="post">
+        <input type="hidden" name="roomId" th:value="${booking.roomId}">
+        <input type="hidden" name="roomTypeId" th:value="${booking.roomTypeId}">
+        <input type="hidden" id="selectedServicesJson" name="selectedServicesJson" value="[]">
+        <input type="hidden" id="calculatedTotalAmount" name="calculatedTotalAmount" th:value="${booking.totalAmount}">
+        <input type="hidden" id="calculatedDays" name="calculatedDays" th:value="${booking.days}">
+
+        <div class="pay-layout">
+            <div>
+                <section class="panel">
+                    <h2 class="panel-title">Thông tin đặt phòng</h2>
+                    <div class="availability-note">
+                        <i class="bi bi-check-circle"></i> Hệ thống đang giữ logic theo <b>loại phòng</b>. Khi xác nhận, hệ thống tự xếp 1 phòng trống trong <span th:text="${booking.availableCount}">0</span> phòng còn trống cho khoảng ngày đã chọn.
+                    </div>
+                    <div class="form-grid">
+                        <div class="field"><label>Ngày check-in</label><input type="date" id="checkinDate" name="checkinDate" th:value="${booking.checkinDate}" required></div>
+                        <div class="field"><label>Ngày check-out</label><input type="date" id="checkoutDate" name="checkoutDate" th:value="${booking.checkoutDate}" required></div>
+                        <div class="field full"><label>Họ và tên khách hàng</label><input type="text" id="customerName" name="customerName" required placeholder="Nhập đầy đủ họ tên"></div>
+                        <div class="field"><label>Số điện thoại</label><input type="tel" id="customerPhone" name="customerPhone" required placeholder="0901234567"></div>
+                        <div class="field"><label>Email</label><input type="email" id="customerEmail" name="customerEmail" required placeholder="hoten@gmail.com"></div>
+                        <div class="field"><label>Người lớn</label><input type="number" name="adultCount" value="1" min="1"></div>
+                        <div class="field"><label>Trẻ em</label><input type="number" name="childCount" value="0" min="0"></div>
+                        <div class="field full">
+                            <label>Phương thức thanh toán</label>
+                            <select name="paymentMethod" id="paymentMethod">
+                                <option value="CHUYỂN KHOẢN">Chuyển khoản trực tuyến qua mã QR</option>
+                                <option value="PAY_AT_HOTEL">Thanh toán tại khách sạn khi check-out</option>
+                            </select>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="panel">
+                    <h2 class="panel-title">Dịch vụ / phụ thu có giá</h2>
+                    <p style="color:#6b7280;margin-top:-10px;margin-bottom:20px">Các mục bên dưới lấy đồng nhất từ Quản lý tiện ích tab dịch vụ tính phí. Tiện ích miễn phí không hiện ở đây để tránh lệch với admin.</p>
+                    <div class="service-grid" th:if="${foodMenu != null and !#lists.isEmpty(foodMenu)}">
+                        <article class="service-card" th:each="food:${foodMenu}">
+                            <div class="service-card__img">
+                                <img th:src="${food.image != null and !food.image.isBlank() ? food.image : 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'}" alt="Service" onerror="this.src='https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80'">
+                            </div>
+                            <div class="service-card__body">
+                                <h4 th:text="${food.name}">Dịch vụ</h4>
+                                <div class="service-price">
+                                    <span th:text="${#numbers.formatDecimal(food.price,0,'COMMA',0,'POINT')} + ' đ'"></span>
+                                    <small th:text="| / ${food.unit}|">/ lượt</small>
+                                </div>
+                                <div class="qty">
+                                    <button type="button" class="btn-qty-minus" th:data-id="${food.id}" th:data-price="${food.price}">-</button>
+                                    <span th:id="'qty-' + ${food.id}">0</span>
+                                    <button type="button" class="btn-qty-plus" th:data-id="${food.id}" th:data-price="${food.price}">+</button>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="empty" th:if="${foodMenu == null or #lists.isEmpty(foodMenu)}">Chưa có dịch vụ tính phí. Vào Quản lý tiện ích → Dịch vụ tính phí để tạo nôi em bé, giường phụ, ăn sáng...</div>
+                </section>
+            </div>
+
+            <aside class="invoice">
+                <h3>Chi tiết hóa đơn</h3>
+                <div class="discount-banner" th:if="${booking.hasPromotion}">
+                    <div class="leaf" th:text="|-${booking.discountPercent}%|">-25%</div>
+                    <div>
+                        <b th:text="${booking.promotionName}">Ưu đãi</b>
+                        <span th:text="|Giá phòng đã giảm trực tiếp từ ${#numbers.formatDecimal(booking.originalRoomPrice,0,'COMMA',0,'POINT')} còn ${#numbers.formatDecimal(booking.roomPrice,0,'COMMA',0,'POINT')} VND/đêm|">Giá đã giảm</span>
+                        <div class="discount-countdown js-promo-countdown" th:if="${booking.promotionEndAt != null}" th:data-promo-end="${booking.promotionEndAt}">
+                            <i class="bi bi-clock-history"></i><span>Đang tính...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom:16px">
+                    <span style="text-transform:uppercase;color:#6b7280;font-size:12px;font-weight:800">Hạng phòng đã chọn</span>
+                    <strong style="display:block;font-family:'Cormorant Garamond',serif;font-size:28px;margin-top:5px" th:text="${booking.roomName}">Tên phòng</strong>
+                </div>
+
+                <div class="line"><span>Thời gian lưu trú</span><strong><span id="lblCheckin" th:text="${booking.checkinDate}"></span><br>đến <span id="lblCheckout" th:text="${booking.checkoutDate}"></span></strong></div>
+                <div class="line"><span>Tổng số đêm</span><strong><span id="lblDays" th:text="${booking.days}">1</span> đêm</strong></div>
+                <div class="line">
+                    <span>Giá mỗi đêm</span>
+                    <span class="room-price-stack">
+                    <del th:if="${booking.hasPromotion}" th:text="${#numbers.formatDecimal(booking.originalRoomPrice,0,'COMMA',0,'POINT')} + ' VND'"></del>
+                    <strong id="roomPriceVal" th:data-price="${booking.roomPrice}" th:text="${#numbers.formatDecimal(booking.roomPrice,0,'COMMA',0,'POINT')} + ' VND'">0 VND</strong>
+                </span>
+                </div>
+                <div class="line discount-line" th:if="${booking.hasPromotion}"><span>Đã giảm giá phòng</span><strong th:text="'-' + ${#numbers.formatDecimal(booking.discountAmount,0,'COMMA',0,'POINT')} + ' VND'">-0 VND</strong></div>
+                <div class="line"><span>Dịch vụ thêm</span><strong id="serviceTotalVal">0 VND</strong></div>
+
+                <div class="total">
+                    <span>Tổng cộng chi phí</span>
+                    <strong id="totalAmountVal" th:text="${#numbers.formatDecimal(booking.totalAmount,0,'COMMA',0,'POINT')} + ' VND'">0 VND</strong>
+                </div>
+
+                <!-- reCAPTCHA Widget -->
+                <div style="margin: 16px 0; display: flex; justify-content: center;">
+                    <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+                </div>
+
+                <button type="button" id="btnSubmitBooking" class="btn-primary">Xác nhận đặt phòng</button>
+                <div class="security"><i class="bi bi-shield-check"></i> Bảo mật thông tin khách hàng tuyệt đối.</div>
+            </aside>
+        </div>
+    </form>
+</main>
+
+<div class="modal-mask" id="postPaySuccessModal">
+    <div class="modal-card">
+        <i class="bi bi-check-circle-fill"></i>
+        <h3>Đặt phòng thành công</h3>
+        <p>Yêu cầu đặt phòng đã được ghi nhận.</p>
+        <p><strong id="modalCustomerName">---</strong></p>
+        <p>Tổng tiền: <strong id="modalTotalAmount">---</strong></p>
+        <button class="btn-primary" onclick="window.location.href='/home'">Hoàn tất</button>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="wrap footer-grid">
+        <div>
+            <span th:if="${siteLogo != null and !siteLogo.isBlank()}" style="display:block;text-align:center">
+                <img th:src="${siteLogo}" alt="Logo" style="width:82px;height:82px;border-radius:50%;object-fit:cover;border:3px solid rgba(210,173,91,.65);background:#fff;margin-bottom:12px">
+            </span>
+            <h3 th:text="${siteName}">FEELHOME HOTEL</h3>
+            <p>Trang thanh toán đồng bộ dịch vụ, hình ảnh, header và footer với toàn bộ giao diện khách hàng.</p>
+        </div>
+        <div>
+            <h4>Liên kết</h4>
+            <p><a href="/home">Trang chủ</a><br><a href="/offers">Ưu đãi</a><br><a href="/favorites">Yêu thích</a></p>
+        </div>
+        <div>
+            <h4>Liên hệ</h4>
+            <p>Hotline: 0283838383<br>Email: feelhome@example.com<br>TP.HCM</p>
+        </div>
+    </div>
+    <div class="wrap footer-bottom">© 2026 FeelHome Hotel. All rights reserved.</div>
+</footer>
+
+<script>
+    const txtCheckin = document.getElementById('checkinDate');
+    const txtCheckout = document.getElementById('checkoutDate');
+    const lblCheckin = document.getElementById('lblCheckin');
+    const lblCheckout = document.getElementById('lblCheckout');
+    const lblDays = document.getElementById('lblDays');
+    const roomPriceVal = document.getElementById('roomPriceVal');
+    const totalAmountVal = document.getElementById('totalAmountVal');
+    const serviceTotalVal = document.getElementById('serviceTotalVal');
+    const roomPrice = parseFloat(roomPriceVal.getAttribute('data-price')) || 0;
+    let cartServices = {};
+
+    function formatMoney(v) {
+        return (v || 0).toLocaleString('en-US') + ' VND';
+    }
+
+    function recalculateInvoice() {
+        const d1 = new Date(txtCheckin.value);
+        const d2 = new Date(txtCheckout.value);
+        let days = 1;
+
+        if (!isNaN(d1) && !isNaN(d2)) {
+            lblCheckin.innerText = txtCheckin.value;
+            lblCheckout.innerText = txtCheckout.value;
+            days = Math.ceil((d2.getTime() - d1.getTime()) / (1000 * 3600 * 24));
+            if (days <= 0) days = 1;
+            lblDays.innerText = days;
+            document.getElementById('calculatedDays').value = days;
+        }
+
+        let serviceTotal = 0, serviceList = [];
+        for (let key in cartServices) {
+            serviceTotal += cartServices[key].quantity * cartServices[key].price;
+            serviceList.push({ fwbId: cartServices[key].fwbId, quantity: cartServices[key].quantity });
+        }
+
+        serviceTotalVal.innerText = formatMoney(serviceTotal);
+        document.getElementById('selectedServicesJson').value = JSON.stringify(serviceList);
+
+        const totalFinal = (roomPrice * days) + serviceTotal;
+        totalAmountVal.innerText = formatMoney(totalFinal);
+        document.getElementById('calculatedTotalAmount').value = totalFinal;
+    }
+
+    document.querySelectorAll('.btn-qty-plus').forEach(btn => btn.addEventListener('click', function() {
+        const id = this.dataset.id, price = parseFloat(this.dataset.price) || 0;
+        if (!cartServices[id]) cartServices[id] = { fwbId: parseInt(id), quantity: 0, price };
+        cartServices[id].quantity++;
+        document.getElementById('qty-' + id).innerText = cartServices[id].quantity;
+        recalculateInvoice();
+    }));
+
+    document.querySelectorAll('.btn-qty-minus').forEach(btn => btn.addEventListener('click', function() {
+        const id = this.dataset.id;
+        if (cartServices[id] && cartServices[id].quantity > 0) {
+            cartServices[id].quantity--;
+            document.getElementById('qty-' + id).innerText = cartServices[id].quantity;
+            if (cartServices[id].quantity === 0) delete cartServices[id];
+            recalculateInvoice();
+        }
+    }));
+
+    function reloadPaymentForNewDates() {
+        const rt = document.querySelector('input[name="roomTypeId"]')?.value;
+        if (rt && txtCheckin.value && txtCheckout.value) {
+            window.location.href = '/booking/payment?roomTypeId=' + encodeURIComponent(rt) + '&checkin=' + encodeURIComponent(txtCheckin.value) + '&checkout=' + encodeURIComponent(txtCheckout.value);
+        } else {
+            recalculateInvoice();
+        }
+    }
+
+    txtCheckin?.addEventListener('change', reloadPaymentForNewDates);
+    txtCheckout?.addEventListener('change', reloadPaymentForNewDates);
+
+    document.getElementById('btnSubmitBooking')?.addEventListener('click', function() {
+        const form = document.getElementById('bookingPaymentForm');
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+
+        // Kiểm tra Google reCAPTCHA
+        const recaptchaResponse = grecaptcha.getResponse();
+        if (!recaptchaResponse) {
+            alert('Vui lòng xác nhận CAPTCHA (Tôi không phải là người máy)!');
+            return;
+        }
+
+        if (document.getElementById('paymentMethod').value === 'CHUYỂN KHOẢN') {
+            form.submit();
+        } else {
+            const fd = new FormData(form);
+            fd.append('g-recaptcha-response', recaptchaResponse);
+
+            fetch('/booking/confirm-payment-ajax', { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('modalCustomerName').innerText = data.customerName || '';
+                    document.getElementById('modalTotalAmount').innerText = data.totalAmount || totalAmountVal.innerText;
+                    document.getElementById('postPaySuccessModal').style.display = 'flex';
+                } else {
+                    alert('Lỗi: ' + data.message);
+                    grecaptcha.reset();
+                }
+            })
+            .catch(() => {
+                alert('Có lỗi xảy ra trong quá trình đặt phòng!');
+                grecaptcha.reset();
+            });
+        }
+    });
+
+    (function() {
+        function pad(v) { return String(v).padStart(2, '0'); }
+        function tickPromo() {
+            document.querySelectorAll('.js-promo-countdown').forEach(el => {
+                const end = new Date(el.dataset.promoEnd);
+                const span = el.querySelector('span') || el;
+                if (isNaN(end.getTime())) return;
+                const diff = end.getTime() - Date.now();
+                if (diff <=0) { span.textContent = 'Ưu đãi vừa hết hạn'; return; }
+                const d = Math.floor(diff / 86400000), h = Math.floor(diff % 86400000 / 3600000), m = Math.floor(diff % 3600000 / 60000), s = Math.floor(diff % 60000 / 1000);
+                span.textContent = 'Còn ' + (d ? d + ' ngày ' : '') + pad(h) + ':' + pad(m) + ':' + pad(s);
+            });
+        }
+        tickPromo();
+        setInterval(tickPromo, 1000);
+    })();
 </script>
 </body>
 </html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tra cứu đơn đặt phòng - FeelHome Hotel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/css/client-pages-premium.css?v=20260823-fav-offer-v1">
+    <style>
+        /* Màu sắc cho các trạng thái đơn hàng */
+        .badge-status{
+            padding:6px 14px;
+            border-radius:999px;
+            font-size:12px;
+            font-weight:800;
+            border:1px solid transparent;
+        }
+        .badge-success{
+            background:#e6f4ea;
+            color:#137333;
+            border-color:#ceead6;
+        }
+        .badge-warning{
+            background:#fef7e0;
+            color:#b06000;
+            border-color:#fef0c7;
+        }
+        .badge-danger{
+            background:#fce8e6;
+            color:#c5221f;
+            border-color:#fad2cf;
+        }
+        :root{--navy:#121b2a;--gold:#d2ad5b;--cream:#f7f2ea;--card:#fff;--ink:#162033;--muted:#6b7280;--line:#eadfce;--accent:#c56f3c}
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--cream);color:var(--ink);font-family:Jost,sans-serif}
+        a{text-decoration:none;color:inherit}
+
+        .lookup-hero{padding:60px 0 80px}
+        .lookup-container{max-width:760px;margin:0 auto;padding:0 24px}
+
+        .lookup-card{
+            background:#fff;
+            border:1px solid var(--line);
+            border-radius:30px;
+            padding:42px 36px;
+            box-shadow:0 24px 60px rgba(17,24,39,.08);
+            position:relative;
+        }
+
+        .lookup-header{text-align:center;margin-bottom:32px}
+        .tag{display:inline-flex;align-items:center;gap:10px;padding:10px 20px;border-radius:999px;background:#fff0d8;color:#a55b16;font-weight:800;text-transform:uppercase;letter-spacing:.05em;font-size:12px;margin-bottom:16px}
+        .lookup-header h1{font-family:'Cormorant Garamond',serif;font-size:42px;line-height:1.1;margin:0 0 10px;color:var(--navy)}
+        .lookup-header h1 span{color:var(--accent)}
+        .lookup-header p{color:var(--muted);font-size:16px;margin:0}
+
+        .lookup-form{margin-bottom:32px}
+        .form-group{margin-bottom:16px}
+        .form-group label{display:block;font-weight:700;color:#4b5563;font-size:13px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+
+        .input-box{display:flex;gap:12px;margin-bottom:12px}
+        .input-box input{
+            flex:1;
+            height:54px;
+            border:1px solid #ded3c1;
+            border-radius:16px;
+            padding:0 20px;
+            font-size:15px;
+            font-family:Jost,sans-serif;
+            outline:none;
+            transition:.24s;
+            background:#fcfaf7;
+        }
+        .input-box input:focus{border-color:var(--gold);background:#fff;box-shadow:0 0 0 4px rgba(210,173,91,.15)}
+
+        /* Style cho phần Captcha */
+        .captcha-row{
+            display:flex;
+            gap:12px;
+            align-items:center;
+        }
+        .captcha-badge{
+            background:var(--navy);
+            color:var(--gold);
+            font-weight:700;
+            font-size:18px;
+            padding:0 20px;
+            height:54px;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            border-radius:16px;
+            letter-spacing:2px;
+            white-space:nowrap;
+            border:1px solid var(--gold);
+        }
+        .captcha-input{
+            flex:1;
+            height:54px;
+            border:1px solid #ded3c1;
+            border-radius:16px;
+            padding:0 20px;
+            font-size:15px;
+            outline:none;
+            background:#fcfaf7;
+        }
+        .captcha-input:focus{border-color:var(--gold);background:#fff;box-shadow:0 0 0 4px rgba(210,173,91,.15)}
+
+        .btn-search{
+            width:100%;
+            height:54px;
+            border-radius:16px;
+            font-weight:800;
+            display:inline-flex;
+            gap:10px;
+            align-items:center;
+            justify-content:center;
+            background:var(--navy);
+            color:#fff;
+            border:none;
+            cursor:pointer;
+            transition:.28s;
+            margin-top:16px;
+        }
+        .btn-search:hover{background:var(--gold);color:#111;transform:translateY(-2px);box-shadow:0 12px 24px rgba(210,173,91,.25)}
+
+        .result-box{
+            margin-top:30px;
+            border-top:2px dashed var(--line);
+            padding-top:30px;
+        }
+        .result-card{
+            background:#fbf8f3;
+            border:1px solid #eadfce;
+            border-radius:22px;
+            padding:24px;
+            margin-bottom:20px;
+        }
+        .result-head{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-start;
+            border-bottom:1px solid var(--line);
+            padding-bottom:16px;
+            margin-bottom:18px;
+        }
+        .result-head h3{font-family:'Cormorant Garamond',serif;font-size:24px;margin:4px 0 0;color:var(--navy)}
+        .order-code{font-size:12px;font-weight:800;color:var(--accent);letter-spacing:.1em}
+
+        .info-grid{
+            display:grid;
+            grid-template-columns:repeat(2,1fr);
+            gap:16px;
+        }
+        .info-item{display:flex;align-items:center;gap:12px}
+        .info-item i{font-size:20px;color:var(--gold);background:#fff;width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);flex-shrink:0}
+        .info-item div span{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;font-weight:700}
+        .info-item div b{font-size:14px;color:var(--ink)}
+
+        .empty-box{
+            background:#fff5f5;
+            border:1px dashed #f87171;
+            border-radius:18px;
+            padding:24px;
+            text-align:center;
+            color:#991b1b;
+            margin-top:20px;
+        }
+        .empty-box i{font-size:32px;display:block;margin-bottom:8px}
+
+        @media(max-width:640px){
+            .info-grid{grid-template-columns:1fr}
+            .lookup-card{padding:28px 20px}
+            .captcha-row{flex-direction:column}
+            .captcha-badge{width:100%}
+        }
+    </style>
+</head>
+<body class="fh-premium-page" data-page="lookup">
+
+<!-- Include Header chung của FeelHome -->
+<th:block th:replace="~{html/client-html/fragments/public-shell :: header('lookup')}"></th:block>
+
+<main class="lookup-hero">
+    <div class="lookup-container">
+        <div class="lookup-card gsap-item">
+
+            <div class="lookup-header">
+                <div class="tag"><i class="bi bi-search"></i> Hệ thống tra cứu</div>
+                <h1>Tra cứu <span>đặt phòng</span></h1>
+                <p>Nhập thông tin và mã xác nhận bên dưới để xem lại lịch sử đặt phòng.</p>
+            </div>
+
+            <!-- Form tìm kiếm có kèm Captcha -->
+            <form th:action="@{/booking/lookup}" method="get" class="lookup-form">
+                <div class="form-group">
+                    <label><i class="bi bi-shield-check"></i> Thông tin tra cứu (SĐT / Email / Mã đơn)</label>
+                    <div class="input-box">
+                        <input type="text" name="keyword" th:value="${keyword}" required placeholder="Ví dụ: 0901234567 hoặc #1024">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="bi bi-shield-lock"></i> Xác thực Captcha (Nhập kết quả phép tính)</label>
+                    <div class="captcha-row">
+                        <div class="captcha-badge" th:text="${captchaQuestion}">5 + 3 = ?</div>
+                        <input type="text" name="captchaInput" class="captcha-input" required placeholder="Nhập kết quả...">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-search"><i class="bi bi-search"></i> Tra cứu ngay</button>
+            </form>
+
+            <!-- Kết quả hiển thị danh sách đơn hàng -->
+            <div class="result-box" th:if="${bookingList != null and !bookingList.isEmpty()}">
+                <div th:each="b : ${bookingList}" class="result-card">
+                    <div class="result-head">
+                        <div>
+                            <span class="order-code" th:text="|MÃ ĐƠN HÀNG: #${b.id}|">MÃ ĐƠN HÀNG: #1024</span>
+                            <h3 th:text="${b.name}">Tên Khách Hàng</h3>
+                        </div>
+                        <!-- Hiển thị trạng thái gọn: CHỜ NHẬN hoặc ĐÃ XÁC NHẬN -->
+                        <div>
+                            <div>
+                                <span class="badge-status badge-success">THÀNH CÔNG</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <i class="bi bi-telephone"></i>
+                            <div>
+                                <span>Số điện thoại</span>
+                                <b th:text="${b.phone != null and b.phone.length() > 6 ? #strings.substring(b.phone, 0, 3) + '***' + #strings.substring(b.phone, b.phone.length() - 3) : '***'}">090***567</b>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-envelope"></i>
+                            <div>
+                                <span>Email liên hệ</span>
+                                <b th:text="${b.email != null and b.email.contains('@') ? #strings.substring(b.email, 0, 2) + '***@' + b.email.substring(b.email.indexOf('@') + 1) : '***@gmail.com'}">te***@gmail.com</b>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-calendar-check"></i>
+                            <div>
+                                <span>Ngày nhận phòng</span>
+                                <b th:text="${b.checkinDate}">01/10/2026</b>
+                            </div>
+                        </div>
+                        <div class="info-item">
+                            <i class="bi bi-calendar-x"></i>
+                            <div>
+                                <span>Ngày trả phòng</span>
+                                <b th:text="${b.checkoutDate}">03/10/2026</b>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Thông báo lỗi (Sai captcha hoặc không tìm thấy) -->
+            <div class="empty-box" th:if="${error != null}">
+                <i class="bi bi-emoji-frown"></i>
+                <div th:text="${error}">Không tìm thấy đơn hàng nào phù hợp!</div>
+            </div>
+
+        </div>
+    </div>
+</main>
+
+<!-- Include Footer chung của FeelHome -->
+<th:block th:replace="~{html/client-html/fragments/public-shell :: footer()}"></th:block>
+
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        if (window.gsap) {
+            gsap.from('.gsap-item', { y: 20, opacity: 0, duration: 0.6, ease: 'power3.out' });
+        }
+    });
+</script>
+</body>
+</html>
