@@ -1,61 +1,80 @@
-// Toggle dropdown
-        function toggleDropdown(event, btn) {
-            if (event) event.stopPropagation();
-            const dropdown = btn.closest('.action-dropdown');
-            const menu = dropdown.querySelector('.dropdown-menu');
-            const isOpen = menu.classList.contains('show');
+// ========================================
+// booking-option.js - Các tùy chọn và cấu hình
+// ========================================
 
-            // Đóng tất cả dropdown khác
-            document.querySelectorAll('.action-dropdown .dropdown-menu.show').forEach(m => {
-                if (m !== menu) m.classList.remove('show');
-            });
+// ===== CẤU HÌNH PHÂN TRANG =====
+const PAGINATION_CONFIG = {
+    rowsPerPage: 10,
+    maxPageButtons: 5
+};
 
-            menu.classList.toggle('show');
-        }
+// ===== CẤU HÌNH TOAST =====
+const TOAST_CONFIG = {
+    duration: 3000,
+    position: 'top-right'
+};
 
-        // Đóng dropdown sau khi click action
-        function closeDropdown(element) {
-            const dropdown = element.closest('.action-dropdown');
-            if (dropdown) {
-                const menu = dropdown.querySelector('.dropdown-menu');
-                if (menu) menu.classList.remove('show');
-            }
-        }
+// ===== CẤU HÌNH POPUP =====
+const POPUP_CONFIG = {
+    animationDuration: 300,
+    closeOnEscape: true,
+    closeOnOverlayClick: true
+};
 
-        // Đóng dropdown khi click bên ngoài
-        document.addEventListener('click', function(e) {
-            document.querySelectorAll('.action-dropdown .dropdown-menu.show').forEach(menu => {
-                if (!menu.closest('.action-dropdown').contains(e.target)) {
-                    menu.classList.remove('show');
-                }
-            });
-        });
-         // ===== DROPDOWN =====
-                function toggleDropdown(event, btn) {
-                    if (event) event.stopPropagation();
-                    const dropdown = btn.closest('.action-dropdown');
-                    const menu = dropdown.querySelector('.dropdown-menu');
-                    const isOpen = menu.classList.contains('show');
+// ===== CẤU HÌNH API =====
+const API_CONFIG = {
+    baseUrl: '/api/admin/booking-details',
+    timeout: 30000
+};
 
-                    document.querySelectorAll('.action-dropdown .dropdown-menu.show').forEach(m => {
-                        if (m !== menu) m.classList.remove('show');
-                    });
+// ===== TRẠNG THÁI BOOKING =====
+const BOOKING_STATUS = {
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    CONFIRMED: 'CONFIRMED',
+    PAID: 'PAID',
+    CHECKED_OUT: 'CHECKED_OUT',
+    CANCELLED: 'CANCELLED',
+    NO_SHOW: 'NO_SHOW'
+};
 
-                    menu.classList.toggle('show');
-                }
+// ===== PHƯƠNG THỨC THANH TOÁN =====
+const PAYMENT_METHODS = {
+    CASH: 'TIEN_MAT',
+    TRANSFER: 'CHUYEN_KHOAN',
+    CARD: 'THE'
+};
 
-                function closeDropdown(element) {
-                    const dropdown = element.closest('.action-dropdown');
-                    if (dropdown) {
-                        const menu = dropdown.querySelector('.dropdown-menu');
-                        if (menu) menu.classList.remove('show');
-                    }
-                }
+// ===== EVENT HANDLERS CHO PHÍM TẮT =====
+document.addEventListener('keydown', function(e) {
+    // ESC để đóng popup
+    if (e.key === 'Escape') {
+        closeAllPopups();
+    }
+});
 
-                document.addEventListener('click', function(e) {
-                    document.querySelectorAll('.action-dropdown .dropdown-menu.show').forEach(menu => {
-                        if (!menu.closest('.action-dropdown').contains(e.target)) {
-                            menu.classList.remove('show');
-                        }
-                    });
-                });
+function closeAllPopups() {
+    const popups = [
+        'walkInModal',
+        'walkInQrModal',
+        'foodPopup',
+        'pickRoomPopup',
+        'editPopup',
+        'confirmPopup'
+    ];
+
+    popups.forEach(id => {
+        const popup = document.getElementById(id);
+        if (popup) popup.classList.remove('active');
+    });
+}
+
+// ===== EXPORT CONFIG =====
+window.BOOKING_CONFIG = {
+    PAGINATION: PAGINATION_CONFIG,
+    TOAST: TOAST_CONFIG,
+    POPUP: POPUP_CONFIG,
+    API: API_CONFIG,
+    STATUS: BOOKING_STATUS,
+    PAYMENT_METHODS: PAYMENT_METHODS
+};

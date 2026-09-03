@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org"
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <meta charset="UTF-8">
@@ -118,22 +117,6 @@
             color: #bd6c3c;
         }
 
-        /* Mục không có quyền vẫn hiển thị nhưng chuyển xám và không thể bấm. */
-        .sidebar-menu li.menu-disabled {
-            opacity: 0.42;
-            cursor: not-allowed;
-        }
-        .sidebar-menu li.menu-disabled a {
-            color: #8f969e !important;
-            background: transparent !important;
-            pointer-events: none;
-            cursor: not-allowed;
-            user-select: none;
-        }
-        .sidebar-menu li.menu-disabled a i {
-            color: #9da3aa !important;
-        }
-
         .sidebar-user-footer {
             padding: 15px 20px;
             border-top: 1px solid var(--border-color);
@@ -213,8 +196,7 @@
             </div>
         </div>
         <div class="menu-container">
-            <!-- PHÂN KHU 1: NGHIỆP VỤ NHÂN VIÊN -->
-            <!-- Mọi tài khoản đã đăng nhập đều được sử dụng các nghiệp vụ vận hành hằng ngày. -->
+            <!-- PHÂN KHU 1: CHỨC NĂNG CỦA NHÂN VIÊN -->
             <div class="menu-section-title">Nghiệp Vụ Nhân Viên</div>
             <div class="sidebar-menu">
                 <li>
@@ -226,76 +208,42 @@
                 <li>
                     <a th:href="@{/admin/invoice-list}"><i class="fa-solid fa-file-invoice"></i>Xuất hóa đơn</a>
                 </li>
+
             </div>
 
-            <!-- PHÂN KHU 2: HỆ THỐNG QUẢN LÝ - role nào được cấp thì mục đó mới bấm được. -->
+            <!-- PHÂN KHU 2: CHỨC NĂNG DÀNH RIÊNG CHO QUẢN LÝ / ADMIN -->
             <div class="menu-section-title">Hệ Thống Quản Lý</div>
             <div class="sidebar-menu">
-
-                <li th:if="${currentAuthorities.contains('ROLE_ROOM')}">
+                <li>
                     <a th:href="@{/admin/room-types}"><i class="fa-solid fa-layer-group"></i>Quản lý loại phòng</a>
                 </li>
-                <li th:if="${!currentAuthorities.contains('ROLE_ROOM')}" class="menu-disabled" title="Chưa được cấp quyền ROLE_ROOM">
-                    <a href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-layer-group"></i>Quản lý loại phòng</a>
-                </li>
-
-                <li th:if="${currentAuthorities.contains('ROLE_HOTEL')}">
+                <li>
                     <a th:href="@{/admin/hotels}"><i class="fa-solid fa-hotel"></i>Quản lý khách sạn</a>
                 </li>
-                <li th:if="${!currentAuthorities.contains('ROLE_HOTEL')}" class="menu-disabled" title="Chưa được cấp quyền ROLE_HOTEL">
-                    <a href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-hotel"></i>Quản lý khách sạn</a>
-                </li>
-
-                <li th:if="${currentAuthorities.contains('ROLE_USER')}">
+                <li>
                     <a th:href="@{/admin/users}"><i class="fa-solid fa-user-gear"></i>Quản lý nhân sự</a>
                 </li>
-                <li th:if="${!currentAuthorities.contains('ROLE_USER')}" class="menu-disabled" title="Chưa được cấp quyền ROLE_USER">
-                    <a href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-user-gear"></i>Quản lý nhân sự</a>
-                </li>
-
-                <li th:if="${currentAuthorities.contains('ROLE_PROMOTION')}">
+                <li>
                     <a th:href="@{/staff/promotions}"><i class="fa-solid fa-tags"></i>Quản lý khuyến mãi</a>
                 </li>
-                <li th:if="${!currentAuthorities.contains('ROLE_PROMOTION')}" class="menu-disabled" title="Chưa được cấp quyền ROLE_PROMOTION">
-                    <a href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-tags"></i>Quản lý khuyến mãi</a>
-                </li>
-
-                <li th:if="${currentAuthorities.contains('ROLE_FWB')}">
+                <li>
                     <a th:href="@{/staff/fwb/management}" class="sidebar-link"><i class="fa-solid fa-list-check"></i><span>Quản lý tiện ích</span></a>
                 </li>
-                <li th:if="${!currentAuthorities.contains('ROLE_FWB')}" class="menu-disabled" title="Chưa được cấp quyền ROLE_FWB">
-                    <a href="#" tabindex="-1" aria-disabled="true" class="sidebar-link"><i class="fa-solid fa-list-check"></i><span>Quản lý tiện ích</span></a>
-                </li>
-
-                <li th:if="${currentAuthorities.contains('ROLE_IMG')}">
+                <li>
                     <a th:href="@{/admin/media}"><i class="fa-solid fa-images"></i>Upload photo</a>
                 </li>
-                <li th:if="${!currentAuthorities.contains('ROLE_IMG')}" class="menu-disabled" title="Chưa được cấp quyền ROLE_IMG">
-                    <a href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-images"></i>Upload photo</a>
-                </li>
-
-                <li th:if="${currentAuthorities.contains('ROLE_HOTEL') or currentAuthorities.contains('ROLE_BOOKING') or currentAuthorities.contains('ROLE_ROOM')}">
+                <li>
                     <a th:href="@{/admin/thongke}"><i class="fa-solid fa-chart-pie"></i>Doanh thu khách sạn</a>
                 </li>
-                <li th:if="${!(currentAuthorities.contains('ROLE_HOTEL') or currentAuthorities.contains('ROLE_BOOKING') or currentAuthorities.contains('ROLE_ROOM'))}" class="menu-disabled" title="Cần ROLE_HOTEL, ROLE_BOOKING hoặc ROLE_ROOM">
-                    <a href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-chart-pie"></i>Doanh thu khách sạn</a>
+                <li>
+                    <a href="@{/admin/logs}"><i class="fa-solid fa-database"></i>Sao lưu dữ liệu</a>
                 </li>
-
-                <li th:if="${currentAuthorities.contains('ROLE_HOTEL') or currentAuthorities.contains('ROLE_ROOM')}">
-                    <a th:href="@{/admin/logs}"><i class="fa-solid fa-database"></i>Sao lưu dữ liệu</a>
-                </li>
-                <li th:if="${!(currentAuthorities.contains('ROLE_HOTEL') or currentAuthorities.contains('ROLE_ROOM'))}" class="menu-disabled" title="Cần ROLE_HOTEL hoặc ROLE_ROOM">
-                    <a href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-database"></i>Sao lưu dữ liệu</a>
-                </li>
-
-                <li th:if="${currentAuthorities.contains('ROLE_HOTEL') or currentAuthorities.contains('ROLE_ROOM')}">
+                <li>
                     <a th:href="@{/admin/trash}"><i class="fa-solid fa-trash-can"></i>Khôi phục dữ liệu</a>
                 </li>
-                <li th:if="${!(currentAuthorities.contains('ROLE_HOTEL') or currentAuthorities.contains('ROLE_ROOM'))}" class="menu-disabled" title="Cần ROLE_HOTEL hoặc ROLE_ROOM">
-                    <a href="#" tabindex="-1" aria-disabled="true"><i class="fa-solid fa-trash-can"></i>Khôi phục dữ liệu</a>
-                </li>
             </div>
-            </div>
+
+        </div>
         <div class="sidebar-user-footer d-flex align-items-center p-3 border-top">
             <img th:src="@{'https://i.pravatar.cc/150?u=' + ${session.fullName}}"
                  alt="Avatar" class="rounded-circle me-2" style="width: 40px; height: 40px;">

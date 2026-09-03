@@ -10,7 +10,7 @@ public interface OrderBookingService {
     List<Invoices> getAllInvoices();
     List<FwB> getAllAvailableFoods();
 
-    // Bao//
+    // ===== KIỂM TRA PHÒNG =====
     boolean isRoomAvailable(Integer roomId, LocalDate checkinDate, LocalDate checkoutDate);
     List<Integer> getAvailableRooms(List<Integer> allRoomIds, LocalDate checkinDate, LocalDate checkoutDate);
     Room findFirstAvailableRoomByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate);

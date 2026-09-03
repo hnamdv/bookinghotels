@@ -209,8 +209,7 @@ public class HomeController {
         String detailWelcome = brandingService.get(detailPrefix + "welcomeText",
                 brandingService.get("site.welcomeText", "Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn"));
         AmenityData amenityData = parseAmenityData(roomType.getBedOptions());
-        long nightCount = (range.checkin() != null && range.checkout() != null)
-                ? java.time.temporal.ChronoUnit.DAYS.between(range.checkin(), range.checkout()) : 0L;
+        long nightCount = (range.checkin() != null && range.checkout() != null) ? java.time.temporal.ChronoUnit.DAYS.between(range.checkin(), range.checkout()) : 0L;
 
         model.addAttribute("siteName", detailName);
         model.addAttribute("siteLogo", detailLogo);

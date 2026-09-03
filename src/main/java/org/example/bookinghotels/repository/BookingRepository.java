@@ -9,7 +9,10 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
-
+    // Hỗ trợ tìm kiếm linh hoạt bằng: Số điện thoại, Mã ID đơn hàng, hoặc Email của khách
+    // Đổi kiểu trả về thành List<Booking> để chứa nhiều đơn nếu khách đặt nhiều lần bằng 1 SĐT/Email
+    @Query("SELECT b FROM Booking b WHERE b.phone = :keyword OR CAST(b.id AS string) = :keyword OR b.email = :keyword")
+    List<Booking> findByKeyword(@Param("keyword") String keyword);
     // Load tất cả booking (chưa xóa) kèm detail và room type
     @Query("SELECT DISTINCT b FROM Booking b " +
             "LEFT JOIN FETCH b.bookingDetails bd " +

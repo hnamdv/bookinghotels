@@ -13,6 +13,7 @@
                 <a href="/home" th:classappend="${activePage == 'home'} ? ' active' : ''">Trang chủ</a>
                 <a href="/home#rooms-section" th:classappend="${activePage == 'rooms'} ? ' active' : ''">Phòng nghỉ</a>
                 <a href="/offers" th:classappend="${activePage == 'offers'} ? ' active' : ''">Ưu đãi</a>
+                <a href="/booking/lookup" th:class="${activePage == 'lookup'} ? 'active' : ''">Tra cứu đơn</a>
                 <a href="/favorites" th:classappend="${activePage == 'favorites'} ? ' active' : ''">Yêu thích <span class="fhp-nav-badge" id="favoriteNavCount">0</span></a>
             </nav>
             <a class="fhp-book" href="/home#rooms-section">Đặt ngay</a>
