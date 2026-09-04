@@ -2,17 +2,22 @@ package org.example.bookinghotels.service.impl;
 
 import org.example.bookinghotels.dto.OccupancyDTO;
 import org.example.bookinghotels.dto.PromotionCheckResponse;
+import org.example.bookinghotels.dto.RevenueDTO;
 import org.example.bookinghotels.entity.ActivityLog;
 import org.example.bookinghotels.entity.Promotion;
 import org.example.bookinghotels.entity.PromotionRoomType;
 import org.example.bookinghotels.entity.RoomType;
 import org.example.bookinghotels.repository.*;
 import org.example.bookinghotels.service.SystemManagementService;
+import org.example.bookinghotels.specification.ActivityLogSpecification;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import org.example.bookinghotels.dto.RevenueDTO;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -42,6 +47,12 @@ public class SystemManagementServiceImpl implements SystemManagementService {
 
     @Autowired
     private BookingDetailRepository bookingDetailRepository;
+
+
+    // =========================================================
+    // PROMOTION
+    // =========================================================
+
     @Override
     public Promotion savePromotion(Promotion promotion) {
         validatePromotion(promotion);
@@ -85,13 +96,22 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         promotionRepository.delete(promotion);
     }
 
+
+    // =========================================================
+    // CHECK PROMOTION
+    // =========================================================
+
     @Override
     public PromotionCheckResponse checkPromotionCode(String code) {
         return checkPromotionCode(code, null);
     }
 
     @Override
-    public PromotionCheckResponse checkPromotionCode(String code, Integer roomTypeId) {
+    public PromotionCheckResponse checkPromotionCode(
+            String code,
+            Integer roomTypeId
+    ) {
+
         if (code == null || code.trim().isEmpty()) {
             return new PromotionCheckResponse(
                     false,
@@ -119,10 +139,26 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime startsAt = promotion.getStartDate() == null ? null
-                : LocalDateTime.of(promotion.getStartDate(), promotion.getStartTime() == null ? LocalTime.MIDNIGHT : promotion.getStartTime());
-        LocalDateTime endsAt = promotion.getEndDate() == null ? null
-                : LocalDateTime.of(promotion.getEndDate(), promotion.getEndTime() == null ? LocalTime.of(23, 59) : promotion.getEndTime());
+
+        LocalDateTime startsAt =
+                promotion.getStartDate() == null
+                        ? null
+                        : LocalDateTime.of(
+                        promotion.getStartDate(),
+                        promotion.getStartTime() == null
+                        ? LocalTime.MIDNIGHT
+                        : promotion.getStartTime()
+                );
+
+        LocalDateTime endsAt =
+                promotion.getEndDate() == null
+                        ? null
+                        : LocalDateTime.of(
+                        promotion.getEndDate(),
+                        promotion.getEndTime() == null
+                        ? LocalTime.of(23, 59)
+                        : promotion.getEndTime()
+                );
 
         if (startsAt != null && now.isBefore(startsAt)) {
             return new PromotionCheckResponse(
@@ -147,6 +183,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         if (promotion.getDiscountPercent() == null
                 || promotion.getDiscountPercent() <= 0
                 || promotion.getDiscountPercent() > 100) {
+
             return new PromotionCheckResponse(
                     false,
                     "Phần trăm giảm giá không hợp lệ",
@@ -165,8 +202,17 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         );
     }
 
+
+    // =========================================================
+    // PROMOTION - ROOM TYPE
+    // =========================================================
+
     @Override
-    public void applyPromotionToRoom(Integer promotionId, Integer roomTypeId) {
+    public void applyPromotionToRoom(
+            Integer promotionId,
+            Integer roomTypeId
+    ) {
+
         Promotion promotion = promotionRepository.findById(promotionId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
@@ -180,11 +226,17 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                 ));
 
         PromotionRoomType mapping = new PromotionRoomType();
+
         mapping.setPromotion(promotion);
         mapping.setRoomType(roomType);
 
         promotionRoomTypeRepository.save(mapping);
     }
+
+
+    // =========================================================
+    // ACTIVITY LOG
+    // =========================================================
 
     @Override
     public void logActivity(ActivityLog log) {
@@ -196,8 +248,42 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         return activityLogRepository.findAll();
     }
 
+    // ==== MỚI: dùng cho trang Activity Logs (filter + sort + phân trang) ====
+
+    @Override
+    public Page<ActivityLog> searchLogs(
+            String keyword,
+            String action,
+            String module,
+            String fromDate,
+            String toDate,
+            Pageable pageable
+    ) {
+
+        Specification<ActivityLog> spec =
+                ActivityLogSpecification.filter(
+                        keyword,
+                        action,
+                        module,
+                        fromDate,
+                        toDate
+                );
+
+        return activityLogRepository.findAll(spec, pageable);
+    }
+
+    // ==========================================================================
+
+
+    // =========================================================
+    // VALIDATE PROMOTION
+    // =========================================================
+
     private void validatePromotion(Promotion promotion) {
-        if (promotion.getPromotionName() == null || promotion.getPromotionName().trim().isEmpty()) {
+
+        if (promotion.getPromotionName() == null
+                || promotion.getPromotionName().trim().isEmpty()) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Tên chương trình khuyến mãi không được để trống"
@@ -207,6 +293,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         if (promotion.getDiscountPercent() == null
                 || promotion.getDiscountPercent() < 0
                 || promotion.getDiscountPercent() > 100) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "% giảm phải từ 0 đến 100"
@@ -214,21 +301,42 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         }
 
         if (promotion.getEndDate() == null) {
+
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Hạn dùng không được để trống"
             );
         }
 
-        LocalTime startTime = promotion.getStartTime() == null ? LocalTime.MIDNIGHT : promotion.getStartTime();
-        LocalTime endTime = promotion.getEndTime() == null ? LocalTime.of(23, 59) : promotion.getEndTime();
+        LocalTime startTime =
+                promotion.getStartTime() == null
+                        ? LocalTime.MIDNIGHT
+                        : promotion.getStartTime();
+
+        LocalTime endTime =
+                promotion.getEndTime() == null
+                        ? LocalTime.of(23, 59)
+                        : promotion.getEndTime();
+
         promotion.setStartTime(startTime);
         promotion.setEndTime(endTime);
 
         if (promotion.getStartDate() != null) {
-            LocalDateTime startsAt = LocalDateTime.of(promotion.getStartDate(), startTime);
-            LocalDateTime endsAt = LocalDateTime.of(promotion.getEndDate(), endTime);
+
+            LocalDateTime startsAt =
+                    LocalDateTime.of(
+                            promotion.getStartDate(),
+                            startTime
+                    );
+
+            LocalDateTime endsAt =
+                    LocalDateTime.of(
+                            promotion.getEndDate(),
+                            endTime
+                    );
+
             if (!endsAt.isAfter(startsAt)) {
+
                 throw new ResponseStatusException(
                         HttpStatus.BAD_REQUEST,
                         "Thời gian kết thúc phải sau thời gian bắt đầu"
@@ -236,6 +344,12 @@ public class SystemManagementServiceImpl implements SystemManagementService {
             }
         }
     }
+
+
+    // =========================================================
+    // REVENUE
+    // =========================================================
+
     @Override
     public List<RevenueDTO> getRevenueByDay() {
 
@@ -272,17 +386,24 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                 .toList();
     }
 
+
+    // =========================================================
+    // OCCUPANCY
+    // =========================================================
+
     @Override
     public OccupancyDTO getOccupancy() {
 
         long totalRooms = roomRepository.count();
 
-        long bookedRooms = bookingDetailRepository.countDistinctBookedRooms();
+        long bookedRooms =
+                bookingDetailRepository.countDistinctBookedRooms();
 
         double occupancyRate = 0;
 
         if (totalRooms > 0) {
-            occupancyRate = (bookedRooms * 100.0) / totalRooms;
+            occupancyRate =
+                    (bookedRooms * 100.0) / totalRooms;
         }
 
         return new OccupancyDTO(
@@ -291,83 +412,232 @@ public class SystemManagementServiceImpl implements SystemManagementService {
                 Math.round(occupancyRate * 100.0) / 100.0
         );
     }
+
+
+    // =========================================================
+    // REVENUE BY DATE RANGE
+    // =========================================================
+
     @Override
-    public List<RevenueDTO> getRevenueByDay(LocalDate fromDate, LocalDate toDate) {
+    public List<RevenueDTO> getRevenueByDay(
+            LocalDate fromDate,
+            LocalDate toDate
+    ) {
+
         return invoicesRepository.findAll()
                 .stream()
-                .filter(invoice -> invoice.getInvoiceDate() != null)
-                .filter(invoice -> fromDate == null || !invoice.getInvoiceDate().toLocalDate().isBefore(fromDate))
-                .filter(invoice -> toDate == null || !invoice.getInvoiceDate().toLocalDate().isAfter(toDate))
-                .collect(java.util.stream.Collectors.groupingBy(
-                        invoice -> invoice.getInvoiceDate().toLocalDate().toString(),
-                        java.util.TreeMap::new,
-                        java.util.stream.Collectors.summingDouble(invoice -> invoice.getTotalAmount() == null ? 0.0 : invoice.getTotalAmount())
-                ))
+                .filter(invoice ->
+                        invoice.getInvoiceDate() != null
+                )
+                .filter(invoice ->
+                        fromDate == null
+                                || !invoice.getInvoiceDate()
+                                .toLocalDate()
+                                .isBefore(fromDate)
+                )
+                .filter(invoice ->
+                        toDate == null
+                                || !invoice.getInvoiceDate()
+                                .toLocalDate()
+                                .isAfter(toDate)
+                )
+                .collect(
+                        java.util.stream.Collectors.groupingBy(
+                                invoice ->
+                                        invoice.getInvoiceDate()
+                                                .toLocalDate()
+                                                .toString(),
+
+                                java.util.TreeMap::new,
+
+                                java.util.stream.Collectors.summingDouble(
+                                        invoice ->
+                                                invoice.getTotalAmount() == null
+                                                        ? 0.0
+                                                        : invoice.getTotalAmount()
+                                )
+                        )
+                )
                 .entrySet()
                 .stream()
-                .map(entry -> new RevenueDTO(entry.getKey(), entry.getValue()))
+                .map(entry ->
+                        new RevenueDTO(
+                                entry.getKey(),
+                                entry.getValue()
+                        )
+                )
                 .toList();
     }
 
+
+    // =========================================================
+    // REVENUE BY MONTH
+    // =========================================================
+
     @Override
-    public List<RevenueDTO> getRevenueByMonth(Integer month, Integer year) {
+    public List<RevenueDTO> getRevenueByMonth(
+            Integer month,
+            Integer year
+    ) {
+
         return invoicesRepository.findAll()
                 .stream()
-                .filter(invoice -> invoice.getInvoiceDate() != null)
-                .filter(invoice -> month == null || invoice.getInvoiceDate().getMonthValue() == month)
-                .filter(invoice -> year == null || invoice.getInvoiceDate().getYear() == year)
-                .collect(java.util.stream.Collectors.groupingBy(
-                        invoice -> String.format("%04d-%02d", invoice.getInvoiceDate().getYear(), invoice.getInvoiceDate().getMonthValue()),
-                        java.util.TreeMap::new,
-                        java.util.stream.Collectors.summingDouble(invoice -> invoice.getTotalAmount() == null ? 0.0 : invoice.getTotalAmount())
-                ))
+                .filter(invoice ->
+                        invoice.getInvoiceDate() != null
+                )
+                .filter(invoice ->
+                        month == null
+                                || invoice.getInvoiceDate()
+                                .getMonthValue() == month
+                )
+                .filter(invoice ->
+                        year == null
+                                || invoice.getInvoiceDate()
+                                .getYear() == year
+                )
+                .collect(
+                        java.util.stream.Collectors.groupingBy(
+                                invoice ->
+                                        String.format(
+                                                "%04d-%02d",
+                                                invoice.getInvoiceDate().getYear(),
+                                                invoice.getInvoiceDate().getMonthValue()
+                                        ),
+
+                                java.util.TreeMap::new,
+
+                                java.util.stream.Collectors.summingDouble(
+                                        invoice ->
+                                                invoice.getTotalAmount() == null
+                                                        ? 0.0
+                                                        : invoice.getTotalAmount()
+                                )
+                        )
+                )
                 .entrySet()
                 .stream()
-                .map(entry -> new RevenueDTO(entry.getKey(), entry.getValue()))
+                .map(entry ->
+                        new RevenueDTO(
+                                entry.getKey(),
+                                entry.getValue()
+                        )
+                )
                 .toList();
     }
 
+
+    // =========================================================
+    // INVOICE COUNT
+    // =========================================================
+
     @Override
-    public long getInvoiceCount(LocalDate fromDate, LocalDate toDate) {
+    public long getInvoiceCount(
+            LocalDate fromDate,
+            LocalDate toDate
+    ) {
+
         return invoicesRepository.findAll()
                 .stream()
-                .filter(invoice -> invoice.getInvoiceDate() != null)
-                .filter(invoice -> fromDate == null || !invoice.getInvoiceDate().toLocalDate().isBefore(fromDate))
-                .filter(invoice -> toDate == null || !invoice.getInvoiceDate().toLocalDate().isAfter(toDate))
+                .filter(invoice ->
+                        invoice.getInvoiceDate() != null
+                )
+                .filter(invoice ->
+                        fromDate == null
+                                || !invoice.getInvoiceDate()
+                                .toLocalDate()
+                                .isBefore(fromDate)
+                )
+                .filter(invoice ->
+                        toDate == null
+                                || !invoice.getInvoiceDate()
+                                .toLocalDate()
+                                .isAfter(toDate)
+                )
                 .count();
     }
+
+
+    // =========================================================
+    // ROOM TYPE
+    // =========================================================
 
     @Override
     public List<RoomType> getAllRoomTypes() {
         return roomTypeRepository.findAll();
     }
 
+
+    // =========================================================
+    // UPDATE PROMOTION ROOM TYPES
+    // =========================================================
+
     @Override
-    public void updatePromotionRoomTypes(Integer id, List<Integer> roomTypeIds) {
+    public void updatePromotionRoomTypes(
+            Integer id,
+            List<Integer> roomTypeIds
+    ) {
+
         Promotion promotion = getPromotionById(id);
-        List<PromotionRoomType> existing = promotionRoomTypeRepository.findAll()
-                .stream()
-                .filter(item -> item.getPromotion() != null && item.getPromotion().getId() != null && item.getPromotion().getId().equals(id))
-                .toList();
+
+        List<PromotionRoomType> existing =
+                promotionRoomTypeRepository.findAll()
+                        .stream()
+                        .filter(item ->
+                                item.getPromotion() != null
+                                        && item.getPromotion().getId() != null
+                                        && item.getPromotion().getId().equals(id)
+                        )
+                        .toList();
+
         promotionRoomTypeRepository.deleteAll(existing);
-        if (roomTypeIds == null) return;
+
+        if (roomTypeIds == null) {
+            return;
+        }
+
         for (Integer roomTypeId : roomTypeIds) {
-            RoomType roomType = roomTypeRepository.findById(roomTypeId)
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loại phòng không tồn tại"));
-            PromotionRoomType mapping = new PromotionRoomType();
+
+            RoomType roomType =
+                    roomTypeRepository.findById(roomTypeId)
+                            .orElseThrow(() ->
+                                    new ResponseStatusException(
+                                            HttpStatus.NOT_FOUND,
+                                            "Loại phòng không tồn tại"
+                                    )
+                            );
+
+            PromotionRoomType mapping =
+                    new PromotionRoomType();
+
             mapping.setPromotion(promotion);
             mapping.setRoomType(roomType);
+
             promotionRoomTypeRepository.save(mapping);
         }
     }
 
+
+    // =========================================================
+    // GET ROOM TYPE IDS BY PROMOTION
+    // =========================================================
+
     @Override
     public Object getRoomTypeIdsByPromotion(Integer id) {
+
         return promotionRoomTypeRepository.findAll()
                 .stream()
-                .filter(item -> item.getPromotion() != null && item.getPromotion().getId() != null && item.getPromotion().getId().equals(id))
-                .filter(item -> item.getRoomType() != null && item.getRoomType().getId() != null)
-                .map(item -> item.getRoomType().getId())
+                .filter(item ->
+                        item.getPromotion() != null
+                                && item.getPromotion().getId() != null
+                                && item.getPromotion().getId().equals(id)
+                )
+                .filter(item ->
+                        item.getRoomType() != null
+                                && item.getRoomType().getId() != null
+                )
+                .map(item ->
+                        item.getRoomType().getId()
+                )
                 .toList();
     }
 }
