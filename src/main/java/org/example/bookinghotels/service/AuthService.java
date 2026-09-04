@@ -56,7 +56,7 @@
 
             // 4. Đăng nhập thành công: Reset đếm và thiết lập Security Context
             loginAttempts.remove(user.getEmail());
-
+// CHUYỂN QUYỀN LỢI ĐỂ SPRING CAP PHEP
             List<SimpleGrantedAuthority> authorities = user.getRoles().stream()
                     .map(role -> new SimpleGrantedAuthority(role.getRoleName()))
                     .collect(Collectors.toList());
