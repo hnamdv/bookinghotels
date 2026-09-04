@@ -83,7 +83,18 @@ const API = {
             return { success: false, message: 'Lỗi kết nối server' };
         }
     },
-
+    cancelBookingByQr: async (bookingId) => {
+            try {
+                const response = await fetch('/admin/api/cancel-booking/' + bookingId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Cancel booking by QR API error:', error);
+                return { success: false, message: 'Lỗi kết nối server' };
+            }
+        },
     // ===== CHECKOUT =====
     checkout: async (detailId) => {
         try {

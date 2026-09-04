@@ -386,7 +386,29 @@ public class AdminDashboardController {
             return ResponseEntity.status(500).body(res);
         }
     }
+    // API hủy booking khi đóng QR
+    @PutMapping("/api/cancel-booking/{bookingId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> cancelBookingByQr(@PathVariable Integer bookingId) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            // Tìm tất cả booking detail của booking
+            List<BookingDetail> details = bookingDetailRepository.findByBookingId(bookingId);
 
+            for (BookingDetail detail : details) {
+                detail.setStatus("CANCELLED");
+                bookingDetailRepository.save(detail);
+            }
+
+            res.put("success", true);
+            res.put("message", "Đã hủy booking thành công!");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(res);
+        }
+    }
     // API hủy đơn đặt phòng
     @PutMapping("/api/booking-details/{id}/reject")
     @ResponseBody
