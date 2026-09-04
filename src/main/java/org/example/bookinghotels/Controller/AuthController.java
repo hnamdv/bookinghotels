@@ -50,6 +50,7 @@ public class AuthController {
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("success", false, "message", e.getMessage()));
         }
+
     }
     @GetMapping("/login")
     public String loginPage() {

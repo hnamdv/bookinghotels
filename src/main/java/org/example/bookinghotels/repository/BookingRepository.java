@@ -20,7 +20,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             "WHERE b.deleteAt = false")
     List<Booking> findAllWithDetails();
 
-    // Filter theo status, ngày, roomType (chưa xóa)
+    // Filter theo status, ngày, roomType
     @Query("SELECT DISTINCT b FROM Booking b " +
             "LEFT JOIN FETCH b.bookingDetails bd " +
             "LEFT JOIN FETCH bd.roomType rt " +

@@ -115,7 +115,14 @@ public class OrderBookingServiceImpl implements OrderBookingService {
         invoice.setBooking(savedBooking);
         invoice.setTotalAmount(totalAmount);
         invoice.setPaymentMethod(paymentMethod);
-        invoice.setPaymentStatus("PENDING");
+
+        // Phân loại trạng thái thanh toán dựa theo phương thức khách chọn
+        if (paymentMethod != null && (paymentMethod.toLowerCase().contains("hotel") || paymentMethod.toLowerCase().contains("checkout") || paymentMethod.toLowerCase().contains("khách sạn"))) {
+            invoice.setPaymentStatus("UNPAID"); // Hoặc trạng thái phù hợp cho thanh toán tại quầy
+        } else {
+            invoice.setPaymentStatus("PENDING"); // Dùng cho chuyển khoản QR chờ quét mã
+        }
+
         invoice.setUser(detail.getUser());
 
         invoicesRepository.save(invoice);
@@ -173,8 +180,6 @@ public class OrderBookingServiceImpl implements OrderBookingService {
 
     @Override
     public List<FwB> getAllAvailableFoods() {
-        // Chỉ hiển thị các dịch vụ/phụ thu có tính phí ở trang thanh toán.
-        // Tiện ích miễn phí dùng để tick vào loại phòng, không hiện ở payment để tránh lệch với admin.
         return fwbRepository.findAll().stream()
                 .filter(f -> f != null)
                 .filter(f -> f.getStatus() == null
@@ -233,7 +238,6 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     public Room findFirstAvailableRoomByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate) {
         if (roomTypeId == null) return null;
         LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
-        // Sử dụng repository đã check status = APPROVED
         List<Room> availableRooms = roomRepository.findAvailableRooms(roomTypeId, range[0], range[1]);
         return availableRooms.isEmpty() ? null : availableRooms.get(0);
     }
@@ -242,7 +246,6 @@ public class OrderBookingServiceImpl implements OrderBookingService {
     public long countAvailableRoomsByType(Integer roomTypeId, LocalDate checkinDate, LocalDate checkoutDate) {
         if (roomTypeId == null) return 0L;
         LocalDate[] range = normalizeDateRange(checkinDate, checkoutDate);
-        // Sử dụng repository đã check status = APPROVED
         return roomRepository.findAvailableRooms(roomTypeId, range[0], range[1]).size();
     }
 

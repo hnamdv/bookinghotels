@@ -141,7 +141,31 @@ function markAsPaid(detailId) {
         }
     });
 }
-
+function checkInBooking(detailId){
+    showConfirmPopup({
+        icon: '🔑',
+                iconClass: 'warning',
+                title: 'Xác nhận nhận phòng',
+                message: 'Xác nhận khách đã nhận phòng?',
+                btnText: 'Nhận phòng',
+                btnClass: 'btn-warning-confirm',
+                onConfirm: function(){
+                    API.checkin(detailId)
+                        .then(res => {
+                            if(res.success){
+                                showToast(res.message,"success")
+                                setTimeout(() => location.reload(), 1000);
+                            }else{
+                                showToast(res.message, "error");
+                            }
+                        })
+                        .catch(err => {
+                            console.error('Checkout error:', err);
+                            showToast("Lỗi kết nối!", "error");
+                        });
+                }
+    });
+}
 // ===== HÀM TRẢ PHÒNG =====
 function checkOutBooking(detailId) {
     showConfirmPopup({
