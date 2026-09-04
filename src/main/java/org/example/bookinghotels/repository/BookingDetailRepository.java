@@ -171,16 +171,33 @@ public interface BookingDetailRepository extends JpaRepository<BookingDetail, In
             """)
     List<BookingDetail> findOperationalBookings();
 
-    // ===== ĐẾM SỐ PHÒNG ĐÃ ĐƯỢC ĐẶT THEO LOẠI PHÒNG =====
+    // ===== HOME: ĐẾM PHÒNG ĐANG GIỮ THEO LOGIC QUẢN LÝ ĐƠN =====
+    // PENDING chưa trừ phòng. Sau khi nhân viên Duyệt + gán Room, trạng thái đi qua
+    // APPROVED/CONFIRMED/CHECKED_IN/PAID và vẫn giữ phòng. CHECKED_OUT/CANCELLED
+    // không nằm trong nhóm này nên Home tự cộng phòng lại sau khi trả/hủy.
+    @Query("""
+            SELECT bd.roomType.id, COUNT(DISTINCT bd.room.id)
+            FROM BookingDetail bd
+            WHERE bd.roomType IS NOT NULL
+              AND bd.room IS NOT NULL
+              AND (bd.deleteAt = false OR bd.deleteAt IS NULL)
+              AND bd.status IN ('APPROVED', 'CONFIRMED', 'CHECKED_IN', 'PAID')
+            GROUP BY bd.roomType.id
+            """)
+    List<Object[]> countOccupiedRoomsByRoomTypeActive();
+
+    // Khi khách chọn ngày trên Home, vẫn dùng đúng nhóm trạng thái ở trên nhưng
+    // chỉ trừ những phòng có lịch lưu trú giao với khoảng ngày đang tìm kiếm.
     @Query("""
             SELECT bd.roomType.id, COUNT(DISTINCT bd.room.id)
             FROM BookingDetail bd
             JOIN bd.booking b
             WHERE bd.roomType IS NOT NULL
               AND bd.room IS NOT NULL
+              AND (bd.deleteAt = false OR bd.deleteAt IS NULL)
               AND b.checkinDate < :checkoutDate
               AND b.checkoutDate > :checkinDate
-              AND bd.status = 'APPROVED'
+              AND bd.status IN ('APPROVED', 'CONFIRMED', 'CHECKED_IN', 'PAID')
             GROUP BY bd.roomType.id
             """)
     List<Object[]> countOccupiedRoomsByRoomType(@Param("checkinDate") LocalDate checkinDate,

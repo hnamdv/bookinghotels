@@ -301,23 +301,35 @@ public class HomeController {
     }
 
     private Map<Integer, RoomCount> buildRoomCounts(LocalDate checkin, LocalDate checkout) {
+        // 1) Tổng số phòng vật lý đang hoạt động của từng RoomType.
         Map<Integer, Integer> totalByType = new HashMap<>();
         for (Object[] row : roomRepository.countRoomsGroupByRoomType()) {
-            if (row[0] != null) totalByType.put(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
-        }
-
-        Map<Integer, Integer> occupiedByType = new HashMap<>();
-        if (checkin != null && checkout != null) {
-            for (Object[] row : bookingDetailRepository.countOccupiedRoomsByRoomType(checkin, checkout)) {
-                if (row[0] != null) occupiedByType.put(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
+            if (row[0] != null) {
+                totalByType.put(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
             }
         }
 
+        // 2) Phòng bị trừ trên Home bám đúng vòng đời của "Quản lý đơn đặt phòng":
+        //    PENDING -> chưa trừ; Duyệt + gán phòng -> trừ 1; CHECKED_IN/PAID -> vẫn trừ;
+        //    CHECKED_OUT/CANCELLED -> Repository không đếm nữa nên Home tự cộng lại 1.
+        Map<Integer, Integer> occupiedByType = new HashMap<>();
+        List<Object[]> occupiedRows = (checkin != null && checkout != null)
+                ? bookingDetailRepository.countOccupiedRoomsByRoomType(checkin, checkout)
+                : bookingDetailRepository.countOccupiedRoomsByRoomTypeActive();
+
+        for (Object[] row : occupiedRows) {
+            if (row[0] != null) {
+                occupiedByType.put(((Number) row[0]).intValue(), ((Number) row[1]).intValue());
+            }
+        }
+
+        // 3) Số trên Card Home = tổng phòng vật lý - số phòng đang được giữ.
         Map<Integer, RoomCount> result = new HashMap<>();
         for (Map.Entry<Integer, Integer> entry : totalByType.entrySet()) {
             int total = entry.getValue();
             int occupied = occupiedByType.getOrDefault(entry.getKey(), 0);
-            result.put(entry.getKey(), new RoomCount(total, Math.max(0, total - occupied)));
+            int available = Math.max(0, total - occupied);
+            result.put(entry.getKey(), new RoomCount(total, available));
         }
         return result;
     }

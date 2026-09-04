@@ -1,44 +1,60 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
-<body>
-<th:block th:fragment="header(activePage)">
-    <header class="fhp-header">
-        <div class="fhp-nav-wrap">
-            <a href="/home" class="fhp-brand">
-                <img th:if="${siteLogo != null and !siteLogo.isBlank()}" class="fhp-brand__logo" th:src="${siteLogo}" alt="Logo">
-                <span th:if="${siteLogo == null or siteLogo.isBlank()}" class="fhp-brand__logo">FH</span>
-                <span th:text="${siteName}">FEELHOME HOTEL</span>
-            </a>
-            <nav class="fhp-nav">
-                <a href="/home" th:classappend="${activePage == 'home'} ? ' active' : ''">Trang chủ</a>
-                <a href="/home#rooms-section" th:classappend="${activePage == 'rooms'} ? ' active' : ''">Phòng nghỉ</a>
-                <a href="/offers" th:classappend="${activePage == 'offers'} ? ' active' : ''">Ưu đãi</a>
-                <a href="/booking/lookup" th:class="${activePage == 'lookup'} ? 'active' : ''">Tra cứu đơn</a>
-                <a href="/favorites" th:classappend="${activePage == 'favorites'} ? ' active' : ''">Yêu thích <span class="fhp-nav-badge" id="favoriteNavCount">0</span></a>
-            </nav>
-            <a class="fhp-book" href="/home#rooms-section">Đặt ngay</a>
-        </div>
-    </header>
-</th:block>
-
-<th:block th:fragment="footer()">
-    <footer class="fhp-footer">
-        <div class="fhp-shell fhp-footer__grid">
-            <div>
-                <h3 th:text="${siteName}">FEELHOME HOTEL</h3>
-                <p th:text="${siteWelcomeText}">Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn.</p>
-            </div>
-            <div>
-                <h4>Khám phá</h4>
-                <p><a href="/home">Trang chủ</a><br><a href="/home#rooms-section">Phòng nghỉ</a><br><a href="/offers">Ưu đãi</a></p>
-            </div>
-            <div>
-                <h4>Danh mục nhanh</h4>
-                <p><a href="/favorites">Yêu thích</a><br><a href="/home#gallery-section">Thư viện ảnh</a><br><a href="/home#rooms-section">Đặt phòng</a></p>
-            </div>
-        </div>
-        <div class="fhp-shell fhp-footer__bottom">© 2026 FeelHome Hotel. All rights reserved.</div>
-    </footer>
-</th:block>
-</body>
+    <body>
+        <th:block th:fragment="header(activePage)">
+            <header class="fhp-header">
+                <div class="fhp-nav-wrap">
+                    <a href="/home" class="fhp-brand">
+                        <img th:if="${siteLogo != null and !siteLogo.isBlank()}" class="fhp-brand__logo" th:src="${siteLogo}" alt="Logo">
+                        <span th:if="${siteLogo == null or siteLogo.isBlank()}" class="fhp-brand__logo">FH</span>
+                        <span th:text="${siteName}">FEELHOME HOTEL</span>
+                    </a>
+                    <nav class="fhp-nav">
+                        <a href="/home" th:classappend="${activePage == 'home'} ? ' active' : ''">Trang chủ</a>
+                        <a href="/home#rooms-section" th:classappend="${activePage == 'rooms'} ? ' active' : ''">Phòng nghỉ</a>
+                        <a href="/offers" th:classappend="${activePage == 'offers'} ? ' active' : ''">Ưu đãi</a>
+                        <a href="/booking/lookup" th:class="${activePage == 'lookup'} ? 'active' : ''">Tra cứu đơn</a>
+                        <a href="/favorites" th:classappend="${activePage == 'favorites'} ? ' active' : ''">
+                            Yêu thích
+                            <span class="fhp-nav-badge" id="favoriteNavCount">0</span>
+                        </a>
+                    </nav>
+                    <a class="fhp-book" href="/home#rooms-section">Đặt ngay</a>
+                </div>
+            </header>
+        </th:block>
+        <th:block th:fragment="footer()">
+            <footer class="fhp-footer">
+                <div class="fhp-shell fhp-footer__grid">
+                    <div>
+                        <h3 th:text="${siteName}">FEELHOME HOTEL</h3>
+                        <p th:text="${siteWelcomeText}">Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn.</p>
+                    </div>
+                    <div>
+                        <h4>Khám phá</h4>
+                        <p>
+                            <a href="/home">Trang chủ</a>
+                            <br>
+                            <a href="/home#rooms-section">Phòng nghỉ</a>
+                            <br>
+                            <a href="/offers">Ưu đãi</a>
+                        </p>
+                    </div>
+                    <div>
+                        <h4>Danh mục nhanh</h4>
+                        <p>
+                            <a href="/favorites">Yêu thích</a>
+                            <br>
+                            <a href="/home#gallery-section">Thư viện ảnh</a>
+                            <br>
+                            <a href="/home#rooms-section">Đặt phòng</a>
+                        </p>
+                    </div>
+                </div>
+                <div class="fhp-shell fhp-footer__bottom">
+                    © 2026 FeelHome Hotel. All rights reserved.
+                </div>
+            </footer>
+        </th:block>
+    </body>
 </html>

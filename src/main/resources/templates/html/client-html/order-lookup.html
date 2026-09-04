@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Tra cứu đơn đặt phòng - FeelHome Hotel</title>
+    <title th:text="|Tra cứu đơn đặt phòng - ${siteName != null ? siteName : 'FEELHOME HOTEL'}|">Tra cứu đơn đặt phòng - FeelHome Hotel</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -274,6 +274,7 @@
 <!-- Include Footer chung của FeelHome -->
 <th:block th:replace="~{html/client-html/fragments/public-shell :: footer()}"></th:block>
 
+<script src="/js/client-favorites.js?v=20260823-fav-offer-v1"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', () => {

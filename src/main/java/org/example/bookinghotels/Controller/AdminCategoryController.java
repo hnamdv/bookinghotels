@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/hotels")
-@PreAuthorize("hasAuthority('ROLE_HOTEL')")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminCategoryController {
 
     private final HotelRoomService hotelRoomService;

@@ -3,6 +3,7 @@ package org.example.bookinghotels.Controller;
 import jakarta.servlet.http.HttpSession;
 import org.example.bookinghotels.entity.Booking;
 import org.example.bookinghotels.repository.BookingRepository;
+import org.example.bookinghotels.service.SiteBrandingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,12 +19,18 @@ public class BookingLookupController {
     @Autowired
     private BookingRepository bookingRepository;
 
+    @Autowired
+    private SiteBrandingService brandingService;
+
     @GetMapping("/booking/lookup")
     public String lookupBooking(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String captchaInput,
             HttpSession session,
             Model model) {
+
+        // Dùng chung branding/header với Home, Ưu đãi và Yêu thích.
+        addPublicBranding(model);
 
         // 1. Tạo câu hỏi Captcha mới nếu chưa có trong Session
         Integer num1 = (Integer) session.getAttribute("captchaNum1");
@@ -82,4 +89,15 @@ public class BookingLookupController {
 
         return "html/client-html/order-lookup";
     }
+    private void addPublicBranding(Model model) {
+        String siteName = brandingService.get("site.name", "FEELHOME HOTEL");
+        String siteLogo = brandingService.get("site.logo",
+                brandingService.get("site.circleLogo", brandingService.get("site.headerLogo", "")));
+
+        model.addAttribute("siteName", siteName);
+        model.addAttribute("siteLogo", siteLogo);
+        model.addAttribute("siteWelcomeText", brandingService.get("site.welcomeText",
+                "Kiến tạo những khoảng nghỉ được chăm chút riêng cho bạn"));
+    }
+
 }

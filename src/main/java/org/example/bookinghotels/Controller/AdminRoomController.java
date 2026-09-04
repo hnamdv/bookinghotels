@@ -10,7 +10,6 @@ import org.example.bookinghotels.service.RoomInventoryService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -41,21 +40,14 @@ public class AdminRoomController {
         this.roomInventoryService = roomInventoryService;
     }
 
+    /**
+     * Màn hình quản lý phòng cũ đã được loại khỏi giao diện.
+     * Nghiệp vụ duyệt/gán phòng/trạng thái được tập trung tại Quản lý đơn đặt phòng.
+     * Giữ redirect để bookmark/URL cũ chuyển về màn hình nghiệp vụ hiện tại.
+     */
     @GetMapping
-    public String index(@RequestParam(required = false) Integer editId,
-                        @RequestParam(required = false) Integer roomTypeId, Model model) {
-        Room form = editId == null ? new Room() : roomRepository.findById(editId).orElse(new Room());
-        model.addAttribute("roomForm", form);
-        model.addAttribute("roomTypes", roomTypeRepository.findAll());
-        var roomViews = roomOperationService.buildRoomViews(roomTypeId);
-        model.addAttribute("roomViews", roomViews);
-        model.addAttribute("selectedRoomTypeId", roomTypeId);
-        model.addAttribute("totalRooms", roomRepository.count());
-        model.addAttribute("occupiedCount", roomViews.stream()
-                .filter(v -> List.of("OCCUPIED", "CHECKOUT_TODAY", "CHECKOUT_OVERDUE").contains(v.state())).count());
-        model.addAttribute("availableCount", roomViews.stream()
-                .filter(v -> v.state().startsWith("AVAILABLE")).count());
-        return "html/admin-html/rooms";
+    public String index() {
+        return "redirect:/admin/bookings";
     }
 
     @PostMapping("/save")

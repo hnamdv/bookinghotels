@@ -3,7 +3,6 @@ package org.example.bookinghotels.Controller;
 import lombok.RequiredArgsConstructor;
 import org.example.bookinghotels.repository.InvoicesRepository;
 import org.example.bookinghotels.service.SystemManagementService;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,7 +14,6 @@ import java.time.LocalDate;
 @Controller
 @RequiredArgsConstructor
 @RequestMapping("/admin")
-@PreAuthorize("hasAnyAuthority('ROLE_BOOKING','ROLE_HOTEL','ROLE_ROOM')")
 public class DashboardController {
 
     private final SystemManagementService systemManagementService;
