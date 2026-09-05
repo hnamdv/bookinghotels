@@ -3,7 +3,7 @@
 <head>
     <title>Quản lý tiện ích</title>
     <style>
-        .page-card{background:#fff;border:1px solid #e9e9e9;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
+        .page-card{background:# fff;border:1px solid #e9e9e9;border-radius:16px;padding:24px;box-shadow:0 2px 8px rgba(0,0,0,.03)}
         .form-control,.form-select{border-radius:10px}.brand-btn{background:#bd6c3c;color:#fff;border:0;border-radius:10px;padding:10px 20px}.brand-btn:hover{background:#9d5830;color:#fff}
         .service-thumb{width:72px;height:56px;object-fit:cover;border-radius:10px;border:1px solid #eee;background:#f8f8f8}
         table td,table th{vertical-align:middle}.media-pick{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}.media-item{position:relative;border:1px solid #ddd;border-radius:12px;overflow:hidden;background:#fafafa}.media-item img{width:100%;height:72px;object-fit:cover}.media-item input{position:absolute;top:6px;right:6px}
@@ -49,20 +49,21 @@
         </form>
     </div>
 
+
     <div class="page-card mb-4">
         <div class="section-title"><h5>Tiện ích miễn phí dùng cho loại phòng</h5><span class="pill-count" th:text="|${#lists.size(amenities)} mục|">0 mục</span></div>
-        <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Ảnh</th><th>Tên</th><th>Nhóm</th><th>Giá</th><th>Đơn vị</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead><tbody>
-        <tr th:each="svc:${amenities}"><td><img class="service-thumb" th:src="${svc.image != null and svc.image != '' ? svc.image : '/images/no-image.png'}" onerror="this.src='/images/no-image.png'"></td><td class="fw-semibold" th:text="${svc.name}">Tên</td><td th:text="${svc.category}">Nhóm</td><td><span class="badge badge-free">Miễn phí</span></td><td th:text="${svc.unit}">mục</td><td><span class="badge bg-success">Hiển thị</span></td><td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/staff/fwb/management(editId=${svc.id})}">Sửa</a><form class="d-inline" th:action="@{'/staff/fwb/' + ${svc.id} + '/hide'}" method="post" onsubmit="return confirm('Ẩn mục này?')"><button class="btn btn-sm btn-outline-danger" type="submit">Ẩn</button></form></td></tr>
-        <tr th:if="${#lists.isEmpty(amenities)}"><td colspan="7" class="text-center text-muted py-4">Chưa có tiện ích miễn phí. Hãy tạo Wi-Fi, Sofa, Máy lạnh... với giá 0đ.</td></tr>
-        </tbody></table></div>
+        <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Ảnh</th><th>Tên</th><th>Nhóm</th><th>Giá</th><th>Đơn vị</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead><tbody><tr th:each="svc:${amenities}"><td><img class="service-thumb" th:src="${svc.image != null and svc.image != '' ? svc.image : '/images/no-image.png'}" onerror="this.src='/images/no-image.png'"></td><td class="fw-semibold" th:text="${svc.name}">Tên</td><td th:text="${svc.category}">Nhóm</td><td><span class="badge badge-free">Miễn phí</span></td><td th:text="${svc.unit}">mục</td><td><th:block th:if="${svc.status == 'hidden'}"><span class="badge bg-secondary">Đã ẩn</span></th:block><th:block th:unless="${svc.status == 'hidden'}"><span class="badge bg-success">Đang hiện</span></th:block></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/staff/fwb/management(editId=${svc.id})}">Sửa</a><th:block th:if="${svc.status == 'hidden'}"><form class="d-inline" th:action="@{'/staff/fwb/' + ${svc.id} + '/show'}" method="post"><button class="btn btn-sm btn-outline-success" type="submit">Hiện</button></form></th:block><th:block th:unless="${svc.status == 'hidden'}"><form class="d-inline" th:action="@{'/staff/fwb/' + ${svc.id} + '/hide'}" method="post" onsubmit="return confirm('Ẩn khỏi trang Order?')"><button class="btn btn-sm btn-outline-danger" type="submit">Ẩn</button></form></th:block></td></tr><tr th:if="${#lists.isEmpty(amenities)}"><td colspan="7" class="text-center text-muted py-4">Chưa có tiện ích miễn phí. Hãy tạo Wi-Fi, Sofa, Máy lạnh... với giá 0đ.</td></tr></tbody></table>
+        </div>
     </div>
+
 
     <div class="page-card">
         <div class="section-title"><h5>Dịch vụ / phụ thu tính phí dùng ở thanh toán/POS</h5><span class="pill-count" th:text="|${#lists.size(chargeableServices)} mục|">0 mục</span></div>
-        <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Ảnh</th><th>Tên</th><th>Nhóm</th><th>Giá</th><th>Đơn vị</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead><tbody>
-        <tr th:each="svc:${chargeableServices}"><td><img class="service-thumb" th:src="${svc.image != null and svc.image != '' ? svc.image : '/images/no-image.png'}" onerror="this.src='/images/no-image.png'"></td><td class="fw-semibold" th:text="${svc.name}">Tên</td><td th:text="${svc.category}">Nhóm</td><td class="fw-semibold"><span class="badge badge-paid" th:text="${#numbers.formatDecimal(svc.price,0,'COMMA',0,'POINT')} + ' đ'"></span></td><td th:text="${svc.unit}">lượt</td><td><span class="badge bg-success">Hiển thị</span></td><td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/staff/fwb/management(editId=${svc.id})}">Sửa</a><form class="d-inline" th:action="@{'/staff/fwb/' + ${svc.id} + '/hide'}" method="post" onsubmit="return confirm('Ẩn mục này?')"><button class="btn btn-sm btn-outline-danger" type="submit">Ẩn</button></form></td></tr>
-        <tr th:if="${#lists.isEmpty(chargeableServices)}"><td colspan="7" class="text-center text-muted py-4">Chưa có phụ thu/dịch vụ có giá. Hãy tạo Nôi trẻ em, Giường phụ, Ăn sáng... với giá lớn hơn 0đ.</td></tr>
-        </tbody></table></div>
+        <div class="table-responsive"><table class="table align-middle"><thead><tr><th>Ảnh</th><th>Tên</th><th>Nhóm</th><th>Giá</th><th>Đơn vị</th><th>Trạng thái</th><th class="text-end">Thao tác</th></tr></thead><tbody><tr th:each="svc:${chargeableServices}"><td><img class="service-thumb" th:src="${svc.image != null and svc.image != '' ? svc.image : '/images/no-image.png'}" onerror="this.src='/images/no-image.png'"></td><td class="fw-semibold" th:text="${svc.name}">Tên</td><td th:text="${svc.category}">Nhóm</td><td class="fw-semibold"><span class="badge badge-paid" th:text="${#numbers.formatDecimal(svc.price,0,'COMMA',0,'POINT')} + ' đ'"></span></td><td th:text="${svc.unit}">lượt</td><td><th:block th:if="${svc.status == 'hidden'}"><span class="badge bg-secondary">Đã ẩn</span></th:block><th:block th:unless="${svc.status == 'hidden'}"><span class="badge bg-success">Đang hiện</span></th:block></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/staff/fwb/management(editId=${svc.id})}">Sửa</a><th:block th:if="${svc.status == 'hidden'}"><form class="d-inline" th:action="@{'/staff/fwb/' + ${svc.id} + '/show'}" method="post"><button class="btn btn-sm btn-outline-success" type="submit">Hiện</button></form></th:block><th:block th:unless="${svc.status == 'hidden'}"><form class="d-inline" th:action="@{'/staff/fwb/' + ${svc.id} + '/hide'}" method="post" onsubmit="return confirm('Ẩn khỏi trang Order?')"><button class="btn btn-sm btn-outline-danger" type="submit">Ẩn</button></form></th:block></td></tr><tr th:if="${#lists.isEmpty(chargeableServices)}"><td colspan="7" class="text-center text-muted py-4">Chưa có phụ thu/dịch vụ có giá. Hãy tạo Nôi trẻ em, Giường phụ, Ăn sáng... với giá lớn hơn 0đ.</td></tr></tbody>
+            </table>
+        </div>
     </div>
 </div>
 </body>
