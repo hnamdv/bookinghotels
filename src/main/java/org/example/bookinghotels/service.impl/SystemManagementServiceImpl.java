@@ -321,6 +321,7 @@ public class SystemManagementServiceImpl implements SystemManagementService {
         promotion.setStartTime(startTime);
         promotion.setEndTime(endTime);
 
+        // Kiểm tra cả ngày và giờ
         if (promotion.getStartDate() != null) {
 
             LocalDateTime startsAt =

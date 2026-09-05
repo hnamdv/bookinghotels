@@ -79,7 +79,7 @@ public class AdminRoomTypeController {
     }
 
     @PostMapping("/save")
-    public String save(@RequestParam(required = false) Integer id,
+        public String save(@RequestParam(required = false) Integer id,
                        @RequestParam String nameType,
                        @RequestParam Double price,
                        @RequestParam Integer capacity,
