@@ -16,7 +16,7 @@
                         <a href="/booking/lookup" th:class="${activePage == 'lookup'} ? 'active' : ''">Tra cứu đơn</a>
                         <a href="/favorites" th:classappend="${activePage == 'favorites'} ? ' active' : ''">
                             Yêu thích
-                            <span class="fhp-nav-badge" id="favoriteNavCount">0</span>
+                            <span class="fhp-nav-badge" th:text="${favoriteCount}">0</span>
                         </a>
                     </nav>
                     <a class="fhp-book" href="/home#rooms-section">Đặt ngay</a>

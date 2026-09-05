@@ -10,6 +10,6 @@ public interface RoomTypeService {
     RoomType createRoomType(RoomType roomType);
     RoomType updateRoomType(Integer id, RoomType roomTypeDetails);
     void deleteRoomType(Integer id);
-    // Hàm upload ảnh cho Loại phòng
+    // Hàm upload ảnh cho Loại phòng (Đã nén chống lag ngầm)
     String uploadRoomTypeImage(Integer roomTypeId, MultipartFile file) throws IOException;
 }

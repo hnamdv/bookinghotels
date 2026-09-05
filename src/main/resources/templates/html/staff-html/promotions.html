@@ -1,1022 +1,230 @@
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{homeadmin}">
 <head>
     <title>Quản lý khuyến mãi - FeelHome Luxury</title>
-
     <style>
-        :root {
-            --brand-gold: #9d5a37;
-        }
+        /* Tùy chỉnh màu sắc thương hiệu */
+        :root { --brand-gold: #9d5a37; }
+        .card { border: none; border-radius: 1rem; box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075); }
+        .btn-gold { background-color: var(--brand-gold); color: white; border-radius: 0.75rem; transition: 0.3s; }
+        .btn-gold:hover { background-color: #7a462b; color: white; }
+        .table thead { background-color: #f8f9fa; }
+        .form-control { border-radius: 0.75rem; border: 1px solid #dee2e6; padding: 0.6rem 1rem; }
+        .form-control:focus { border-color: var(--brand-gold); box-shadow: 0 0 0 0.25rem rgba(157, 90, 55, 0.25); }
+        .table td { vertical-align: middle; }
+        .time-control { background:#fffaf6; border:1px solid #ead8cd; border-radius:1rem; padding:1rem; }
+        .time-control__top { display:flex; align-items:center; gap:.75rem; margin-bottom:.9rem; flex-wrap:wrap; }
+        .time-editor { display:flex; align-items:center; gap:.45rem; padding:.45rem .55rem; background:#fff; border:1px solid #dfe3e8; border-radius:1rem; box-shadow:0 4px 18px rgba(23,34,53,.06); }
+        .time-part { width:72px; height:48px; border:0; outline:0; text-align:center; font-size:1.15rem; font-weight:800; color:#172235; background:transparent; border-radius:.7rem; }
+        .time-part:focus { background:#f3f6fa; box-shadow:inset 0 0 0 2px rgba(157,90,55,.28); }
+        .time-separator { font-size:1.35rem; font-weight:900; color:#657081; }
+        .ampm-select { height:48px; min-width:86px; border:0; outline:0; border-radius:.8rem; padding:0 .85rem; background:#172235; color:#fff; font-weight:800; cursor:pointer; appearance:auto; }
+        .ampm-select:focus { box-shadow:0 0 0 3px rgba(157,90,55,.25); }
+        .time-badge { min-width:94px; text-align:center; background:#172235; color:#fff; border-radius:999px; padding:.65rem 1rem; font-weight:800; font-size:1.05rem; }
+        .time-slider { width:100%; accent-color:var(--brand-gold); cursor:pointer; pointer-events:auto; position:relative; z-index:2; }
+        .time-marks { display:flex; justify-content:space-between; font-size:.72rem; color:#7b8794; margin-top:.35rem; }
+        @media (max-width:576px){ .time-editor{width:100%; justify-content:center}.time-badge{width:100%} }
 
-        .card {
-            border: none;
-            border-radius: 1rem;
-            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.075);
-        }
-
-        .btn-gold {
-            background-color: var(--brand-gold);
-            color: white;
-            border-radius: 0.75rem;
-            transition: 0.3s;
-        }
-
-        .btn-gold:hover {
-            background-color: #7a462b;
-            color: white;
-        }
-
-        .table thead {
-            background-color: #f8f9fa;
-        }
-
-        .form-control {
-            border-radius: 0.75rem;
-            border: 1px solid #dee2e6;
-            padding: 0.6rem 1rem;
-        }
-
-        .form-control:focus {
-            border-color: var(--brand-gold);
-            box-shadow: 0 0 0 0.25rem rgba(157, 90, 55, 0.25);
-        }
-
-        .table td {
-            vertical-align: middle;
-        }
-
-        .time-control {
-            background: #fffaf6;
-            border: 1px solid #ead8cd;
-            border-radius: 1rem;
-            padding: 1rem;
-        }
-
-        .time-control__top {
-            display: flex;
-            align-items: center;
-            gap: .75rem;
-            margin-bottom: .9rem;
-            flex-wrap: wrap;
-        }
-
-        .time-editor {
-            display: flex;
-            align-items: center;
-            gap: .45rem;
-            padding: .45rem .55rem;
-            background: #fff;
-            border: 1px solid #dfe3e8;
-            border-radius: 1rem;
-            box-shadow: 0 4px 18px rgba(23,34,53,.06);
-        }
-
-        .time-part {
-            width: 72px;
-            height: 48px;
-            border: 0;
-            outline: 0;
-            text-align: center;
-            font-size: 1.15rem;
-            font-weight: 800;
-            color: #172235;
-            background: transparent;
-            border-radius: .7rem;
-        }
-
-        .time-part:focus {
-            background: #f3f6fa;
-            box-shadow: inset 0 0 0 2px rgba(157,90,55,.28);
-        }
-
-        .time-separator {
-            font-size: 1.35rem;
-            font-weight: 900;
-            color: #657081;
-        }
-
-        .ampm-select {
-            height: 48px;
-            min-width: 86px;
-            border: 0;
-            outline: 0;
-            border-radius: .8rem;
-            padding: 0 .85rem;
-            background: #172235;
-            color: #fff;
-            font-weight: 800;
-            cursor: pointer;
-            appearance: auto;
-        }
-
-        .ampm-select:focus {
-            box-shadow: 0 0 0 3px rgba(157,90,55,.25);
-        }
-
-        .time-badge {
-            min-width: 94px;
-            text-align: center;
-            background: #172235;
-            color: #fff;
-            border-radius: 999px;
-            padding: .65rem 1rem;
-            font-weight: 800;
-            font-size: 1.05rem;
-        }
-
-        .time-slider {
-            width: 100%;
-            accent-color: var(--brand-gold);
-            cursor: pointer;
-            pointer-events: auto;
-            position: relative;
-            z-index: 2;
-        }
-
-        .time-marks {
-            display: flex;
-            justify-content: space-between;
-            font-size: .72rem;
-            color: #7b8794;
-            margin-top: .35rem;
-        }
-
-        /* Thông báo lỗi thời gian */
-        #timeError {
-            border-radius: .75rem;
-            font-weight: 600;
-        }
-
-        @media (max-width:576px) {
-            .time-editor {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .time-badge {
-                width: 100%;
-            }
-        }
     </style>
 </head>
-
 <body>
 
 <div layout:fragment="content" class="container-fluid py-4">
-
-    <!-- HEADER -->
     <div class="mb-4">
         <h1 class="h3 fw-bold text-dark">Quản lý Khuyến mãi</h1>
-        <p class="text-muted">
-            Tạo và quản lý các chiến dịch ưu đãi cho hệ thống phòng FeelHome.
-        </p>
+        <p class="text-muted">Tạo và quản lý các chiến dịch ưu đãi cho hệ thống phòng FeelHome.</p>
     </div>
 
-    <!-- FORM -->
     <div class="card p-4 mb-4">
+        <h5 class="fw-bold mb-4" th:text="${promotion.id == null ? 'Thiết lập chiến dịch mới' : 'Cập nhật chiến dịch'}"></h5>
 
-        <h5 class="fw-bold mb-4"
-            th:text="${promotion.id == null
-                ? 'Thiết lập chiến dịch mới'
-                : 'Cập nhật chiến dịch'}">
-        </h5>
-
-        <form id="promotionForm"
-              th:action="@{/staff/promotions/save}"
-              th:object="${promotion}"
-              method="post">
-
+        <form th:action="@{/staff/promotions/save}" th:object="${promotion}" method="post">
             <input type="hidden" th:field="*{id}" />
-
             <div class="row g-3">
-
-                <!-- TÊN CHƯƠNG TRÌNH -->
                 <div class="col-md-6">
-                    <label class="form-label small fw-bold text-uppercase text-muted">
-                        Tên chương trình *
-                    </label>
-
-                    <input type="text"
-                           th:field="*{promotionName}"
-                           required
-                           class="form-control" />
+                    <label class="form-label small fw-bold text-uppercase text-muted">Tên chương trình *</label>
+                    <input type="text" th:field="*{promotionName}" required class="form-control" />
                 </div>
-
-                <!-- MỨC GIẢM -->
                 <div class="col-md-6">
-                    <label class="form-label small fw-bold text-uppercase text-muted">
-                        Mức giảm giá (%)
-                    </label>
-
-                    <input type="number"
-                           th:field="*{discountPercent}"
-                           min="0"
-                           max="100"
-                           class="form-control" />
+                    <label class="form-label small fw-bold text-uppercase text-muted">Mức giảm giá (%)</label>
+                    <input type="number" th:field="*{discountPercent}" min="0" max="100" class="form-control" />
                 </div>
-
-                <!-- NGÀY BẮT ĐẦU -->
                 <div class="col-md-6">
-
-                    <label class="form-label small fw-bold text-uppercase text-muted">
-                        Ngày bắt đầu
-                    </label>
-
-                    <input type="date"
-                           id="startDate"
-                           th:field="*{startDate}"
-                           class="form-control" />
-
+                    <label class="form-label small fw-bold text-uppercase text-muted">Ngày bắt đầu</label>
+                    <input type="date" th:field="*{startDate}" class="form-control" />
                     <div class="time-control mt-2">
-
                         <div class="time-control__top">
-
-                            <input type="hidden"
-                                   id="startTime"
-                                   th:field="*{startTime}" />
-
-                            <div class="time-editor"
-                                 aria-label="Chọn giờ bắt đầu">
-
-                                <input type="number"
-                                       id="startHour"
-                                       class="time-part"
-                                       min="1"
-                                       max="12"
-                                       value="12"
-                                       inputmode="numeric"
-                                       aria-label="Giờ bắt đầu" />
-
+                            <input type="hidden" id="startTime" th:field="*{startTime}" />
+                            <div class="time-editor" aria-label="Chọn giờ bắt đầu">
+                                <input type="number" id="startHour" class="time-part" min="1" max="12" value="12" inputmode="numeric" aria-label="Giờ bắt đầu" />
                                 <span class="time-separator">:</span>
-
-                                <input type="number"
-                                       id="startMinute"
-                                       class="time-part"
-                                       min="0"
-                                       max="59"
-                                       value="0"
-                                       inputmode="numeric"
-                                       aria-label="Phút bắt đầu" />
-
-                                <select id="startPeriod"
-                                        class="ampm-select"
-                                        aria-label="AM hoặc PM">
-
+                                <input type="number" id="startMinute" class="time-part" min="0" max="59" value="0" inputmode="numeric" aria-label="Phút bắt đầu" />
+                                <select id="startPeriod" class="ampm-select" aria-label="AM hoặc PM">
                                     <option value="AM">AM</option>
                                     <option value="PM">PM</option>
-
                                 </select>
-
                             </div>
-
-                            <span class="time-badge"
-                                  id="startTimeOutput">
-                                12:00 AM
-                            </span>
-
+                            <span class="time-badge" id="startTimeOutput">12:00 AM</span>
                         </div>
-
-                        <input type="range"
-                               id="startTimeRange"
-                               class="time-slider"
-                               min="0"
-                               max="1439"
-                               step="1"
-                               value="0" />
-
-                        <div class="time-marks">
-                            <span>00:00</span>
-                            <span>06:00</span>
-                            <span>12:00</span>
-                            <span>18:00</span>
-                            <span>23:59</span>
-                        </div>
-
+                        <input type="range" id="startTimeRange" class="time-slider" min="0" max="1439" step="1" value="0" />
+                        <div class="time-marks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:59</span></div>
                     </div>
                 </div>
-
-                <!-- NGÀY KẾT THÚC -->
                 <div class="col-md-6">
-
-                    <label class="form-label small fw-bold text-uppercase text-muted">
-                        Ngày kết thúc *
-                    </label>
-
-                    <input type="date"
-                           id="endDate"
-                           th:field="*{endDate}"
-                           required
-                           class="form-control" />
-
+                    <label class="form-label small fw-bold text-uppercase text-muted">Ngày kết thúc *</label>
+                    <input type="date" th:field="*{endDate}" required class="form-control" />
                     <div class="time-control mt-2">
-
                         <div class="time-control__top">
-
-                            <input type="hidden"
-                                   id="endTime"
-                                   th:field="*{endTime}" />
-
-                            <div class="time-editor"
-                                 aria-label="Chọn giờ kết thúc">
-
-                                <input type="number"
-                                       id="endHour"
-                                       class="time-part"
-                                       min="1"
-                                       max="12"
-                                       value="11"
-                                       inputmode="numeric"
-                                       aria-label="Giờ kết thúc" />
-
+                            <input type="hidden" id="endTime" th:field="*{endTime}" />
+                            <div class="time-editor" aria-label="Chọn giờ kết thúc">
+                                <input type="number" id="endHour" class="time-part" min="1" max="12" value="11" inputmode="numeric" aria-label="Giờ kết thúc" />
                                 <span class="time-separator">:</span>
-
-                                <input type="number"
-                                       id="endMinute"
-                                       class="time-part"
-                                       min="0"
-                                       max="59"
-                                       value="59"
-                                       inputmode="numeric"
-                                       aria-label="Phút kết thúc" />
-
-                                <select id="endPeriod"
-                                        class="ampm-select"
-                                        aria-label="AM hoặc PM">
-
+                                <input type="number" id="endMinute" class="time-part" min="0" max="59" value="59" inputmode="numeric" aria-label="Phút kết thúc" />
+                                <select id="endPeriod" class="ampm-select" aria-label="AM hoặc PM">
                                     <option value="AM">AM</option>
                                     <option value="PM" selected>PM</option>
-
                                 </select>
-
                             </div>
-
-                            <span class="time-badge"
-                                  id="endTimeOutput">
-                                11:59 PM
-                            </span>
-
+                            <span class="time-badge" id="endTimeOutput">11:59 PM</span>
                         </div>
-
-                        <input type="range"
-                               id="endTimeRange"
-                               class="time-slider"
-                               min="0"
-                               max="1439"
-                               step="1"
-                               value="1439" />
-
-                        <div class="time-marks">
-                            <span>00:00</span>
-                            <span>06:00</span>
-                            <span>12:00</span>
-                            <span>18:00</span>
-                            <span>23:59</span>
-                        </div>
-
+                        <input type="range" id="endTimeRange" class="time-slider" min="0" max="1439" step="1" value="1439" />
+                        <div class="time-marks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>23:59</span></div>
                     </div>
-
-                    <!-- THÔNG BÁO LỖI -->
-                    <div id="timeError"
-                         class="alert alert-danger mt-3 d-none"
-                         role="alert">
-
-                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
-
-                        Thời gian kết thúc phải sau thời gian bắt đầu
-
-                    </div>
-
                 </div>
-
-                <!-- MÔ TẢ -->
                 <div class="col-12">
-
-                    <label class="form-label small fw-bold text-uppercase text-muted">
-                        Nội dung chi tiết
-                    </label>
-
-                    <textarea th:field="*{description}"
-                              rows="2"
-                              class="form-control">
-                    </textarea>
-
+                    <label class="form-label small fw-bold text-uppercase text-muted">Nội dung chi tiết</label>
+                    <textarea th:field="*{description}" rows="2" class="form-control"></textarea>
                 </div>
-
             </div>
 
-            <!-- BUTTON -->
             <div class="mt-4">
-
-                <button type="submit"
-                        class="btn btn-gold px-4 py-2 me-2">
-
-                    <span th:text="${promotion.id == null
-                        ? 'Lưu chương trình'
-                        : 'Cập nhật thay đổi'}">
-                    </span>
-
+                <button type="submit" class="btn btn-gold px-4 py-2 me-2">
+                    <span th:text="${promotion.id == null ? 'Lưu chương trình' : 'Cập nhật thay đổi'}"></span>
                 </button>
-
-                <a href="/staff/promotions"
-                   class="btn btn-outline-secondary px-4 py-2 rounded-3">
-                    Làm mới form
-                </a>
-
+                <a href="/staff/promotions" class="btn btn-outline-secondary px-4 py-2 rounded-3">Làm mới form</a>
             </div>
-
         </form>
     </div>
 
-    <!-- DANH SÁCH KHUYẾN MÃI -->
     <div class="card p-0 overflow-hidden">
-
-        <div class="card-header bg-white border-0 p-4 pb-0
-                    d-flex justify-content-between align-items-center">
-
-            <h5 class="fw-bold m-0">
-                Danh sách chiến dịch
-            </h5>
-
+        <div class="card-header bg-white border-0 p-4 pb-0 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold m-0">Danh sách chiến dịch</h5>
             <span class="badge bg-light text-dark border"
-                  th:text="|${promotions != null
-                    ? #lists.size(promotions)
-                    : 0} chiến dịch|">
-            </span>
-
+                  th:text="|${promotions != null ? #lists.size(promotions) : 0} chiến dịch|"></span>
         </div>
-
         <div class="card-body p-4">
-
             <div class="table-responsive">
-
                 <table class="table table-hover align-middle">
-
                     <thead>
-
                     <tr class="text-uppercase small text-muted">
-
                         <th>ID</th>
                         <th>Tên CT</th>
                         <th>Giảm giá</th>
                         <th>Thời gian</th>
                         <th class="text-end">Thao tác</th>
-
                     </tr>
-
                     </thead>
-
                     <tbody>
-
                     <tr th:each="item : ${promotions}">
-
-                        <td class="text-muted fw-bold"
-                            th:text="|#${item.id}|">
-                        </td>
-
-                        <td class="fw-bold text-dark"
-                            th:text="${item.promotionName}">
-                        </td>
-
-                        <td>
-
-                            <span class="badge bg-success-subtle text-success p-2 px-3"
-                                  th:text="|${item.discountPercent}%|">
-                            </span>
-
-                        </td>
-
-                        <td class="text-muted small"
-                            th:text="|${item.startDate}
-                            ${item.startTime != null
-                                ? item.startTime
-                                : '00:00'}
-                            đến
-                            ${item.endDate}
-                            ${item.endTime != null
-                                ? item.endTime
-                                : '23:59'}|">
-                        </td>
-
+                        <td class="text-muted fw-bold" th:text="|#${item.id}|"></td>
+                        <td class="fw-bold text-dark" th:text="${item.promotionName}"></td>
+                        <td><span class="badge bg-success-subtle text-success p-2 px-3" th:text="|${item.discountPercent}%|"></span></td>
+                        <td class="text-muted small" th:text="|${item.startDate} ${item.startTime != null ? item.startTime : '00:00'} đến ${item.endDate} ${item.endTime != null ? item.endTime : '23:59'}|"></td>
                         <td class="text-end">
-
-                            <a th:href="@{/staff/promotions/edit/{id}(id=${item.id})}"
-                               class="btn btn-sm btn-outline-primary border-0 me-2">
-
-                                <i class="fa-solid fa-pencil"></i>
-
-                            </a>
-
-                            <a th:href="@{/staff/promotions/delete/{id}(id=${item.id})}"
-                               onclick="return confirm('Xóa chiến dịch này?')"
-                               class="btn btn-sm btn-outline-danger border-0">
-
-                                <i class="fa-solid fa-trash"></i>
-
-                            </a>
-
+                            <a th:href="@{/staff/promotions/edit/{id}(id=${item.id})}" class="btn btn-sm btn-outline-primary border-0 me-2"><i class="fa-solid fa-pencil"></i></a>
+                            <a th:href="@{/staff/promotions/delete/{id}(id=${item.id})}" onclick="return confirm('Xóa chiến dịch này?')" class="btn btn-sm btn-outline-danger border-0"><i class="fa-solid fa-trash"></i></a>
                         </td>
-
                     </tr>
-
                     </tbody>
-
                 </table>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 
-<!-- JAVASCRIPT -->
+
 <th:block layout:fragment="script">
-
-    <script>
-
-        document.addEventListener('DOMContentLoaded', function () {
-
-            (function () {
-
-                const clamp = (n, min, max) =>
-                    Math.min(
-                        max,
-                        Math.max(
-                            min,
-                            Number.isFinite(n) ? n : min
-                        )
-                    );
-
-                const pad = n =>
-                    String(n).padStart(2, '0');
-
-
-                /* =========================
-                   ĐỔI PHÚT → HH:mm
-                   ========================= */
-
-                function minutesTo24(total) {
-
-                    total = clamp(
-                        Number(total),
-                        0,
-                        1439
-                    );
-
-                    return pad(Math.floor(total / 60))
-                        + ':'
-                        + pad(total % 60);
-                }
-
-
-                /* =========================
-                   ĐỔI PHÚT → 12 GIỜ
-                   ========================= */
-
-                function minutesTo12(total) {
-
-                    total = clamp(
-                        Number(total),
-                        0,
-                        1439
-                    );
-
-                    const h24 = Math.floor(total / 60);
-                    const minute = total % 60;
-
-                    const period =
-                        h24 >= 12 ? 'PM' : 'AM';
-
-                    const hour =
-                        h24 % 12 === 0
-                            ? 12
-                            : h24 % 12;
-
-                    return {
-                        hour,
-                        minute,
-                        period,
-                        label:
-                            `${pad(hour)}:${pad(minute)} ${period}`
-                    };
-                }
-
-
-                /* =========================
-                   HH:mm → SỐ PHÚT
-                   ========================= */
-
-                function time24ToMinutes(value, fallback) {
-
-                    if (
-                        !value ||
-                        !/^\d{1,2}:\d{2}/.test(value)
-                    ) {
-                        return fallback;
-                    }
-
-                    const [h, m] =
-                        value
-                            .substring(0, 5)
-                            .split(':')
-                            .map(Number);
-
-                    return clamp(h, 0, 23) * 60
-                        + clamp(m, 0, 59);
-                }
-
-
-                /* =========================
-                   XỬ LÝ TIME PICKER
-                   ========================= */
-
-                function bind(prefix, defaultMinutes) {
-
-                    const hidden =
-                        document.getElementById(prefix + 'Time');
-
-                    const range =
-                        document.getElementById(prefix + 'TimeRange');
-
-                    const output =
-                        document.getElementById(prefix + 'TimeOutput');
-
-                    const hour =
-                        document.getElementById(prefix + 'Hour');
-
-                    const minute =
-                        document.getElementById(prefix + 'Minute');
-
-                    const period =
-                        document.getElementById(prefix + 'Period');
-
-
-                    if (
-                        !hidden ||
-                        !range ||
-                        !output ||
-                        !hour ||
-                        !minute ||
-                        !period
-                    ) {
-                        return;
-                    }
-
-
-                    let current =
-                        time24ToMinutes(
-                            hidden.value,
-                            defaultMinutes
-                        );
-
-
-                    function render(
-                        total,
-                        updateHidden = true
-                    ) {
-
-                        current =
-                            clamp(
-                                Number(total),
-                                0,
-                                1439
-                            );
-
-                        const t =
-                            minutesTo12(current);
-
-
-                        range.value =
-                            String(current);
-
-                        hour.value =
-                            String(t.hour);
-
-                        minute.value =
-                            pad(t.minute);
-
-                        period.value =
-                            t.period;
-
-                        output.textContent =
-                            t.label;
-
-
-                        if (updateHidden) {
-
-                            hidden.value =
-                                minutesTo24(current);
-
-                        }
-
-                        /*
-                         * Sau khi thay đổi giờ
-                         * thì kiểm tra lại thời gian.
-                         */
-                        validatePromotionTime();
-                    }
-
-
-                    function fromParts() {
-
-                        let h =
-                            clamp(
-                                parseInt(
-                                    hour.value || '12',
-                                    10
-                                ),
-                                1,
-                                12
-                            );
-
-                        let m =
-                            clamp(
-                                parseInt(
-                                    minute.value || '0',
-                                    10
-                                ),
-                                0,
-                                59
-                            );
-
-
-                        hour.value =
-                            String(h);
-
-                        minute.value =
-                            pad(m);
-
-
-                        let h24 =
-                            h % 12;
-
-                        if (
-                            period.value === 'PM'
-                        ) {
-                            h24 += 12;
-                        }
-
-
-                        render(
-                            h24 * 60 + m
-                        );
-                    }
-
-
-                    range.addEventListener(
-                        'input',
-                        () =>
-                            render(
-                                Number(range.value)
-                            )
-                    );
-
-                    range.addEventListener(
-                        'change',
-                        () =>
-                            render(
-                                Number(range.value)
-                            )
-                    );
-
-
-                    [hour, minute].forEach(
-                        el => {
-
-                            el.addEventListener(
-                                'input',
-                                fromParts
-                            );
-
-                            el.addEventListener(
-                                'change',
-                                fromParts
-                            );
-
-                            el.addEventListener(
-                                'blur',
-                                fromParts
-                            );
-
-                            el.addEventListener(
-                                'keydown',
-                                e => {
-
-                                    if (
-                                        e.key === 'ArrowUp' ||
-                                        e.key === 'ArrowDown'
-                                    ) {
-
-                                        setTimeout(
-                                            fromParts,
-                                            0
-                                        );
-
-                                    }
-
-                                }
-                            );
-
-                        }
-                    );
-
-
-                    period.addEventListener(
-                        'change',
-                        fromParts
-                    );
-
-
-                    render(current);
-                }
-
-
-                /* =========================
-                   KIỂM TRA THỜI GIAN
-                   ========================= */
-
-                const form =
-                    document.getElementById(
-                        'promotionForm'
-                    );
-
-                const timeError =
-                    document.getElementById(
-                        'timeError'
-                    );
-
-                const startDate =
-                    document.getElementById(
-                        'startDate'
-                    );
-
-                const endDate =
-                    document.getElementById(
-                        'endDate'
-                    );
-
-                const startTime =
-                    document.getElementById(
-                        'startTime'
-                    );
-
-                const endTime =
-                    document.getElementById(
-                        'endTime'
-                    );
-
-
-                function validatePromotionTime() {
-
-                    /*
-                     * Nếu chưa nhập đủ ngày
-                     * thì chưa kiểm tra.
-                     */
-
-                    if (
-                        !startDate ||
-                        !endDate ||
-                        !startDate.value ||
-                        !endDate.value
-                    ) {
-
-                        timeError.classList.add(
-                            'd-none'
-                        );
-
-                        return true;
-                    }
-
-
-                    const startDateTime =
-                        new Date(
-                            `${startDate.value}T${
-                                startTime.value || '00:00'
-                            }`
-                        );
-
-
-                    const endDateTime =
-                        new Date(
-                            `${endDate.value}T${
-                                endTime.value || '23:59'
-                            }`
-                        );
-
-
-                    /*
-                     * Nếu thời gian kết thúc
-                     * <= thời gian bắt đầu
-                     * thì báo lỗi.
-                     */
-
-                    if (
-                        endDateTime <= startDateTime
-                    ) {
-
-                        timeError.classList.remove(
-                            'd-none'
-                        );
-
-                        return false;
-                    }
-
-
-                    /*
-                     * Nếu hợp lệ thì ẩn lỗi.
-                     */
-
-                    timeError.classList.add(
-                        'd-none'
-                    );
-
-                    return true;
-                }
-
-
-                /* =========================
-                   KIỂM TRA KHI ĐỔI NGÀY
-                   ========================= */
-
-                startDate.addEventListener(
-                    'change',
-                    validatePromotionTime
-                );
-
-                endDate.addEventListener(
-                    'change',
-                    validatePromotionTime
-                );
-
-
-                /* =========================
-                   KIỂM TRA KHI ĐỔI GIỜ
-                   ========================= */
-
-                startTime.addEventListener(
-                    'change',
-                    validatePromotionTime
-                );
-
-                endTime.addEventListener(
-                    'change',
-                    validatePromotionTime
-                );
-
-
-                /* =========================
-                   KIỂM TRA KHI BẤM LƯU
-                   ========================= */
-
-                form.addEventListener(
-                    'submit',
-                    function (event) {
-
-                        if (
-                            !validatePromotionTime()
-                        ) {
-
-                            /*
-                             * Không cho gửi form
-                             */
-                            event.preventDefault();
-
-
-                            /*
-                             * Cuộn tới thông báo
-                             */
-                            timeError.scrollIntoView({
-                                behavior: 'smooth',
-                                block: 'center'
-                            });
-
-                        }
-
-                    }
-                );
-
-
-                /* =========================
-                   KHỞI TẠO TIME PICKER
-                   ========================= */
-
-                bind('start', 0);
-
-                bind('end', 1439);
-
-            })();
-
-        });
-
-    </script>
-
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+(function(){
+  const clamp=(n,min,max)=>Math.min(max,Math.max(min,Number.isFinite(n)?n:min));
+  const pad=n=>String(n).padStart(2,'0');
+
+  function minutesTo24(total){
+    total=clamp(Number(total),0,1439);
+    return pad(Math.floor(total/60))+':'+pad(total%60);
+  }
+
+  function minutesTo12(total){
+    total=clamp(Number(total),0,1439);
+    const h24=Math.floor(total/60), minute=total%60;
+    const period=h24>=12?'PM':'AM';
+    const hour=h24%12===0?12:h24%12;
+    return {hour, minute, period, label:`${pad(hour)}:${pad(minute)} ${period}`};
+  }
+
+  function time24ToMinutes(value, fallback){
+    if(!value || !/^\d{1,2}:\d{2}/.test(value)) return fallback;
+    const [h,m]=value.substring(0,5).split(':').map(Number);
+    return clamp(h,0,23)*60+clamp(m,0,59);
+  }
+
+  function bind(prefix, defaultMinutes){
+    const hidden=document.getElementById(prefix+'Time');
+    const range=document.getElementById(prefix+'TimeRange');
+    const output=document.getElementById(prefix+'TimeOutput');
+    const hour=document.getElementById(prefix+'Hour');
+    const minute=document.getElementById(prefix+'Minute');
+    const period=document.getElementById(prefix+'Period');
+    if(!hidden||!range||!output||!hour||!minute||!period) return;
+
+    let current=time24ToMinutes(hidden.value,defaultMinutes);
+
+    function render(total, updateHidden=true){
+      current=clamp(Number(total),0,1439);
+      const t=minutesTo12(current);
+      range.value=String(current);
+      hour.value=String(t.hour);
+      minute.value=pad(t.minute);
+      period.value=t.period;
+      output.textContent=t.label;
+      if(updateHidden) hidden.value=minutesTo24(current);
+    }
+
+    function fromParts(){
+      let h=clamp(parseInt(hour.value||'12',10),1,12);
+      let m=clamp(parseInt(minute.value||'0',10),0,59);
+      hour.value=String(h);
+      minute.value=pad(m);
+      let h24=h%12;
+      if(period.value==='PM') h24+=12;
+      render(h24*60+m);
+    }
+
+    range.addEventListener('input',()=>render(Number(range.value)));
+    range.addEventListener('change',()=>render(Number(range.value)));
+    [hour,minute].forEach(el=>{
+      el.addEventListener('input',fromParts);
+      el.addEventListener('change',fromParts);
+      el.addEventListener('blur',fromParts);
+      el.addEventListener('keydown',e=>{
+        if(e.key==='ArrowUp'||e.key==='ArrowDown') setTimeout(fromParts,0);
+      });
+    });
+    period.addEventListener('change',fromParts);
+
+    render(current);
+  }
+
+  bind('start',0);
+  bind('end',1439);
+})();
+  });
+</script>
 </th:block>
 
 </body>
 </html>
-

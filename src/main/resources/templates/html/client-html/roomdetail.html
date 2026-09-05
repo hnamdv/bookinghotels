@@ -103,11 +103,13 @@
                                         </i>
                                         Đặt ngay
                                     </a>
-                                    <button class="fhp-btn fhp-btn--soft" type="button" th:attr="data-favorite-toggle=${room.id}">
-                                        <i class="bi bi-heart">
-                                        </i>
-                                        Lưu yêu thích
-                                    </button>
+                                    <form method="post" th:action="@{/favorites/toggle}" style="display:contents">
+                                        <input type="hidden" name="roomTypeId" th:value="${room.id}">
+                                        <button class="fhp-btn fhp-btn--soft" type="submit">
+                                            <i th:class="${favoriteRoomIds.contains(room.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                            <span th:text="${favoriteRoomIds.contains(room.id)} ? 'Bỏ yêu thích' : 'Lưu yêu thích'">Lưu yêu thích</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
@@ -348,13 +350,6 @@
         </main>
         <th:block th:replace="~{html/client-html/fragments/public-shell :: footer()}">
         </th:block>
-        <div class="fhp-toast" id="favoriteToast">
-            <i class="bi bi-check-circle-fill">
-            </i>
-            <span>
-            </span>
-        </div>
-        <script src="/js/client-favorites.js?v=20260823-roomdetail-v2"></script>
         <script src="/js/client-countdown.js?v=20260823-roomdetail-v2"></script>
     </body>
 </html>

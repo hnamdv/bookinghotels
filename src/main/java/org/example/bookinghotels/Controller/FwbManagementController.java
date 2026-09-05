@@ -8,10 +8,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-// ⬇️ THÊM 2 IMPORT NÀY ⬇️
-import java.util.List;
-import java.util.Map;
-
 @Controller
 @RequestMapping({"/staff/fwb", "/admin/addons", "/admin/services"})
 public class FwbManagementController {
@@ -31,29 +27,6 @@ public class FwbManagementController {
         model.addAttribute("chargeableServices", fwBService.getChargeableServices());
         model.addAttribute("allItems", fwBService.getAll());
         return "html/admin-html/fwb-management";
-    }
-
-    // ===== API ẨN =====
-    @PostMapping("/{id}/hide")
-    public String hide(@PathVariable Integer id, RedirectAttributes ra) {
-        fwBService.hide(id);
-        ra.addFlashAttribute("success", "Đã ẩn khỏi trang Order.");
-        return "redirect:/staff/fwb/management";
-    }
-
-    // ===== API HIỆN =====
-    @PostMapping("/{id}/show")
-    public String show(@PathVariable Integer id, RedirectAttributes ra) {
-        fwBService.show(id);
-        ra.addFlashAttribute("success", "Đã hiện lại trên trang Order.");
-        return "redirect:/staff/fwb/management";
-    }
-
-    // ===== API cho Order/POS =====
-    @GetMapping("/order-services")
-    @ResponseBody
-    public List<Map<String, Object>> getOrderServices() {
-        return fwBService.getVisibleChargeableServices();
     }
 
     private void fillCommon(Model model, Integer editId) {
@@ -83,6 +56,15 @@ public class FwbManagementController {
         ra.addFlashAttribute("success", resolvedPrice <= 0D
                 ? "Đã lưu tiện ích miễn phí để tick vào loại phòng."
                 : "Đã lưu dịch vụ/phụ thu có giá để khách chọn ở thanh toán/POS.");
+        return "redirect:/staff/fwb/management";
+    }
+
+    @PostMapping("/{id}/hide")
+    public String hide(@PathVariable Integer id,
+                       @RequestParam(required = false, defaultValue = "services") String mode,
+                       RedirectAttributes ra) {
+        fwBService.hide(id);
+        ra.addFlashAttribute("success", "Đã ẩn khỏi danh sách.");
         return "redirect:/staff/fwb/management";
     }
 

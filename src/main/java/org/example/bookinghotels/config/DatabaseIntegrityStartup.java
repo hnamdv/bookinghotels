@@ -31,6 +31,7 @@ public class DatabaseIntegrityStartup implements ApplicationRunner {
         repairSequence("room_type", "id");
         repairSequence("bookings", "id");
         repairSequence("booking_detail", "id");
+        repairSequence("favorite_room", "id");
         repairSequence("invoices", "id");
         detachOrphanInvoices();
     }

@@ -128,10 +128,15 @@
                                 </i>
                                 <span th:text="${room.promotionName}">Ưu đãi đặc biệt</span>
                             </div>
-                            <button class="fhp-heart" type="button" th:attr="data-favorite-toggle=${room.id}" aria-label="Lưu yêu thích">
-                                <i class="bi bi-heart">
-                                </i>
-                            </button>
+                            <form method="post" th:action="@{/favorites/toggle}" style="display:contents">
+                                <input type="hidden" name="roomTypeId" th:value="${room.id}">
+                                <button class="fhp-heart"
+                                        th:classappend="${favoriteRoomIds.contains(room.id)} ? ' is-active' : ''"
+                                        type="submit"
+                                        th:attr="aria-label=${favoriteRoomIds.contains(room.id)} ? 'Bỏ yêu thích' : 'Lưu yêu thích'">
+                                    <i th:class="${favoriteRoomIds.contains(room.id)} ? 'bi bi-heart-fill' : 'bi bi-heart'"></i>
+                                </button>
+                            </form>
                         </div>
                         <div class="fhp-card__body">
                             <div class="fhp-kicker" th:text="${room.hotelName}">
@@ -205,13 +210,6 @@
         </main>
         <th:block th:replace="~{html/client-html/fragments/public-shell :: footer()}">
         </th:block>
-        <div class="fhp-toast" id="favoriteToast">
-            <i class="bi bi-check-circle-fill">
-            </i>
-            <span>
-            </span>
-        </div>
-        <script src="/js/client-favorites.js?v=20260823-fav-offer-v1"></script>
         <script src="/js/client-countdown.js?v=20260823-fav-offer-v1"></script>
     </body>
 </html>

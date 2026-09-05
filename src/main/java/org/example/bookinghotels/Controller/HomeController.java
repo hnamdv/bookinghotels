@@ -4,12 +4,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.bookinghotels.entity.*;
 import org.example.bookinghotels.repository.BookingDetailRepository;
+import org.example.bookinghotels.repository.FavoriteRoomRepository;
 import org.example.bookinghotels.repository.FwbRepository;
 import org.example.bookinghotels.repository.HotelsRepository;
 import org.example.bookinghotels.repository.PromotionRoomTypeRepository;
 import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
+import org.example.bookinghotels.service.FavoriteOwnerService;
 import org.example.bookinghotels.service.SiteBrandingService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +37,8 @@ public class HomeController {
     private final BookingDetailRepository bookingDetailRepository;
     private final PromotionRoomTypeRepository promotionRoomTypeRepository;
     private final FwbRepository fwbRepository;
+    private final FavoriteRoomRepository favoriteRoomRepository;
+    private final FavoriteOwnerService favoriteOwnerService;
     private final HotelsRepository hotelsRepository;
     private final SiteBrandingService brandingService;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -41,6 +48,8 @@ public class HomeController {
                           BookingDetailRepository bookingDetailRepository,
                           PromotionRoomTypeRepository promotionRoomTypeRepository,
                           FwbRepository fwbRepository,
+                          FavoriteRoomRepository favoriteRoomRepository,
+                          FavoriteOwnerService favoriteOwnerService,
                           HotelsRepository hotelsRepository,
                           SiteBrandingService brandingService) {
         this.roomTypeRepository = roomTypeRepository;
@@ -48,6 +57,8 @@ public class HomeController {
         this.bookingDetailRepository = bookingDetailRepository;
         this.promotionRoomTypeRepository = promotionRoomTypeRepository;
         this.fwbRepository = fwbRepository;
+        this.favoriteRoomRepository = favoriteRoomRepository;
+        this.favoriteOwnerService = favoriteOwnerService;
         this.hotelsRepository = hotelsRepository;
         this.brandingService = brandingService;
     }
@@ -162,10 +173,21 @@ public class HomeController {
     @GetMapping({"/favorites", "/favorites.html"})
     public String favorites(@RequestParam(required = false) LocalDate checkin,
                             @RequestParam(required = false) LocalDate checkout,
+                            HttpServletRequest request,
+                            HttpServletResponse response,
+                            Authentication authentication,
                             Model model) {
         DateRange range = normalizeRange(checkin, checkout);
+        String ownerKey = favoriteOwnerService.resolve(request, response, authentication);
+        Set<Integer> favoriteIds = new LinkedHashSet<>(favoriteRoomRepository.findRoomTypeIdsByOwnerKey(ownerKey));
+
+        List<RoomCard> favoriteRooms = buildRoomCards(range.checkin(), range.checkout()).stream()
+                .filter(card -> favoriteIds.contains(card.id()))
+                .toList();
+
         addPublicBranding(model);
-        model.addAttribute("rooms", buildRoomCards(range.checkin(), range.checkout()));
+        model.addAttribute("rooms", favoriteRooms);
+        model.addAttribute("favoritePromoCount", favoriteRooms.stream().filter(RoomCard::hasPromotion).count());
         model.addAttribute("checkin", range.checkin());
         model.addAttribute("checkout", range.checkout());
         return "html/client-html/favorites";

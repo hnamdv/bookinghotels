@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 public class FwBService {
@@ -20,7 +19,6 @@ public class FwBService {
         this.fwbRepository = fwbRepository;
     }
 
-    //  Lấy TẤT CẢ
     public List<Map<String, Object>> getAll() {
         return fwbRepository.findAll().stream()
                 .sorted(Comparator.comparing(FwB::getId, Comparator.nullsLast(Integer::compareTo)))
@@ -28,65 +26,37 @@ public class FwBService {
                 .toList();
     }
 
-    // ===== Trang quản lý: tiện ích miễn phí (price = 0)
+
     public List<Map<String, Object>> getRoomAmenityOptions() {
         return getAll().stream()
-                .filter(item -> {
-                    Object price = item.get("price");
-                    if (price instanceof Number) {
-                        return ((Number) price).doubleValue() <= 0D;
-                    }
-                    return true;
-                })
-                .toList(); \
+                .filter(item -> Number.class.isInstance(item.get("price")) ? ((Number) item.get("price")).doubleValue() <= 0D : true)
+                .filter(item -> isVisible(item))
+                .toList();
     }
 
-    // ===== Trang quản lý: dịch vụ tính phí (price > 0)
     public List<Map<String, Object>> getChargeableServices() {
         return getAll().stream()
-                .filter(item -> {
-                    Object price = item.get("price");
-                    return price instanceof Number && ((Number) price).doubleValue() > 0D;
-                })
+                .filter(item -> Number.class.isInstance(item.get("price")) && ((Number) item.get("price")).doubleValue() > 0D)
+                .filter(item -> isVisible(item))
                 .toList();
     }
 
-    // ===== Trang Order: chỉ lấy dịch vụ có price > 0 và status = ACTIVE =====
-    public List<Map<String, Object>> getVisibleChargeableServices() {
-        return getAll().stream()
-                .filter(item -> {
-                    Object price = item.get("price");
-                    return price instanceof Number && ((Number) price).doubleValue() > 0D;
-                })
-                .filter(this::isActive) // ✅ Chỉ lấy ACTIVE
-                .toList();
-    }
-
-    private boolean isActive(Map<String, Object> item) {
+    private boolean isVisible(Map<String, Object> item) {
         Object status = item.get("status");
-        return status == null || "ACTIVE".equalsIgnoreCase(status.toString());
+        return status == null || !"hidden".equalsIgnoreCase(status.toString());
     }
 
-    @Transactional
-    public void show(Integer id) {
-        fwbRepository.findById(id).ifPresent(f -> {
-            f.setStatus("ACTIVE");
-            fwbRepository.saveAndFlush(f);
-        });
-    }
-
-
-    @Transactional
-    public void hide(Integer id) {
-        fwbRepository.findById(id).ifPresent(f -> {
-            f.setStatus("hidden");
-            fwbRepository.saveAndFlush(f);
-        });
-    }
-
-    // ===== Các method khác giữ nguyên =====
     public List<FwB> findAll() {
         return fwbRepository.findAll();
+    }
+
+    public List<FwB> findActiveServices() {
+        return fwbRepository.findAll().stream()
+                .filter(f -> f.getStatus() == null
+                        || f.getStatus().isBlank()
+                        || "ACTIVE".equalsIgnoreCase(f.getStatus())
+                        || "SHOW".equalsIgnoreCase(f.getStatus()))
+                .toList();
     }
 
     public Optional<FwB> findById(Integer id) {
@@ -109,6 +79,14 @@ public class FwBService {
         }
         fwb.setStatus(blankToDefault(status, "ACTIVE"));
         return fwbRepository.saveAndFlush(fwb);
+    }
+
+    @Transactional
+    public void hide(Integer id) {
+        fwbRepository.findById(id).ifPresent(f -> {
+            f.setStatus("hidden");
+            fwbRepository.saveAndFlush(f);
+        });
     }
 
     public Map<String, Object> toMap(FwB fwb) {

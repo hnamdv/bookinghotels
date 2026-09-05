@@ -32,7 +32,7 @@ public class SecurityConfig {
                         // 1. Các trang public ai cũng vào được
                         .requestMatchers(
                                 "/", "/home", "/layout", "/layout.html",
-                                "/favorites", "/favorites.html",
+                                "/favorites", "/favorites.html", "/favorites/**",
                                 "/offers", "/offers.html",
                                 "/roomdetail", "/roomdetail/**",
                                 "/room-detail", "/room-detail.html",
