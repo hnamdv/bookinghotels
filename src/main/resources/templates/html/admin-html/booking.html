@@ -10,8 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
+    <link rel="stylesheet" th:href="@{/css/admin-css/booking.css}">
+</head>
+<style>
+    *{margin:0;padding:0;box-sizing:border-box}
         body{background:#F5F7FC;font-family:'Inter',sans-serif;color:#1E2A3E}
         .dashboard{max-width:1600px;margin:0 auto;padding:20px}
         .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
@@ -48,6 +50,7 @@
         .btn-inline.btn-approve-inline{background:#10B981;color:#fff}
         .btn-inline.btn-paid-inline{background:#059669;color:#fff}
         .btn-inline.btn-checkout-inline{background:#8B5CF6;color:#fff}
+        .btn-inline.btn-checkin-inline{background:#FFCC99;color:#fff}
         .btn-inline.btn-reject-inline{background:#EF4444;color:#fff}
 
         .action-dropdown{position:relative;display:inline-block}
@@ -126,8 +129,7 @@
         .confirm-box .btn-warning-confirm:hover{background:#D97706}
         .confirm-box .btn-info-confirm{background:#3B82F6;color:#fff}
         .confirm-box .btn-info-confirm:hover{background:#2563EB}
-    </style>
-</head>
+</style>
 <body>
 <div layout:fragment="content">
     <div class="dashboard">
@@ -156,6 +158,7 @@
                     <option value="PAID">ĐÃ THANH TOÁN</option>
                     <option value="CHECKED_OUT">ĐÃ TRẢ PHÒNG</option>
                     <option value="CANCELLED">ĐÃ HỦY</option>
+                    <option value="CHECKED_IN">ĐÃ NHẬN PHÒNG</option>
                 </select>
             </div>
             <div class="filter-group"><label>Từ ngày</label><input type="date" name="startDate"></div>
@@ -202,8 +205,8 @@
                         <span th:if="${(bd.status == 'APPROVED' || bd.status == 'PAID') && (bd.room == null || bd.room.id == null)}" class="room-null" th:attr="onclick='openPickRoomPopup('+${bd.id}+','+${bd.roomType != null ? bd.roomType.id : 0}+')'">
                             <i class="fas fa-plus-circle"></i> Chọn phòng
                         </span>
-                        <span th:if="${(bd.status == 'CHECKED_OUT' || bd.status == 'CANCELLED') && bd.room != null && bd.room.id != null}" class="room-locked" th:text="${bd.room.roomNumber}"></span>
-                        <span th:if="${(bd.status == 'CHECKED_OUT' || bd.status == 'CANCELLED') && (bd.room == null || bd.room.id == null)}" class="text-muted">-</span>
+                        <span th:if="${(bd.status == 'CHECKED_OUT' || bd.status == 'CANCELLED' || bd.status == 'CHECKED_IN') && bd.room != null && bd.room.id != null}" class="room-locked" th:text="${bd.room.roomNumber}"></span>
+                        <span th:if="${(bd.status == 'CHECKED_OUT' || bd.status == 'CANCELLED' || bd.status == 'CHECKED_IN') && (bd.room == null || bd.room.id == null)}" class="text-muted">-</span>
                     </td>
 
                     <td th:text="${bd.roomType != null ? bd.roomType.nameType : ''}"></td>
@@ -243,41 +246,87 @@
                         <span th:if="${!isCancelled && !isCheckedOut}" class="due-amount" th:style="${totalFB > 0} ? 'color:#D97706;' : 'color:#059669;'" th:text="${#numbers.formatInteger(totalFB, 0, 'COMMA') + ' VND'}"></span>
                     </td>
 
+                    <!-- TRẠNG THÁI -->
                     <td>
                         <span class="status-badge"
                               th:classappend="${bd.status == 'APPROVED'} ? 'confirmed' : (${bd.status == 'PENDING'} ? 'pending' : (${bd.status == 'CANCELLED'} ? 'cancelled' : (${bd.status == 'PAID'} ? 'paid' : 'checked')))"
-                              th:text="${bd.status == 'PENDING' ? 'CHỜ DUYỆT' : (bd.status == 'APPROVED' ? 'ĐÃ DUYỆT' : (bd.status == 'PAID' ? 'ĐÃ THANH TOÁN' : (bd.status == 'CANCELLED' ? 'ĐÃ HỦY' : 'ĐÃ TRẢ PHÒNG')))}">
+                              th:text="${bd.status == 'PENDING' ? 'CHỜ DUYỆT' : (bd.status == 'APPROVED' ? 'ĐÃ DUYỆT' : (bd.status == 'PAID' ? 'ĐÃ THANH TOÁN' : (bd.status == 'CANCELLED' ? 'ĐÃ HỦY' : (bd.status == 'CHECKED_OUT' ? 'ĐÃ TRẢ PHÒNG' : 'ĐÃ NHẬN PHÒNG'))))}">
                         </span>
                     </td>
 
                     <td>
                         <div class="action-buttons" th:with="
-                            showApprove=${bd.status == 'PENDING'},
-                            showPaid=${bd.status == 'APPROVED' || bd.status == 'PENDING'},
-                            showCheckout=${bd.status == 'PAID'},
-                            showCancel=${bd.status == 'PENDING' || bd.status == 'APPROVED' || bd.status == 'PAID'},
-                            showFood=${bd.status == 'PENDING' || bd.status == 'APPROVED' || bd.status == 'PAID'},
-                            showEdit=${bd.status == 'PENDING'},
-                            totalVisible=${(showApprove ? 1 : 0) + (showPaid ? 1 : 0) + (showCheckout ? 1 : 0) + (showCancel ? 1 : 0) + (showFood ? 1 : 0) + (showEdit ? 1 : 0)}">
+        showApprove=${bd.status == 'PENDING'},
+        showPaid=${bd.status == 'APPROVED' || bd.status == 'PENDING' || bd.status == 'CHECKED_IN'},
+        showCheckin=${bd.status == 'PENDING' || bd.status == 'APPROVED' || bd.status == 'PAID'},
+        showCheckout=${bd.status == 'PAID' || bd.status == 'CHECKED_IN'},
+        showCancel=${bd.status == 'PENDING' || bd.status == 'APPROVED' || bd.status == 'CHECKED_IN'},
+        showFood=${bd.status == 'PENDING' || bd.status == 'APPROVED' || bd.status == 'PAID' || bd.status == 'CHECKED_IN'},
+        showEdit=${bd.status == 'PENDING' || bd.status == 'CHECKED_IN'},
+        totalVisible=${(showApprove ? 1 : 0) + (showPaid ? 1 : 0) + (showCheckin ? 1 : 0) + (showCheckout ? 1 : 0) + (showCancel ? 1 : 0) + (showFood ? 1 : 0) + (showEdit ? 1 : 0)}">
 
                             <div th:if="${totalVisible > 0 && totalVisible <= 2}" style="display:flex; gap:4px; flex-wrap:nowrap;">
-                                <button th:if="${showApprove}" class="btn-inline btn-approve-inline" th:attr="onclick='approveBooking('+${bd.id}+')'"><i class="fas fa-check"></i> Duyệt</button>
-                                <button th:if="${showPaid && bd.status == 'APPROVED'}" class="btn-inline btn-paid-inline" th:attr="onclick='markAsPaid('+${bd.id}+')'"><i class="fas fa-money-bill-wave"></i> Thanh toán</button>
-                                <button th:if="${showCheckout}" class="btn-inline btn-checkout-inline" th:attr="onclick='checkOutBooking('+${bd.id}+')'"><i class="fas fa-door-open"></i> Trả phòng</button>
-                                <button th:if="${showCancel}" class="btn-inline btn-reject-inline" th:onclick="'cancelBooking('+${bd.id}+')'"><i class="fas fa-times"></i> Hủy</button>
-                                <button th:if="${showFood}" class="btn-inline btn-food-inline" th:onclick="'openFoodPopup(' + ${bd.id} + ')'"><i class="fas fa-utensils"></i> F&B</button>
-                                <button th:if="${showEdit}" class="btn-inline" style="background:#F59E0B;color:#fff;" th:attr="onclick='openEditBooking('+${bd.id}+')'"><i class="fas fa-edit"></i> Sửa</button>
+                                <button th:if="${showApprove}" class="btn-inline btn-approve-inline" th:attr="onclick='approveBooking('+${bd.id}+')'">
+                                    <i class="fas fa-check"></i> Duyệt
+                                </button>
+
+                                <button th:if="${showCheckin && bd.status != 'CHECKED_IN'}" class="btn-inline btn-checkin-inline" th:attr="onclick='checkInBooking('+${bd.id}+')'">
+                                    <i class="fas fa-sign-in-alt"></i> Nhận phòng
+                                </button>
+
+                                <button th:if="${showPaid && bd.status == 'APPROVED'}" class="btn-inline btn-paid-inline" th:attr="onclick='markAsPaid('+${bd.id}+')'">
+                                    <i class="fas fa-money-bill-wave"></i> Thanh toán
+                                </button>
+
+                                <button th:if="${showCheckout}" class="btn-inline btn-checkout-inline" th:attr="onclick='checkOutBooking('+${bd.id}+')'">
+                                    <i class="fas fa-door-open"></i> Trả phòng
+                                </button>
+
+                                <button th:if="${showCancel}" class="btn-inline btn-reject-inline" th:onclick="'cancelBooking('+${bd.id}+')'">
+                                    <i class="fas fa-times"></i> Hủy
+                                </button>
+
+                                <button th:if="${showFood}" class="btn-inline btn-food-inline" th:onclick="'openFoodPopup(' + ${bd.id} + ')'">
+                                    <i class="fas fa-utensils"></i> F&B
+                                </button>
+
+                                <button th:if="${showEdit}" class="btn-inline" style="background:#F59E0B;color:#fff;" th:attr="onclick='openEditBooking('+${bd.id}+')'">
+                                    <i class="fas fa-edit"></i> Sửa
+                                </button>
                             </div>
 
                             <div th:if="${totalVisible > 2}" class="action-dropdown">
-                                <button class="dropdown-toggle" onclick="toggleDropdown(event, this)"><i class="fas fa-ellipsis-v"></i></button>
+                                <button class="dropdown-toggle" onclick="toggleDropdown(event, this)">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
                                 <div class="dropdown-menu">
-                                    <button th:if="${showApprove}" class="btn-approve-menu" th:attr="onclick='approveBooking('+${bd.id}+'); closeDropdown(this);'"><i class="fas fa-check-circle"></i> Duyệt booking</button>
-                                    <button th:if="${showPaid && bd.status == 'APPROVED'}" class="btn-paid-menu" th:attr="onclick='markAsPaid('+${bd.id}+'); closeDropdown(this);'"><i class="fas fa-money-bill-wave"></i> Xác nhận thanh toán</button>
-                                    <button th:if="${showCheckout}" class="btn-checkout-menu" th:attr="onclick='checkOutBooking('+${bd.id}+'); closeDropdown(this);'"><i class="fas fa-door-open"></i> Trả phòng</button>
-                                    <button th:if="${showFood}" class="btn-food-menu" th:onclick="'openFoodPopup(' + ${bd.id} + '); closeDropdown(this);'"><i class="fas fa-utensils"></i> Gọi F&B</button>
-                                    <button th:if="${showEdit}" style="color:#F59E0B;" th:attr="onclick='openEditBooking('+${bd.id}+'); closeDropdown(this);'"><i class="fas fa-edit"></i> Sửa thông tin</button>
-                                    <button th:if="${showCancel}" class="btn-reject-menu" th:onclick="'cancelBooking('+${bd.id}+'); closeDropdown(this);'"><i class="fas fa-times-circle"></i> Hủy booking</button>
+                                    <button th:if="${showApprove}" class="btn-approve-menu" th:attr="onclick='approveBooking('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-check-circle"></i> Duyệt booking
+                                    </button>
+
+                                    <button th:if="${showCheckin && bd.status != 'CHECKED_IN'}" th:attr="onclick='checkInBooking('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-sign-in-alt"></i> Nhận phòng
+                                    </button>
+
+                                    <button th:if="${showPaid && bd.status == 'APPROVED'}" class="btn-paid-menu" th:attr="onclick='markAsPaid('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-money-bill-wave"></i> Xác nhận thanh toán
+                                    </button>
+
+                                    <button th:if="${showCheckout}" class="btn-checkout-menu" th:attr="onclick='checkOutBooking('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-door-open"></i> Trả phòng
+                                    </button>
+
+                                    <button th:if="${showFood}" class="btn-food-menu" th:onclick="'openFoodPopup(' + ${bd.id} + '); closeDropdown(this);'">
+                                        <i class="fas fa-utensils"></i> Gọi F&B
+                                    </button>
+
+                                    <button th:if="${showEdit}" style="color:#F59E0B;" th:attr="onclick='openEditBooking('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-edit"></i> Sửa thông tin
+                                    </button>
+
+                                    <button th:if="${showCancel}" class="btn-reject-menu" th:onclick="'cancelBooking('+${bd.id}+'); closeDropdown(this);'">
+                                        <i class="fas fa-times-circle"></i> Hủy booking
+                                    </button>
                                 </div>
                             </div>
                         </div>

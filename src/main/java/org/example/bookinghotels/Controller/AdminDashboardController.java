@@ -14,6 +14,7 @@ import org.example.bookinghotels.repository.InvoicesRepository;
 import org.example.bookinghotels.repository.RoomRepository;
 import org.example.bookinghotels.repository.RoomTypeRepository;
 import org.example.bookinghotels.entity.Invoices;
+import org.example.bookinghotels.service.EmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -51,6 +52,9 @@ public class AdminDashboardController {
 
     @Autowired
     private InvoicesRepository invoicesRepository;
+
+    @Autowired
+    private EmailService emailService;
 
     @GetMapping("/bookings")
     public String bookingManagement(Model model,
@@ -155,6 +159,8 @@ public class AdminDashboardController {
         Map<String, Object> res = new HashMap<>();
 
         try {
+            System.out.println("=== WALK-IN DATA: " + data + " ===");
+
             Integer roomTypeId = getInteger(data.get("roomTypeId"));
             String customerName = (String) data.get("customerName");
             String customerPhone = (String) data.get("customerPhone");
@@ -203,9 +209,6 @@ public class AdminDashboardController {
                 return ResponseEntity.badRequest().body(res);
             }
 
-            // Tìm phòng trống
-            List<Room> availableRooms = roomRepository.findAvailableRooms(roomTypeId, checkinDate, checkoutDate);
-
             // Tạo Booking
             Booking booking = new Booking();
             booking.setName(customerName);
@@ -217,6 +220,7 @@ public class AdminDashboardController {
             booking.setDeleteAt(false);
 
             Booking savedBooking = bookingRepository.save(booking);
+            System.out.println("✅ Saved booking ID: " + savedBooking.getId());
 
             // Tạo BookingDetail
             BookingDetail detail = new BookingDetail();
@@ -225,30 +229,35 @@ public class AdminDashboardController {
             detail.setAdultCount(adultCount != null ? adultCount : 1);
             detail.setChildCount(childCount != null ? childCount : 0);
             detail.setRoomQuantity(1);
-            detail.setPrice(roomType.getPrice());
+            detail.setPrice(roomType.getPrice() != null ? roomType.getPrice() : 0);
             detail.setDiscountAmount(0.0);
             detail.setStatus("PENDING");
             detail.setDeleteAt(false);
 
             // Gán phòng nếu có
-            if (!availableRooms.isEmpty()) {
+            List<Room> availableRooms = roomRepository.findAvailableRooms(roomTypeId, checkinDate, checkoutDate);
+            if (availableRooms != null && !availableRooms.isEmpty()) {
                 detail.setRoom(availableRooms.get(0));
             }
 
             BookingDetail savedDetail = bookingDetailRepository.save(detail);
+            System.out.println("✅ Saved booking detail ID: " + savedDetail.getId());
 
             // Tính tổng tiền
             double totalAmount = roomType.getPrice() != null ? roomType.getPrice() : 0;
 
-            // Tạo Invoice
-            if (paymentMethod != null && !paymentMethod.isBlank()) {
+            // Tạo Invoice - KHÔNG setUser vì user null
+            try {
                 Invoices invoice = new Invoices();
                 invoice.setBooking(savedBooking);
                 invoice.setTotalAmount(totalAmount);
                 invoice.setPaymentMethod(paymentMethod);
                 invoice.setPaymentStatus("PENDING");
-                invoice.setUser(detail.getUser());
+                // ❌ KHÔNG SET USER
                 invoicesRepository.save(invoice);
+                System.out.println("✅ Saved invoice");
+            } catch (Exception e) {
+                System.err.println("⚠️ Không tạo được invoice: " + e.getMessage());
             }
 
             res.put("success", true);
@@ -262,6 +271,7 @@ public class AdminDashboardController {
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("❌ LỖI WALK-IN: " + e.getMessage());
             res.put("success", false);
             res.put("message", "Lỗi: " + e.getMessage());
             return ResponseEntity.status(500).body(res);
@@ -335,6 +345,7 @@ public class AdminDashboardController {
                 bookingDetailRepository.save(detail);
                 res.put("success", true);
                 res.put("message", "Đã cập nhật trạng thái thanh toán thành công!");
+                emailService.sendStatusChangeNotification(detail, "PAID");
                 return ResponseEntity.ok(res);
             }
             res.put("success", false);
@@ -363,6 +374,7 @@ public class AdminDashboardController {
                 bookingDetailRepository.save(detail);
                 res.put("success", true);
                 res.put("message", "Đã duyệt đơn và gán phòng thành công!");
+                emailService.sendStatusChangeNotification(detail, "APPROVED");
                 return ResponseEntity.ok(res);
             }
             res.put("success", false);
@@ -374,7 +386,29 @@ public class AdminDashboardController {
             return ResponseEntity.status(500).body(res);
         }
     }
+    // API hủy booking khi đóng QR
+    @PutMapping("/api/cancel-booking/{bookingId}")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> cancelBookingByQr(@PathVariable Integer bookingId) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            // Tìm tất cả booking detail của booking
+            List<BookingDetail> details = bookingDetailRepository.findByBookingId(bookingId);
 
+            for (BookingDetail detail : details) {
+                detail.setStatus("CANCELLED");
+                bookingDetailRepository.save(detail);
+            }
+
+            res.put("success", true);
+            res.put("message", "Đã hủy booking thành công!");
+            return ResponseEntity.ok(res);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(res);
+        }
+    }
     // API hủy đơn đặt phòng
     @PutMapping("/api/booking-details/{id}/reject")
     @ResponseBody
@@ -387,6 +421,7 @@ public class AdminDashboardController {
                 bookingDetailRepository.save(detail);
                 res.put("success", true);
                 res.put("message", "Đã hủy đơn thành công!");
+                emailService.sendStatusChangeNotification(detail, "CANCELLED");
                 return ResponseEntity.ok(res);
             }
             res.put("success", false);
@@ -520,6 +555,7 @@ public class AdminDashboardController {
     @ResponseBody
     public ResponseEntity<Map<String, Object>> saveFoodsForDetail(@PathVariable Integer id, @RequestBody List<Map<String, Object>> items) {
         Map<String, Object> res = new HashMap<>();
+
         try {
             BookingDetail detail = bookingDetailRepository.findById(id).orElse(null);
             if (detail == null) {
@@ -527,29 +563,23 @@ public class AdminDashboardController {
                 res.put("message", "Không tìm thấy chi tiết đặt phòng");
                 return ResponseEntity.badRequest().body(res);
             }
-
             List<BookingFB> existing = bookingFBRepository.findByBookingDetailId(id);
             bookingFBRepository.deleteAll(existing);
-
             for (Map<String, Object> map : items) {
                 Integer fwbId = null;
                 Integer qty = null;
-
                 Object fwbIdObj = map.get("fwbId");
                 Object qtyObj = map.get("quantity");
-
                 if (fwbIdObj instanceof Number) {
                     fwbId = ((Number) fwbIdObj).intValue();
                 } else if (fwbIdObj instanceof String) {
                     try { fwbId = Integer.parseInt((String) fwbIdObj); } catch (NumberFormatException e) {}
                 }
-
                 if (qtyObj instanceof Number) {
                     qty = ((Number) qtyObj).intValue();
                 } else if (qtyObj instanceof String) {
                     try { qty = Integer.parseInt((String) qtyObj); } catch (NumberFormatException e) {}
                 }
-
                 if (fwbId != null && qty != null && qty > 0) {
                     FwB fwb = fwbRepository.findById(fwbId).orElse(null);
                     if (fwb != null) {
@@ -584,6 +614,31 @@ public class AdminDashboardController {
                 bookingDetailRepository.save(detail);
                 res.put("success", true);
                 res.put("message", "Đã trả phòng thành công!");
+                emailService.sendStatusChangeNotification(detail, "CHECKED_OUT");
+                return ResponseEntity.ok(res);
+            }
+            res.put("success", false);
+            res.put("message", "Không tìm thấy đơn đặt phòng");
+            return ResponseEntity.badRequest().body(res);
+        } catch (Exception e) {
+            res.put("success", false);
+            res.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(res);
+        }
+    }
+    // API check-in
+    @PutMapping("/api/booking-details/{id}/check-in")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> checkInBooking(@PathVariable Integer id) {
+        Map<String, Object> res = new HashMap<>();
+        try {
+            BookingDetail detail = bookingDetailRepository.findById(id).orElse(null);
+            if (detail != null) {
+                detail.setStatus("CHECKED_IN");
+                bookingDetailRepository.save(detail);
+                res.put("success", true);
+                res.put("message", "Đã nhận phòng!");
+                emailService.sendStatusChangeNotification(detail, "CHECKED_IN");
                 return ResponseEntity.ok(res);
             }
             res.put("success", false);

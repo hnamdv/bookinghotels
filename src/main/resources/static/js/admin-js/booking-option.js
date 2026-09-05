@@ -35,7 +35,7 @@ const BOOKING_STATUS = {
     PAID: 'PAID',
     CHECKED_OUT: 'CHECKED_OUT',
     CANCELLED: 'CANCELLED',
-    NO_SHOW: 'NO_SHOW'
+    CHECK_IN:'CHECK_IN'
 };
 
 // ===== PHƯƠNG THỨC THANH TOÁN =====

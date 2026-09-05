@@ -55,7 +55,21 @@ const API = {
             return { success: false, message: 'Lỗi kết nối server' };
         }
     },
-
+     // ===== CHECKIN =====
+        checkin: async (detailId, roomId = null) => {
+            try {
+                let url = '/admin/api/booking-details/' + detailId + '/check-in';
+                if (roomId) url += '?roomId=' + roomId;
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Approve API error:', error);
+                return { success: false, message: 'Lỗi kết nối server' };
+            }
+        },
     // ===== MARK AS PAID =====
     markAsPaid: async (detailId) => {
         try {
@@ -69,7 +83,18 @@ const API = {
             return { success: false, message: 'Lỗi kết nối server' };
         }
     },
-
+    cancelBookingByQr: async (bookingId) => {
+            try {
+                const response = await fetch('/admin/api/cancel-booking/' + bookingId, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                return await response.json();
+            } catch (error) {
+                console.error('Cancel booking by QR API error:', error);
+                return { success: false, message: 'Lỗi kết nối server' };
+            }
+        },
     // ===== CHECKOUT =====
     checkout: async (detailId) => {
         try {

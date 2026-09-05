@@ -49,10 +49,39 @@ function startWalkInPaymentChecking(bookingId) {
     }, 3000);
 }
 
+// Đóng modal - GIỮ booking (không hủy)
+function closeWalkInQrModalOnly() {
+    if (walkInPaymentInterval) clearInterval(walkInPaymentInterval);
+    document.getElementById('walkInQrModal').classList.remove('active');
+
+    createdBookingIdForQr = null;
+    walkInPaymentInterval = null;
+    isWalkInProcessing = false;
+
+    showToast('Đã đóng, đơn vẫn ở trạng thái chờ duyệt', 'warning');
+    setTimeout(() => location.reload(), 500);
+}
+
+// Hủy booking khi đóng QR
 function cancelWalkInQrModal() {
     if (walkInPaymentInterval) clearInterval(walkInPaymentInterval);
     document.getElementById('walkInQrModal').classList.remove('active');
-    location.reload();
+
+    if (createdBookingIdForQr) {
+        API.cancelBookingByQr(createdBookingIdForQr)
+            .then(res => {
+                showToast('Đã hủy đơn', 'warning');
+            })
+            .catch(err => {
+                console.error('Lỗi hủy booking:', err);
+            });
+    }
+
+    createdBookingIdForQr = null;
+    walkInPaymentInterval = null;
+    isWalkInProcessing = false;
+
+    setTimeout(() => location.reload(), 500);
 }
 
 // ===== FOOD POPUP =====

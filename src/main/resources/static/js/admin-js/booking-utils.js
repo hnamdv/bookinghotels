@@ -21,9 +21,9 @@ function getStatusBadge(status) {
         'APPROVED': { text: 'ĐÃ DUYỆT', class: 'confirmed' },
         'CONFIRMED': { text: 'ĐÃ XÁC NHẬN', class: 'confirmed' },
         'PAID': { text: 'ĐÃ THANH TOÁN', class: 'paid' },
-        'CHECKED_OUT': { text: 'ĐÃ TRẢ PHÒNG', class: 'checked' },
+        'CHECKED_OUT': { text: 'ĐÃ TRẢ PHÒNG', class: 'check_out' },
         'CANCELLED': { text: 'ĐÃ HỦY', class: 'cancelled' },
-        'NO_SHOW': { text: 'KHÔNG ĐẾN', class: 'cancelled' }
+        'CHECK_IN': { text: 'ĐÃ ĐẾN', class: 'check_in' }
     };
 
     return statusMap[status] || { text: status, class: '' };

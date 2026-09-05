@@ -121,14 +121,15 @@
         </div>
 
         <div>
-            <a href="/" class="btn-cancel-custom">
+            <!-- ĐÃ THÊM id="btnCancelBooking" ĐỂ BẮT SỰ KIỆN HỦY -->
+            <a href="/" id="btnCancelBooking" class="btn-cancel-custom">
                 <i class="fas fa-arrow-left me-1"></i> Hủy giao dịch / Về trang chủ
             </a>
         </div>
     </div>
 </div>
 
-<!-- SCRIPT TỰ ĐỘNG KIỂM TRA THANH TOÁN VÀ ĐIỀU HƯỚNG -->
+<!-- SCRIPT TỰ ĐỘNG KIỂM TRA THANH TOÁN VÀ XỬ LÝ HỦY GIAO DỊCH -->
 <script th:inline="javascript">
     /*<![CDATA[*/
     var bookingId = /*[[${booking.id}]]*/ 0;
@@ -168,6 +169,29 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         startPaymentChecking();
+
+        // XỬ LÝ KHI BẤM NÚT HỦY GIAO DỊCH
+        const cancelBtn = document.getElementById('btnCancelBooking');
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function(e) {
+                e.preventDefault(); // Ngăn chuyển trang ngay lập tức
+
+                if (paymentInterval) clearInterval(paymentInterval);
+
+                // Gọi API hủy đơn ở backend để cập nhật trạng thái thành CANCELLED
+                fetch('/booking/api/cancel-booking/' + bookingId, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    window.location.href = "/";
+                })
+                .catch(error => {
+                    console.error('Lỗi khi hủy:', error);
+                    window.location.href = "/";
+                });
+            });
+        }
     });
 </script>
 
